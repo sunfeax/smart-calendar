@@ -7,7 +7,9 @@
     "back": "npm --prefix apps/backend run start:dev",
     "lint": "eslint apps",
     "format": "prettier --write .",
-    "format:check": "prettier --check ."
+    "format:check": "prettier --check .",
+    "db:up": "docker compose up -d db",
+    "db:down": "docker compose down"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",

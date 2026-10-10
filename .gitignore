@@ -8,6 +8,9 @@ out-tsc/
 tmp/
 *.tsbuildinfo
 
+# Prisma
+/apps/backend/src/generated/prisma
+
 # Angular
 .angular/
 
@@ -44,3 +47,7 @@ logs/
 # OS
 .DS_Store
 Thumbs.db
+
+# AI
+.claude
+.agents
