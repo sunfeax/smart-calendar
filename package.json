@@ -1,0 +1,21 @@
+{
+  "name": "smart-calendar",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "front": "npm --prefix apps/frontend start",
+    "back": "npm --prefix apps/backend run start:dev",
+    "lint": "eslint apps",
+    "format": "prettier --write .",
+    "format:check": "prettier --check ."
+  },
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "angular-eslint": "^22.5.0",
+    "eslint": "^10.12.0",
+    "globals": "^17.13.0",
+    "prettier": "^3.9.10",
+    "typescript": "~6.0.2",
+    "typescript-eslint": "^8.71.1"
+  }
+}

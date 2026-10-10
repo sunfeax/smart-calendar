@@ -1,0 +1,46 @@
+# Dependencies
+node_modules/
+
+# Build output
+dist/
+build/
+out-tsc/
+tmp/
+*.tsbuildinfo
+
+# Angular
+.angular/
+
+# Tests
+coverage/
+.nyc_output/
+__screenshots__/
+
+# Logs
+logs/
+*.log
+
+# Environment
+.env
+.env.*.local
+.env.local
+
+# IDEs and editors
+.idea/
+.project
+.classpath
+.c9/
+*.launch
+.settings/
+*.sublime-workspace
+.history/
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+!.vscode/mcp.json
+
+# OS
+.DS_Store
+Thumbs.db

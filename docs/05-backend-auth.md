@@ -10,15 +10,18 @@
 Все пути под `/api`.
 
 **Авторизация**
+
 - `POST /auth/google`: принимает ID token, ставит cookie сессии.
 - `POST /auth/logout`
 - `GET /auth/me`
 
 **Календари**
+
 - `GET /calendars`, `POST /calendars`, `PATCH /calendars/:id`, `DELETE /calendars/:id`
 - Участники и приглашения: позже.
 
 **События**
+
 - `GET /calendars/:id/events?from=&to=`
 - `POST /calendars/:id/events`
 - `PATCH /events/:id`, `DELETE /events/:id`
@@ -26,9 +29,11 @@
 - Пропуск повторения: `POST /events/:id/exceptions`
 
 **Теги**
+
 - Категории и теги календаря: стандартный CRUD под `/calendars/:id/tag-categories` и `/tag-categories/:id/tags`.
 
 **Прочее**
+
 - Экспорт: `GET /calendars/:id/export?format=json|ics`.
 
 API описывается через Swagger, из него генерируется клиент для Angular.

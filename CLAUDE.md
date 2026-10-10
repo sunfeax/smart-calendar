@@ -1,6 +1,6 @@
 # CLAUDE.md
 
-Notion-style календарь: Angular + FullCalendar на фронтенде, NestJS + Prisma + PostgreSQL на бэкенде, вход только через Google. Проект личный, основной пользователь один-два человека. Статус: планирование, код ещё не начат.
+Notion-style календарь: Angular + FullCalendar на фронтенде, NestJS + Prisma + PostgreSQL на бэкенде, вход только через Google. Проект личный, основной пользователь один-два человека. Статус: проекты созданы (шаблоны Angular CLI и Nest CLI), функциональности ещё нет.
 
 Подробная документация лежит в `docs/`. Перед нетривиальной задачей прочитай нужный файл, а не угадывай:
 
@@ -35,32 +35,46 @@ Notion-style календарь: Angular + FullCalendar на фронтенде,
 ```
 .
 ├── apps/
-│   ├── web/              # Angular + Material + FullCalendar
-│   └── api/              # NestJS + Prisma
+│   ├── frontend/         # Angular + Material + FullCalendar
+│   └── backend/          # NestJS + Prisma
 ├── docs/                 # документация проекта
-├── docker-compose.yml    # Postgres для разработки, позже весь стек
+├── eslint.config.js      # общий ESLint для обоих приложений
+├── tsconfig.base.json    # общие флаги строгости TS, его расширяют оба tsconfig
+├── .prettierrc           # общий Prettier
+├── .editorconfig, .gitignore, .vscode/
 ├── CLAUDE.md
-└── package.json          # workspaces
+└── package.json          # только тулинг (ESLint, Prettier) и скрипты-обёртки
 ```
+
+Позже появится `docker-compose.yml` (Postgres для разработки, потом весь стек).
+
+Workspaces нет: у каждого приложения свой `package.json`, `package-lock.json` и `node_modules`. Корневой `npm i` ставит только тулинг, зависимости приложений ставятся в их папках.
+
+Общие конфиги живут только в корне. Не создавай `.prettierrc`, `.gitignore`, `.editorconfig`, конфиг ESLint внутри `apps/*`: Prettier берёт ближайший конфиг и не сливает его с корневым. Специфичные настройки TS (`module`, `target`, Angular-опции) остаются в tsconfig приложения.
+
+Бэкенд работает как ESM (`"type": "module"`): относительные импорты пишутся с расширением `.js`. Тесты на обоих концах на Vitest.
 
 ## Команды
 
-Заполнить после создания проектов. Ожидаемый набор:
-
 ```bash
-# БД
-docker compose up -d db
+# Из корня
+npm run front          # ng serve, http://localhost:4200
+npm run back           # nest start --watch, порт из PORT или 3000
+npm run lint           # ESLint по обоим приложениям
+npm run format         # Prettier --write по всему репозиторию
+npm run format:check
 
-# Бэкенд (apps/api)
-npm run start:dev --workspace apps/api
-npx prisma migrate dev          # применить и создать миграцию
-npx prisma studio               # просмотр данных
-npm test --workspace apps/api
+# Бэкенд (cd apps/backend)
+npm test
+npm run test:e2e
+npm run build
 
-# Фронтенд (apps/web)
-npm start --workspace apps/web
-npm test --workspace apps/web
+# Фронтенд (cd apps/frontend)
+npm test
+npm run build
 ```
+
+Prisma и Docker ещё не подключены, их команды добавить при подключении.
 
 ## Ключевые решения (кратко)
 
