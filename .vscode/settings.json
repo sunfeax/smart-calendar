@@ -13,5 +13,6 @@
   "html.autoClosingTags": true,
   "js/ts.autoClosingTags.enabled": true,
   "editor.stickyScroll.enabled": true,
-  "editor.bracketPairColorization.enabled": true
+  "editor.bracketPairColorization.enabled": true,
+  "js/ts.preferences.includePackageJsonAutoImports": "on"
 }
