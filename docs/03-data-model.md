@@ -1,6 +1,6 @@
 # Модель данных
 
-Эскиз схемы Prisma. Синтаксис нужно проверить под актуальную версию Prisma при создании проекта.
+Целевая схема Prisma (Prisma 7, PostgreSQL). Добавляется порциями, см. раздел «Порядок внедрения». Синтаксис проверяйте командами `npx prisma format` и `npx prisma validate`.
 
 ## Сущности
 
@@ -13,7 +13,16 @@
 - **EventTag**: связь событий и тегов (многие ко многим).
 - **EventException**: исключения для повторяющихся событий (пропущенное или изменённое повторение).
 
-## Схема (эскиз)
+## Как читать схему
+
+- **Колонки** это обычные поля со скалярным типом (`String`, `DateTime`, `Boolean`...). Они реально есть в таблице. Внешний ключ, например `calendarId`, тоже колонка.
+- **Поля-связи** (`calendar`, `members`, `tags`, `createdBy`...) колонок не создают. Это виртуальные поля Prisma, чтобы переходить по связи в коде через `include`. Сторона, где есть `@relation(fields: [...], references: [...])`, хранит внешний ключ.
+- **`@id`** первичный ключ, **`@@id([a, b])`** составной ключ (пара должна быть уникальной).
+- **`@@index`** ускоряет поиск по полям. Индексы ставим под реальные запросы, а не везде.
+- **`@@unique`** запрещает дубликаты по сочетанию полей.
+- Идентификаторы везде строки `uuid()`. В контроллерах Nest для них используется `ParseUUIDPipe`.
+
+## Схема
 
 ```prisma
 enum CalendarRole {
@@ -24,14 +33,14 @@ enum CalendarRole {
 
 model User {
   id          String           @id @default(uuid())
-  googleId    String           @unique   // поле sub из Google ID token
+  googleId    String           @unique // поле sub из Google ID token
   email       String           @unique
   name        String
   avatarUrl   String?
   locale      String           @default("ru")
   theme       String           @default("system")
-  createdAt   DateTime         @default(now())
-  updatedAt   DateTime         @updatedAt
+  createdAt   DateTime         @default(now()) @db.Timestamptz(3)
+  updatedAt   DateTime         @updatedAt @db.Timestamptz(3)
   memberships CalendarMember[]
   events      Event[]          @relation("EventCreator")
 }
@@ -40,8 +49,8 @@ model Calendar {
   id            String           @id @default(uuid())
   name          String
   color         String?
-  createdAt     DateTime         @default(now())
-  updatedAt     DateTime         @updatedAt
+  createdAt     DateTime         @default(now()) @db.Timestamptz(3)
+  updatedAt     DateTime         @updatedAt @db.Timestamptz(3)
   members       CalendarMember[]
   events        Event[]
   tagCategories TagCategory[]
@@ -51,7 +60,7 @@ model CalendarMember {
   calendarId String
   userId     String
   role       CalendarRole @default(EDITOR)
-  createdAt  DateTime     @default(now())
+  createdAt  DateTime     @default(now()) @db.Timestamptz(3)
   calendar   Calendar     @relation(fields: [calendarId], references: [id], onDelete: Cascade)
   user       User         @relation(fields: [userId], references: [id], onDelete: Cascade)
 
@@ -63,7 +72,7 @@ model TagCategory {
   id         String   @id @default(uuid())
   calendarId String
   name       String
-  multiple   Boolean  @default(true)   // можно ли выбрать несколько тегов категории
+  multiple   Boolean  @default(true) // можно ли выбрать несколько тегов категории
   sortOrder  Int      @default(0)
   calendar   Calendar @relation(fields: [calendarId], references: [id], onDelete: Cascade)
   tags       Tag[]
@@ -75,7 +84,7 @@ model Tag {
   id         String      @id @default(uuid())
   categoryId String
   name       String
-  color      String                    // ключ палитры, например "red", "blue"
+  color      String // ключ палитры, например "red", "blue"
   sortOrder  Int         @default(0)
   category   TagCategory @relation(fields: [categoryId], references: [id], onDelete: Cascade)
   events     EventTag[]
@@ -89,15 +98,14 @@ model Event {
   createdById    String?
   title          String
   description    String?
-  startAt        DateTime
-  endAt          DateTime?
+  startAt        DateTime         @db.Timestamptz(3)
+  endAt          DateTime?        @db.Timestamptz(3)
   allDay         Boolean          @default(false)
-  deadline       DateTime?
-  icon           String?                    // "emoji:🎉", "brand:telegram", "url:https://..."
-  recurrenceRule String?                    // строка rrule (RFC 5545)
-  deletedAt      DateTime?                  // мягкое удаление
-  createdAt      DateTime         @default(now())
-  updatedAt      DateTime         @updatedAt
+  completedAt    DateTime?        @db.Timestamptz(3) // отметка «выполнено», null = не выполнено
+  icon           String? // "emoji:🎉", "brand:telegram", "url:https://..."
+  recurrenceRule String? // строка rrule (RFC 5545)
+  createdAt      DateTime         @default(now()) @db.Timestamptz(3)
+  updatedAt      DateTime         @updatedAt @db.Timestamptz(3)
   calendar       Calendar         @relation(fields: [calendarId], references: [id], onDelete: Cascade)
   createdBy      User?            @relation("EventCreator", fields: [createdById], references: [id], onDelete: SetNull)
   tags           EventTag[]
@@ -119,22 +127,50 @@ model EventTag {
 model EventException {
   id            String   @id @default(uuid())
   eventId       String
-  originalStart DateTime            // дата повторения, к которому относится исключение
+  originalStart DateTime @db.Timestamptz(3) // дата повторения, к которому относится исключение
   cancelled     Boolean  @default(false)
-  overrides     Json?               // изменённые поля (на будущее)
+  overrides     Json? // изменённые поля этого повторения (название, время и т.д.)
   event         Event    @relation(fields: [eventId], references: [id], onDelete: Cascade)
 
   @@unique([eventId, originalStart])
 }
 ```
 
-Необязательные поля, которые можно добавить позже: `done` (выполнено) у события, `timezone` у пользователя или календаря.
+У `User` добавится поле `timeZone String` (IANA, например `Europe/Madrid`), см. «Даты».
+
+## Порядок внедрения
+
+Схему добавляем порциями, каждая порция отдельной миграцией: `npm run prisma:migrate -- --name <описание>`, затем `npx prisma generate`. Добавлять поля и таблицы потом дёшево, дороже всего менять устройство связей, поэтому оно выбрано в первой порции.
+
+| Порция | Что добавляется                                                                                                                                                                                  |
+| ------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| 1      | `CalendarRole`, `User` (без `locale` и `theme`), `Calendar`, `CalendarMember`, `Event` (поля `id`, `calendarId`, `title`, `description`, `startAt`, `endAt`, `allDay`, `createdAt`, `updatedAt`) |
+| 2      | `TagCategory`, `Tag`, `EventTag` (теги и категории)                                                                                                                                              |
+| 3      | `icon` и `completedAt` у события, `locale`, `theme` и `timeZone` у пользователя                                                                                                                  |
+| 4      | `recurrenceRule` и `EventException` (повторы)                                                                                                                                                    |
+| 5      | `createdById` у события, если понадобится                                                                                                                                                        |
+
+В каждой порции в схему входят только перечисленные модели и поля. Обратные связи, которые указывают на ещё не добавленные модели (например, `tagCategories` в `Calendar` или `exceptions` в `Event`), добавляются вместе с этими моделями.
 
 ## Правила
 
 ### Доступ
 
-- Любой запрос к событиям, тегам и категориям проходит проверку членства: пользователь должен быть участником календаря с нужной ролью (VIEWER читает, EDITOR и OWNER меняют, управление участниками только OWNER).
+- Любой запрос к событиям, тегам и категориям проходит проверку членства: пользователь должен быть участником календаря с нужной ролью.
+- Права ролей:
+
+| Действие                                                  | OWNER | EDITOR              | VIEWER |
+| --------------------------------------------------------- | ----- | ------------------- | ------ |
+| Смотреть события и теги                                   | да    | да                  | да     |
+| Создавать, менять, удалять события, отмечать выполненными | да    | да                  | нет    |
+| Создавать теги и назначать их событиям                    | да    | да                  | нет    |
+| Создавать ссылку-приглашение                              | да    | да                  | нет    |
+| Удалять участников                                        | да    | да, кроме владельца | нет    |
+| Настройки календаря (название, цвет), удаление календаря  | да    | нет                 | нет    |
+| Удалить владельца из календаря                            | нет   | нет                 | нет    |
+| Передать владение                                         | позже | нет                 | нет    |
+
+- EDITOR никогда не может действовать на OWNER и не может выдать роль выше своей. Новые участники по ссылке получают EDITOR.
 - Это единое место проверки (сервис доступа), а не фильтры, разбросанные по запросам.
 - Теги и категории принадлежат календарю. Событие может использовать теги только своего календаря (проверка в сервисе).
 - Для категории с `multiple = false` сервис не даёт выбрать больше одного тега.
@@ -142,15 +178,16 @@ model EventException {
 
 ### Даты
 
-- Все моменты времени хранятся как `timestamptz`.
+- Все поля с датами имеют атрибут `@db.Timestamptz(3)`. Без него Prisma создаёт в Postgres тип `timestamp(3)` без часового пояса, а календарю нужен `timestamptz`.
 - События на весь день: `allDay = true`, хранится дата (полночь UTC), время игнорируется. В FullCalendar конец такого события «эксклюзивный» (следующий день после последнего), нужно единообразно конвертировать при сохранении и отображении.
 - Не хранить в состоянии `Date`, лучше ISO-строки.
-- Политику часовых поясов нужно решить (`08-open-questions.md`).
+- Часовой пояс задаётся на пользователя: поле `timeZone` (IANA), при первом входе берётся из браузера (`Intl.DateTimeFormat().resolvedOptions().timeZone`), потом меняется в настройках. Календарь показывает время в поясе пользователя. Решение можно пересмотреть, `timestamptz` хранит абсолютное время и от выбора пояса не зависит.
 
 ### Выборка по диапазону
 
 - Фронтенд запрашивает события только за видимый период: `from` и `to`.
 - Индекс `(calendarId, startAt)` обслуживает этот запрос.
+- Событие попадает в период `[from, to)`, если оно начинается до `to` и заканчивается не раньше `from`. Событие без `endAt` считается односуточным (проверяем по `startAt`). На границах периода чаще всего делают ошибки.
 - Повторяющиеся события с `startAt` в прошлом тоже должны попадать в выборку: запрос должен включать события с `recurrenceRule IS NOT NULL` и `startAt <= to`. Развёртывание повторений делается на клиенте (плагин rrule) или на сервере.
 
 ### Иконка
@@ -163,10 +200,14 @@ model EventException {
 ### Повторы
 
 - Основная запись события хранит правило в `recurrenceRule`.
-- Удаление одного повторения создаёт `EventException` с `cancelled = true`.
-- Редактирование одного повторения (через `overrides`) откладываем.
+- Событие хранится один раз, конкретные повторения вычисляются на лету.
+- Действия с повторяющимся событием как в Google Calendar, пользователь выбирает область:
+  - **только это событие**: пропуск создаёт `EventException` с `cancelled = true`, изменение создаёт `EventException` с `overrides` (новое время, название и т.д.);
+  - **это и последующие**: серия делится. У исходной записи в `recurrenceRule` ставится `UNTIL` до этой даты, с этой даты создаётся новая запись со своим правилом и изменениями. Исключения после точки разделения переносятся или удаляются;
+  - **все события**: меняется сама исходная запись (удаление удаляет всю серию).
 
 ### Удаление
 
-- События удаляются мягко (`deletedAt`), чтобы работала отмена. Периодически можно чистить окончательно.
+- Удаление окончательное, мягкого удаления нет. Кнопка «Отменить» работает на клиенте: запрос `DELETE` отправляется только после того, как уведомление закрылось (несколько секунд). Если вкладку закрыть раньше, событие останется. Это безопасная сторона.
+- Архив или корзина: возможно позже (`02-features.md`).
 - Удаление календаря и пользователя каскадно удаляет связанные данные.
