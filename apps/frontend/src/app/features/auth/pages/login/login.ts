@@ -39,7 +39,8 @@ export class Login {
           google.accounts.id.renderButton(this.button().nativeElement, {
             type: 'standard',
             theme: 'outline',
-            size: 'large',
+            size: 'medium',
+            shape: 'pill',
             text: 'signin_with',
             locale: this.language.lang(),
           });

@@ -1,0 +1,43 @@
+// FullCalendar v7 Monarch uses its own tokens. Keep them tied to the app theme.
+full-calendar {
+  --fc-monarch-primary: var(--color-primary);
+  --fc-monarch-primary-foreground: var(--color-on-primary);
+  --fc-monarch-primary-over: var(--color-primary-hover);
+  --fc-monarch-primary-down: var(--color-primary-hover);
+  --fc-monarch-secondary: var(--color-primary-soft);
+  --fc-monarch-secondary-foreground: var(--color-primary-text);
+  --fc-monarch-secondary-over: var(--color-surface-alt);
+  --fc-monarch-secondary-down: var(--color-border-soft);
+  --fc-monarch-tertiary: var(--color-secondary);
+  --fc-monarch-tertiary-foreground: var(--color-on-secondary);
+  --fc-monarch-tertiary-over: color-mix(
+    in srgb,
+    var(--color-secondary) 85%,
+    var(--color-text)
+  );
+  --fc-monarch-tertiary-down: var(--fc-monarch-tertiary-over);
+
+  --fc-monarch-event: var(--color-surface-alt);
+  --fc-monarch-event-contrast: var(--color-text);
+  --fc-monarch-highlight: var(--color-primary-soft);
+  --fc-monarch-now: var(--color-secondary);
+  --fc-monarch-selected: var(--color-primary);
+  --fc-monarch-selected-foreground: var(--color-on-primary);
+  --fc-monarch-selected-over: var(--color-primary-hover);
+  --fc-monarch-selected-down: var(--color-primary-hover);
+  --fc-monarch-outline: var(--color-focus-ring);
+
+  --fc-monarch-popover: var(--color-surface);
+  --fc-monarch-popover-foreground: var(--color-text);
+  --fc-monarch-background: var(--color-surface);
+  --fc-monarch-faint: color-mix(in srgb, var(--color-text) 4%, transparent);
+  --fc-monarch-muted: color-mix(in srgb, var(--color-text) 7%, transparent);
+  --fc-monarch-strong: color-mix(in srgb, var(--color-text) 12%, transparent);
+  --fc-monarch-stronger: color-mix(in srgb, var(--color-text) 16%, transparent);
+  --fc-monarch-strongest: color-mix(in srgb, var(--color-text) 20%, transparent);
+  --fc-monarch-foreground: var(--color-text);
+  --fc-monarch-faint-foreground: var(--color-text-muted);
+  --fc-monarch-muted-foreground: var(--color-text-soft);
+  --fc-monarch-border: var(--color-border-soft);
+  --fc-monarch-strong-border: var(--color-border);
+}

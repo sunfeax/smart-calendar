@@ -1,14 +1,15 @@
 @use '@angular/material' as mat;
 @use '@fontsource-variable/inter';
 @use 'styles/tokens';
+@use 'styles/calendar-theme';
 
 html {
   @include mat.theme(
     (
       color: (
         theme-type: color-scheme,
-        primary: mat.$magenta-palette,
-        tertiary: mat.$violet-palette,
+        primary: mat.$violet-palette,
+        tertiary: mat.$magenta-palette,
       ),
       typography: (
         plain-family: (

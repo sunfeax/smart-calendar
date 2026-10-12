@@ -1,5 +1,14 @@
 <header class="header">
-  <h3 class="header__title">{{ 'app.name' | transloco }}</h3>
+  <a class="header__brand" [routerLink]="routePaths.calendar">
+    <img
+      class="header__logo"
+      src="brand/smart-calendar.svg"
+      alt=""
+      width="40"
+      height="40"
+    />
+    <span class="header__title">{{ 'app.name' | transloco }}</span>
+  </a>
 
   <button
     type="button"

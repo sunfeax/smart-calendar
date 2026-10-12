@@ -1,11 +1,37 @@
 .header {
+  position: relative;
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: var(--gap-md);
-  padding: var(--space-2) var(--space-4);
+  padding: var(--space-3) var(--space-6);
   background: var(--color-surface);
   border-bottom: var(--border-width-sm) solid var(--color-border-soft);
+}
+
+.header::after {
+  content: '';
+  position: absolute;
+  inset-inline: 0;
+  bottom: calc(-1 * var(--border-width-sm));
+  height: var(--border-width-sm);
+  background: var(--gradient-brand-line);
+  opacity: 0.5;
+  pointer-events: none;
+}
+
+.header__brand {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-3);
+  min-width: 0;
+  border-radius: var(--radius-md);
+}
+
+.header__logo {
+  width: var(--space-10);
+  height: var(--space-10);
+  flex-shrink: 0;
 }
 
 .header__title {
@@ -13,20 +39,31 @@
   font-size: var(--font-size-lg);
   font-weight: var(--font-weight-semibold);
   color: var(--color-text);
+  line-height: var(--line-height-tight);
 }
 
 .header__avatar {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: var(--space-8);
-  height: var(--space-8);
+  width: var(--space-10);
+  height: var(--space-10);
+  flex-shrink: 0;
   overflow: hidden;
   border-radius: var(--radius-full);
   background: var(--color-primary-soft);
-  color: var(--color-text);
+  color: var(--color-primary-text);
+  border: var(--border-width-sm) solid var(--color-border);
   font-weight: var(--font-weight-semibold);
   cursor: pointer;
+  transition:
+    border-color var(--duration-fast) var(--ease-standard),
+    background var(--duration-fast) var(--ease-standard);
+}
+
+.header__avatar:hover {
+  border-color: var(--color-primary-text);
+  background: var(--color-surface-alt);
 }
 
 .header__avatar-img {
@@ -35,7 +72,36 @@
   object-fit: cover;
 }
 
-.header__avatar:focus-visible {
+.header__avatar:focus-visible,
+.header__brand:focus-visible {
   outline: var(--border-width-md) solid var(--color-focus-ring);
   outline-offset: var(--border-width-md);
+}
+
+.header__user {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  padding: var(--space-3) var(--space-4);
+  color: var(--color-text);
+  border-bottom: var(--border-width-sm) solid var(--color-border-soft);
+
+  span:last-child {
+    color: var(--color-text-muted);
+    font-size: var(--font-size-sm);
+  }
+}
+
+@media (max-width: 600px) {
+  .header {
+    padding-inline: var(--space-4);
+  }
+
+  .header__brand {
+    gap: var(--space-2);
+  }
+
+  .header__title {
+    font-size: var(--font-size-base);
+  }
 }
