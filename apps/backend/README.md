@@ -1,6 +1,6 @@
 # Backend
 
-Smart Calendar API: NestJS (ESM) + Prisma 7 + PostgreSQL + Vitest.
+Smart Calendar API: NestJS (ESM) + Prisma 7 + PostgreSQL. Sign-in with Google, sessions stored in the database.
 
 See the root `CLAUDE.md` and `docs/05-backend-auth.md` for the API design and project rules.
 
@@ -40,11 +40,7 @@ npm run prisma:studio    # browse data
 
 ## Test
 
-```bash
-npm test             # unit tests (src/**/*.spec.ts)
-npm run test:e2e     # e2e tests (test/)
-npm run test:cov     # coverage
-```
+There are no automated tests yet. Vitest is configured for when they are added.
 
 ## Lint and format
 
@@ -60,3 +56,4 @@ npm run format --prefix ../..
 
 - The project is ESM (`"type": "module"`): relative imports need the `.js` extension.
 - Shared TypeScript strictness flags live in `../../tsconfig.base.json`.
+- All routes are behind the global `AuthGuard`. Mark public routes with `@Public()`.

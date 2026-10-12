@@ -1,6 +1,8 @@
 # Frontend
 
-Smart Calendar web app: Angular 22 (standalone, signals) + Vitest. Angular Material and FullCalendar v7 are planned, not installed yet.
+Smart Calendar web app: Angular 22 (standalone, signals, RxJS for HTTP) + Angular Material + FullCalendar v7.
+
+In development, `ng serve` proxies `/api` to the backend on port 3000 (`proxy.conf.json`). The Google Client ID lives in `src/environments/`.
 
 See the root `CLAUDE.md` and `docs/04-calendar-frontend.md` for the calendar design and project rules.
 
@@ -22,9 +24,7 @@ From the repository root, `npm run front` is the same as `npm start`.
 
 ## Test
 
-```bash
-npm test             # unit tests with Vitest
-```
+There are no automated tests yet. Vitest is configured for when they are added.
 
 ## Lint and format
 

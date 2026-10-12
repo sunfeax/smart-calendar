@@ -1,8 +1,10 @@
 # Гайд: вход через Google (бэкенд + фронтенд)
 
-Пособие для этапа 3 из `06-roadmap.md`. Каждый шаг объясняет, **что** делаем, **почему** именно так и **как**, и заканчивается проверкой. Код дан каркасами: сигнатуры и структура готовы, а то, что пишешь ты, помечено комментариями `// TODO`. В них описана цель и критерий, а подсказка («Подсказка: …») дана только для API, которого в проекте ещё не было. Готового кода в TODO нет: его пишешь сам. Пока каркас не дописан, TypeScript ругается на отсутствующий `return`: это нормально. Общая схема API описана в `05-backend-auth.md`.
+Пособие для этапа 1 из `06-roadmap.md`. Каждый шаг объясняет, **что** делаем, **почему** именно так и **как**, и заканчивается проверкой. Код дан каркасами: сигнатуры и структура готовы, а то, что пишешь ты, помечено комментариями `// TODO`. В них описана цель и критерий, а подсказка («Подсказка: …») дана только для API, которого в проекте ещё не было. Готового кода в TODO нет: его пишешь сам. Пока каркас не дописан, TypeScript ругается на отсутствующий `return`: это нормально. Общая схема API описана в `05-backend-auth.md`.
 
 Читать по порядку: каждый шаг опирается на предыдущие.
+
+**Статус:** бэкенд (шаги 1–5) сделан, в этих шагах описано, как он устроен, с фактическими именами файлов. Фронтенд (шаги 6–9) в работе.
 
 ## Как устроен вход
 
@@ -144,7 +146,7 @@ await app.listen(process.env['PORT'] ?? 3000);
 ```
 
 - `setGlobalPrefix('api')`: все маршруты начинаются с `/api`. На это завязаны прокси фронтенда и reverse proxy в проде.
-- `cookieParser()`: middleware, срабатывает на каждом запросе до контроллеров. Аналог Servlet `Filter`.
+- `cookieParser()`: middleware, срабатывает на каждом запросе до контроллеров.
 - `ValidationPipe`: перед вызовом метода контроллера проверяет тело по DTO. Нарушение правил → 400, метод не вызывается. `whitelist: true` выкидывает поля, которых нет в DTO. Так лишнее поле вроде `role: 'OWNER'` не доедет до сервиса.
 - **Всё до `listen`.** `listen` запускает сервер, и настройка после него уже не применится.
 
@@ -152,7 +154,7 @@ await app.listen(process.env['PORT'] ?? 3000);
 
 ### 3.3. Модули
 
-Модуль в Nest — это примерно пакет плюс `@Configuration` в Spring: он объявляет, какие классы в него входят и что он отдаёт наружу. **В отличие от Spring, ничего не глобально по умолчанию.** Сервис виден другим модулям, только если его модуль указал его в `exports`, а модуль-потребитель добавил этот модуль в `imports`.
+Модуль в Nest объявляет, какие классы в него входят и что он отдаёт наружу. **Ничего не глобально по умолчанию.** Сервис виден другим модулям, только если его модуль указал его в `exports`, а модуль-потребитель добавил этот модуль в `imports`.
 
 Для входа нужны три модуля:
 
@@ -215,7 +217,7 @@ UserService   SessionService ── свои таблицы через PrismaSer
 - **`AuthService` знает сценарий входа**, но не знает, как устроены таблицы.
 - **`UserService` и `SessionService` знают только свои таблицы.** Их используют и другие места: guard, профиль, экран сессий.
 
-В Spring было бы то же самое: `@RestController` → `@Service` со сценарием → сервисы или репозитории. Отдельного слоя репозиториев у нас нет: его роль играет `PrismaService`, он уже типизирован по схеме.
+Отдельного слоя репозиториев у нас нет: его роль играет `PrismaService`, он уже типизирован по схеме.
 
 ### Порядок: снизу вверх
 
@@ -227,7 +229,7 @@ UserService   SessionService ── свои таблицы через PrismaSer
 | 4.2 | `src/session/session.service.ts`   | `create()`: новая сессия                             |
 | 4.3 | `src/user/user.service.ts`         | `upsertFromGoogle()`: найти или создать пользователя |
 | 4.4 | `src/auth/auth.service.ts`         | `loginWithGoogle()`: весь сценарий                   |
-| 4.5 | `src/auth/dto/google-login.dto.ts` | описание тела запроса                                |
+| 4.5 | `src/auth/google-login.dto.ts`     | описание тела запроса                                |
 | 4.6 | `src/auth/auth.controller.ts`      | эндпоинт и cookie                                    |
 
 ### 4.1. Константы сессии
@@ -257,7 +259,7 @@ export const SESSION_COOKIE_OPTIONS: CookieOptions = {
 
 **Что:** создать сессию для пользователя и вернуть токен, который уйдёт в cookie.
 
-**Доступ к БД.** `PrismaModule` глобальный, поэтому `PrismaService` внедряется в любой сервис без импорта модуля. Внедрение через конструктор, как в Spring:
+**Доступ к БД.** `PrismaModule` глобальный, поэтому `PrismaService` внедряется в любой сервис без импорта модуля. Внедрение через конструктор:
 
 ```ts
 @Injectable()
@@ -293,17 +295,17 @@ export class SessionService {
 
 **Откуда `userId` и `userAgent`.** Это параметры метода, `SessionService` не знает, откуда они взялись. Их передаёт `AuthService` (шаг 4.4): `user.id` он получает после `upsert`, а `userAgent` ему отдаёт контроллер из заголовка запроса.
 
-**Как работает хеширование.** Цепочка из трёх вызовов, как `MessageDigest` в Java:
+**Как работает хеширование.** Цепочка из трёх вызовов:
 
-| Node.js                | Java                                   | Что делает                                                                 |
-| ---------------------- | -------------------------------------- | -------------------------------------------------------------------------- |
-| `createHash('sha256')` | `MessageDigest.getInstance("SHA-256")` | создаёт «хешер» нужного алгоритма                                          |
-| `.update(token)`       | `md.update(bytes)`                     | передаёт данные. Можно вызвать несколько раз, если данные приходят частями |
-| `.digest('hex')`       | `md.digest()` + перевод в hex          | завершает расчёт и возвращает строку из 64 шестнадцатеричных символов      |
+| Вызов                  | Что делает                                                                 |
+| ---------------------- | -------------------------------------------------------------------------- |
+| `createHash('sha256')` | создаёт «хешер» нужного алгоритма                                          |
+| `.update(token)`       | передаёт данные. Можно вызвать несколько раз, если данные приходят частями |
+| `.digest('hex')`       | завершает расчёт и возвращает строку из 64 шестнадцатеричных символов      |
 
 Один и тот же токен всегда даёт один и тот же хеш. Поэтому guard сможет найти сессию: посчитает хеш от cookie и поищет по нему.
 
-**Как сохранять через Prisma.** `this.prisma.session.create({ data: { ... } })` — аналог `repository.save(new Session(...))`. В `data` перечисляются поля модели:
+**Как сохранять через Prisma.** `this.prisma.session.create({ data: { ... } })` создаёт строку в таблице. В `data` перечисляются поля модели:
 
 - `id`, `createdAt`, `lastUsedAt` **не передаём**: у них в схеме есть `@default(...)`, значения подставит БД;
 - `userId` — внешний ключ, просто строка с id пользователя. Если такого пользователя нет, Prisma бросит ошибку;
@@ -317,7 +319,7 @@ export class SessionService {
 
 **Почему `randomBytes`, а не `Math.random` или UUID.** `randomBytes` — криптографически стойкий генератор, его результат нельзя предсказать. `Math.random` предсказуем. У UUID v4 случайных только 122 бита, и он задуман как идентификатор, а не как секрет.
 
-**Почему `hashToken` — отдельная функция.** Хеширование понадобится и в шаге 5, когда guard будет искать сессию. Алгоритм должен быть в одном месте: если при создании и при поиске хешировать по-разному, ни одна сессия не найдётся.
+**Почему `hashToken` — отдельная функция.** Хеширование понадобится и в шаге 5, когда guard будет искать сессию. Алгоритм должен быть в одном месте: если при создании и при поиске хешировать по-разному, ни одна сессия не найдётся. В проекте `generateToken()` и `hashToken()` лежат в `src/session/session-token.ts`.
 
 ### 4.3. `UserService.upsertFromGoogle()`
 
@@ -454,7 +456,7 @@ export class GoogleLoginDto {
 }
 ```
 
-**Почему класс, а не `interface`.** Интерфейсы TypeScript стираются при компиляции, во время работы их нет. `ValidationPipe` нужен настоящий класс с декораторами. Аналог — DTO с аннотациями Bean Validation в Java.
+**Почему класс, а не `interface`.** Интерфейсы TypeScript стираются при компиляции, во время работы их нет. `ValidationPipe` нужен настоящий класс с декораторами.
 
 **Почему `!` после `credential`.** Включён `strict`, и TS требует инициализировать поле. Значение заполнит `class-transformer` из тела запроса, а `!` говорит компилятору «поле будет заполнено».
 
@@ -484,7 +486,7 @@ async loginWithGoogle(
 - **`@Headers('user-agent')`**: один заголовок запроса.
 - **`@Res({ passthrough: true })`**: объект ответа Express, чтобы поставить cookie. Без `passthrough` Nest решит, что ответ ты отправляешь сам, проигнорирует `return`, и запрос повиснет. С `passthrough: true` ты только добавляешь cookie, тело Nest отправляет сам. Тип: `import type { Response } from 'express'`.
 
-**`toProfile(user)`.** Маленькая функция в модуле `auth`, возвращает только `id`, `email`, `name`, `avatarUrl`. `googleId` и служебные поля наружу не отдаём: каждое лишнее поле в ответе — это то, на что начнёт полагаться фронтенд и что потом нельзя будет тихо поменять. Она понадобится ещё в `/auth/me`.
+**`toProfile(user)`.** Приватный метод контроллера, возвращает только `id`, `email`, `name`, `avatarUrl`. `googleId` и служебные поля наружу не отдаём: каждое лишнее поле в ответе — это то, на что начнёт полагаться фронтенд и что потом нельзя будет тихо поменять. Она понадобится ещё в `/auth/me`.
 
 **Пока без `@Public()`.** Сгенерированный guard пропускает всё (`return true`) и ещё не зарегистрирован. Метку добавишь в шаге 5.
 
@@ -524,7 +526,7 @@ curl -i -X POST localhost:3000/api/auth/google -H 'Content-Type: application/jso
 
 | #   | Файл                                            | Что внутри                        |
 | --- | ----------------------------------------------- | --------------------------------- |
-| 5.1 | `src/auth/auth.types.ts`                        | тип запроса с пользователем       |
+| 5.1 | `src/auth/auth.model.ts`                        | тип запроса с пользователем       |
 | 5.2 | `src/session/session.service.ts`                | `validate()` и `delete()`         |
 | 5.3 | `src/auth/decorators/public.decorator.ts`       | `@Public()`                       |
 | 5.4 | `src/auth/auth.guard.ts`                        | сама проверка                     |
@@ -534,7 +536,7 @@ curl -i -X POST localhost:3000/api/auth/google -H 'Content-Type: application/jso
 
 ### Что такое guard
 
-Guard — класс с методом `canActivate()`, который Nest вызывает **перед** методом контроллера. Вернул `true` — запрос идёт дальше, бросил `UnauthorizedException` — клиент получает 401, контроллер не вызывается. Аналог — фильтр Spring Security.
+Guard — класс с методом `canActivate()`, который Nest вызывает **перед** методом контроллера. Вернул `true` — запрос идёт дальше, бросил `UnauthorizedException` — клиент получает 401, контроллер не вызывается.
 
 Без guard проверку сессии пришлось бы копировать в каждый эндпоинт, и рано или поздно один из них остался бы без защиты.
 
@@ -546,7 +548,7 @@ Guard положит найденного пользователя и id сес�
 import type { Request } from 'express';
 import type { User } from '../generated/prisma/client.js';
 
-export interface AuthenticatedRequest extends Request {
+export interface AuthReq extends Request {
   user: User;
   sessionId: string;
 }
@@ -559,16 +561,18 @@ export interface AuthenticatedRequest extends Request {
 **`validate(token)`** — по токену из cookie вернуть сессию с пользователем или `null`.
 
 ```ts
+// session.model.ts
 export type SessionWithUser = Session & { user: User };
 
-const RENEW_AFTER_MS = 24 * 60 * 60 * 1000; // 1 day
+// session.constants.ts
+export const SESSION_ONE_DAY_MS = 24 * 60 * 60 * 1000;
 
 async validate(token: string): Promise<{ session: SessionWithUser; renewed: boolean } | null> {
   // TODO 1: find the session with its user in one query:
   //         this.prisma.session.findUnique({ where: { tokenHash: hashToken(token) }, include: { user: true } })
   // TODO 2: no session → return null
   // TODO 3: session.expiresAt <= now → delete it (deleteMany({ where: { id } })) and return null
-  // TODO 4: now - lastUsedAt > RENEW_AFTER_MS → update lastUsedAt = now and expiresAt = now + SESSION_TTL_MS
+  // TODO 4: now - lastUsedAt > SESSION_ONE_DAY_MS → update lastUsedAt = now and expiresAt = now + SESSION_TTL_MS
   //         (update({ where: { id }, data: { ... }, include: { user: true } }) returns the fresh session)
   // TODO 5: return { session, renewed }  (renewed = true only if step 4 ran)
 }
@@ -592,9 +596,9 @@ async delete(id: string): Promise<void> {
 
 ### 5.3. `@Public()`
 
-**Что:** пометка «этот эндпоинт открыт», аналог `@PermitAll` в Spring.
+**Что:** пометка «этот эндпоинт открыт».
 
-**Зачем:** guard будет стоять на **всех** маршрутах, и ему нужно знать, какие пропускать без сессии. Таких сейчас два: вход и шаблонный `GET /` (его можно удалить).
+**Зачем:** guard будет стоять на **всех** маршрутах, и ему нужно знать, какие пропускать без сессии. Сейчас это только вход.
 
 ```ts
 import { SetMetadata } from '@nestjs/common';
@@ -603,7 +607,7 @@ export const IS_PUBLIC_KEY = 'isPublic';
 export const Public = () => SetMetadata(IS_PUBLIC_KEY, true);
 ```
 
-`SetMetadata` вешает на метод метку «ключ → значение». Сам декоратор ничего не делает, он только оставляет пометку, которую прочитает guard. В Java это была бы своя аннотация, которую читают через рефлексию.
+`SetMetadata` вешает на метод метку «ключ → значение». Сам декоратор ничего не делает, он только оставляет пометку, которую прочитает guard.
 
 ### 5.4. `AuthGuard`
 
@@ -623,7 +627,7 @@ export const Public = () => SetMetadata(IS_PUBLIC_KEY, true);
 
    `getHandler()` — метод контроллера, `getClass()` — сам контроллер. Метку можно поставить на метод или на весь контроллер, `getAllAndOverride` проверит оба места.
 
-2. **Достать запрос и cookie:** `context.switchToHttp().getRequest<AuthenticatedRequest>()`, затем `request.cookies[SESSION_COOKIE]`. Нет cookie → `UnauthorizedException`.
+2. **Достать запрос и cookie:** `context.switchToHttp().getRequest<AuthReq>()`, затем `request.cookies[SESSION_COOKIE]`. Нет cookie → `UnauthorizedException`.
 
    `switchToHttp()` нужен потому, что guard в Nest универсальный: он работает и для HTTP, и для WebSocket, и для микросервисов. Мы явно говорим «это HTTP-запрос».
 
@@ -647,7 +651,7 @@ export class AuthGuard implements CanActivate {
     // TODO 1: public route check (code above) → return true
 
     const http = context.switchToHttp();
-    const request = http.getRequest<AuthenticatedRequest>();
+    const request = http.getRequest<AuthReq>();
 
     // TODO 2: const token: unknown = request.cookies[SESSION_COOKIE]
     //         if typeof token !== 'string' → throw new UnauthorizedException()
@@ -675,11 +679,11 @@ providers: [AuthService, { provide: APP_GUARD, useClass: AuthGuard }],
 
 **Почему глобально, а не на каждом контроллере.** Новый эндпоинт закрыт по умолчанию. Забыл `@Public()` — получишь 401 и сразу заметишь. Забыл бы `@UseGuards()` — чужие данные были бы открыты, и этого никто бы не заметил.
 
-**Теперь поставь `@Public()`** на `loginWithGoogle` в контроллере и на `GET /` в `AppController` (или удали `AppController` и `AppService`).
+**Теперь поставь `@Public()`** на метод входа в контроллере. Шаблонные `AppController` и `AppService` удалены, других открытых маршрутов нет.
 
 ### 5.6. `@CurrentUser()`
 
-**Что:** декоратор параметра, который отдаёт залогиненного пользователя. Аналог `@AuthenticationPrincipal` в Spring.
+**Что:** декоратор параметра, который отдаёт залогиненного пользователя.
 
 **Зачем:** guard положил пользователя в `request.user`. Без декоратора каждый метод писал бы `@Req() req` и потом `req.user`, то есть лез бы в объект запроса Express руками. С декоратором контроллер просто объявляет: «мне нужен текущий пользователь».
 
@@ -688,7 +692,7 @@ import { createParamDecorator, type ExecutionContext } from '@nestjs/common';
 
 export const CurrentUser = createParamDecorator(
   (_data: unknown, context: ExecutionContext) =>
-    context.switchToHttp().getRequest<AuthenticatedRequest>().user,
+    context.switchToHttp().getRequest<AuthReq>().user,
 );
 ```
 
@@ -715,7 +719,7 @@ me(@CurrentUser() user: User) {
 @Post('logout')
 @HttpCode(HttpStatus.NO_CONTENT)
 async logout(
-  @Req() req: AuthenticatedRequest,
+  @Req() req: AuthReq,
   @Res({ passthrough: true }) res: Response,
 ): Promise<void> {
   // TODO 1: await this.sessionService.delete(req.sessionId)
@@ -786,7 +790,12 @@ npx ng generate environments
 
 Сервис, который знает, вошёл ли пользователь и кто он. Его читают guard маршрутов, шапка с аватаром, страница входа.
 
-Файл: `src/app/core/auth/auth.service.ts`, `providedIn: 'root'` (один экземпляр на всё приложение).
+Файл: `src/app/features/auth/service/auth.service.ts`, декоратор `@Service()`: сервис автоматически доступен во всём приложении, один экземпляр. Это краткая форма `@Injectable({ providedIn: 'root' })`.
+
+Здесь два инструмента, и каждый на своём месте. Правило проекта (`01-stack.md`):
+
+- **методы возвращают `Observable`**: запрос к API это поток, который отдаёт результат и завершается. `HttpClient` и так возвращает Observable, и его удобно отменять, повторять и комбинировать;
+- **состояние «кто вошёл» хранится в signal**: шаблон и guard читают его синхронно, без подписок.
 
 ### Состояние на signals
 
@@ -794,59 +803,65 @@ npx ng generate environments
 private readonly http = inject(HttpClient);
 private readonly router = inject(Router);
 
-private readonly _user = signal<AuthUser | null>(null);
+private readonly _user = signal<User | null>(null);
 readonly user = this._user.asReadonly();
 readonly isLoggedIn = computed(() => this._user() !== null);
 ```
 
-**Почему signals.** Это правило проекта. К тому же callback кнопки Google вызывается вне Angular, и signal — самый надёжный способ, чтобы интерфейс обновился после входа. `computed` пересчитывается сам, когда меняется `user`.
+**Почему signal, а не `BehaviorSubject`.** Состоянию нужно значение «прямо сейчас», а не поток. Шаблон и guard читают его синхронно, а `computed` пересчитывается сам. Callback кнопки Google вызывается вне Angular, и signal обновляет интерфейс без дополнительных действий.
 
-**Тип `AuthUser`** пока опиши вручную рядом: `id`, `email`, `name`, `avatarUrl?`, ровно то, что возвращает `toProfile` на бэкенде. Когда появится генерация клиента из Swagger, замени на сгенерированный тип: правило проекта запрещает дублировать типы.
+**Тип `User`** пока описан вручную в `src/app/features/auth/models/user.interface.ts`: `id`, `email`, `name`, `avatarUrl`, ровно то, что возвращает `toProfile` на бэкенде. Когда появится генерация клиента из Swagger, замени на сгенерированный тип.
 
-**Наружу только чтение.** Записывать в `_user` может только сам сервис. Компоненты получают `user` через `asReadonly()`: читать можно, вызвать `set` нельзя. Так состояние «кто вошёл» меняется только через методы сервиса.
+**Наружу только чтение.** Записывать в `_user` может только сам сервис. Компоненты получают `user` через `asReadonly()`.
 
-### Методы
+### Методы: Observable и `tap`
 
-**`loadMe()`** — узнать, есть ли сессия:
-
-- `GET /api/auth/me` через `firstValueFrom(this.http.get<AuthUser>(...))`;
-- успех → `_user.set(profile)`;
-- ошибка 401 → `_user.set(null)`. Это **не ошибка**, а нормальное состояние «не вошёл». Не показывай её пользователю и не логируй как сбой;
-- любая другая ошибка (бэкенд упал) → тоже `null`, но её стоит залогировать.
-
-**`loginWithGoogle(credential)`** — `POST /api/auth/google` с `{ credential }`, `_user.set(ответ)`, переход на `/calendar`.
-
-**`logout()`** — `POST /api/auth/logout`, `_user.set(null)`, переход на `/login`.
-
-**Каркас методов:**
+Метод делает запрос и возвращает Observable. Состояние обновляется внутри `tap`, то есть как побочный эффект на пути потока. Сам запрос при этом ничего не меняет, пока кто-то не подписался:
 
 ```ts
-async loadMe(): Promise<void> {
-  try {
-    // TODO 1: const profile = await firstValueFrom(this.http.get<AuthUser>('/api/auth/me'))
-    // TODO 2: this._user.set(profile)
-  } catch (error) {
-    // TODO 3: this._user.set(null)
-    //         log only unexpected errors: !(error instanceof HttpErrorResponse && error.status === 401)
-  }
-}
-
-async loginWithGoogle(credential: string): Promise<void> {
-  // TODO 1: POST '/api/auth/google' with { credential } via firstValueFrom, typed as AuthUser
-  // TODO 2: this._user.set(profile)
-  // TODO 3: await this.router.navigateByUrl('/calendar')
-}
-
-async logout(): Promise<void> {
-  // TODO 1: POST '/api/auth/logout' with an empty body via firstValueFrom
-  // TODO 2: this._user.set(null)
-  // TODO 3: await this.router.navigateByUrl('/login')
+me(): Observable<User> {
+  return this.http.get<User>('/api/auth/me').pipe(
+    tap((user) => this._user.set(user)),
+  );
 }
 ```
 
-Ошибку в `loginWithGoogle` здесь не ловим: её поймает страница входа и покажет сообщение (шаг 8.3).
+Так же устроены остальные методы:
 
-**Почему `firstValueFrom`, а не подписки.** `HttpClient` возвращает Observable, который отдаёт одно значение и завершается. Для таких одиночных запросов `async/await` читается проще, и не нужно думать об отписке. RxJS-цепочки нужны для событий во времени (отмена, гонки), здесь их нет.
+- **`loadMe()`** — `me()` плюс обработка 401: 401 значит «не вошёл», это не ошибка. Такой ответ превращается в `null`, а не в сбой. Для этого `catchError` возвращает `of(null)`, а потом `tap` ставит состояние.
+- **`loginWithGoogle(credential)`** — `POST /api/auth/google` с `{ credential }`, в `tap` записать пользователя в signal. Переход на `/calendar` делает компонент после успешной подписки, а не сервис.
+- **`logout()`** — `POST /api/auth/logout`, в `tap` сбросить пользователя в `null`.
+
+**Почему переход на `/login` и `/calendar` не в сервисе.** Сервис отвечает за состояние и запросы, решение, куда перейти, принадлежит компоненту. Так сервис можно использовать в любом месте.
+
+**Подписка.** Методы сами по себе ничего не делают, пока на них не подписаться. Подписка закрывается сама, как только `HttpClient` отдал ответ и завершился. Для страниц и шаблонов подходит `async`-pipe или `toSignal`, для кода вне шаблонов (например, callback Google) — `subscribe` с обработкой ошибки.
+
+### Каркас методов
+
+```ts
+me(): Observable<User> {
+  // TODO: GET '/api/auth/me' через this.http.get<User>(...), затем tap: сохрани пользователя в _user
+}
+
+loadMe(): Observable<User | null> {
+  // TODO 1: вызови me()
+  // TODO 2: catchError: при 401 верни of(null) и поставь _user в null;
+  //         другие ошибки залогируй и тоже верни of(null)
+  // TODO 3: tap: поставь _user в полученное значение
+}
+
+loginWithGoogle(credential: string): Observable<User> {
+  // TODO: POST '/api/auth/google' с телом { credential }, в tap сохрани пользователя в _user
+}
+
+logout(): Observable<void> {
+  // TODO: POST '/api/auth/logout' с пустым телом, в tap поставь _user в null
+}
+```
+
+Ошибку в `loginWithGoogle` здесь не ловим: её поймает подписка на странице входа и покажет сообщение (шаг 8.3).
+
+**Почему не `firstValueFrom` и не `async`.** Раньше в гайде было `await firstValueFrom(...)`. Это работает, но тогда методы становятся Promise, и теряется возможность отменить или повторить запрос через операторы RxJS. Observable даёт эти возможности, а signal остаётся для состояния.
 
 ### Загрузка при старте
 
@@ -856,7 +871,7 @@ async logout(): Promise<void> {
 provideAppInitializer(() => inject(AuthService).loadMe()),
 ```
 
-**Зачем:** Angular не начнёт навигацию, пока `loadMe()` не завершится. Когда сработает guard маршрутов, состояние «вошёл / не вошёл» уже известно. Без этого guard при перезагрузке страницы увидел бы `null`, отправил бы на `/login`, и только потом пришёл бы ответ `/me`.
+**Зачем:** Angular не начнёт навигацию, пока инициализатор не завершится. Инициализатор ждёт, пока Observable из `loadMe()` выдаст значение и завершится. Поэтому `catchError` и `of(null)` обязательны: без них поток упадёт с ошибкой, и приложение не запустится. Когда сработает guard маршрутов, состояние «вошёл / не вошёл» уже известно. Без этого guard при перезагрузке страницы увидел бы `null`, отправил бы на `/login`, и только потом пришёл бы ответ `/me`.
 
 ## Шаг 8. Фронтенд: страница входа с кнопкой Google
 
@@ -876,7 +891,7 @@ npm i -D @types/google.accounts
 
 **Проблема:** если вставить `<script src="https://accounts.google.com/gsi/client" async>` в `index.html`, он загружается параллельно с приложением. К моменту, когда страница входа захочет нарисовать кнопку, `google` может ещё не существовать. Кроме того, скрипт будет грузиться на всех страницах, а нужен только на одной.
 
-**Решение:** функция, которая вставляет `<script>` сама и возвращает `Promise`, который выполнится, когда скрипт загрузится. Положи её в `src/app/core/auth/google-script.ts`:
+**Решение:** функция, которая вставляет `<script>` сама и возвращает `Promise`, который выполнится, когда скрипт загрузится. Положи её в `src/app/features/auth/google-script.ts`:
 
 1. Если `Promise` уже создан раньше, вернуть его. Так скрипт загружается один раз, даже если страницу входа открыли повторно.
 2. Иначе создать `document.createElement('script')`, задать `src`, `async`, обработчики `onload` → `resolve` и `onerror` → `reject`, добавить в `document.head`.
@@ -889,15 +904,14 @@ const GIS_SRC = 'https://accounts.google.com/gsi/client';
 let loading: Promise<void> | undefined;
 
 export function loadGoogleScript(): Promise<void> {
-  // TODO 1: if (loading) return loading
-  // TODO 2: loading = new Promise((resolve, reject) => {
-  //           const script = document.createElement('script');
-  //           set script.src = GIS_SRC and script.async = true
-  //           script.onload = () => resolve()
-  //           script.onerror = () => { loading = undefined; reject(new Error('...')) }
-  //           document.head.append(script)
-  //         })
-  // TODO 3: return loading
+  // TODO 1: если скрипт уже загружается или загружен, верни тот же Promise.
+  // TODO 2: создай Promise, внутри которого добавь на страницу тег <script> с адресом GIS_SRC
+  //         и атрибутом async. Promise выполняется, когда скрипт загрузился, и отклоняется
+  //         при ошибке загрузки (тогда сбрось loading, чтобы можно было попробовать снова).
+  //         Подсказка: new Promise((resolve, reject) => ...) создаёт Promise вручную;
+  //         document.createElement('script') создаёт тег, у тега есть обработчики onload и onerror,
+  //         document.head.append(...) добавляет тег на страницу.
+  // TODO 3: сохрани Promise в loading и верни его.
 }
 ```
 
@@ -915,19 +929,20 @@ export function loadGoogleScript(): Promise<void> {
 
 ```ts
 private readonly auth = inject(AuthService);
+private readonly router = inject(Router);
 private readonly buttonHost = viewChild.required<ElementRef<HTMLElement>>('googleButton');
+protected readonly loginError = signal(false); // shown in the template when the login fails
 
 constructor() {
   afterNextRender(async () => {
-    await loadGoogleScript();
-    google.accounts.id.initialize({
-      client_id: environment.googleClientId,
-      callback: (response) => void this.auth.loginWithGoogle(response.credential),
-    });
-    google.accounts.id.renderButton(this.buttonHost().nativeElement, {
-      theme: 'outline',
-      size: 'large',
-    });
+    // TODO 1: дождись загрузки скрипта Google (loadGoogleScript из 8.2).
+    // TODO 2: настрой вход: передай Client ID из environment и функцию, которую Google вызовет
+    //         с токеном после выбора аккаунта. В ней отправь токен через auth.loginWithGoogle,
+    //         при успехе перейди на /calendar, при ошибке поставь loginError в true.
+    //         Подсказка: google.accounts.id.initialize({ client_id, callback }); токен лежит
+    //         в response.credential.
+    // TODO 3: нарисуй кнопку Google внутри элемента buttonHost.
+    //         Подсказка: google.accounts.id.renderButton(элемент, { theme: 'outline', size: 'large' }).
   });
 }
 ```
@@ -938,7 +953,7 @@ constructor() {
 - **`afterNextRender`** — код выполнится после того, как Angular нарисует шаблон. Раньше нельзя: элемента для кнопки ещё нет в DOM.
 - **`initialize`** — настройка: какой у нас Client ID и куда отдать токен.
 - **`renderButton`** — Google рисует свою кнопку внутри нашего элемента. Стилизовать её почти нельзя: так Google требует по брендингу.
-- **`callback`** — Google вызывает его с `response.credential` после выбора аккаунта. Вызов происходит вне Angular, но приложение zoneless и состояние на signals, поэтому интерфейс обновится сам. `void` показывает, что `Promise` мы сознательно не ждём, иначе ругается ESLint (`no-floating-promises`).
+- **`callback`** — Google вызывает его с `response.credential` после выбора аккаунта. Вызов происходит вне Angular, но приложение zoneless и состояние на signals, поэтому интерфейс обновится сам. Подписка на `loginWithGoogle` закроется сама: `HttpClient` отдаёт один ответ и завершает поток.
 
 **Тексты.** Кнопку Google локализует сама (опция `locale` в `renderButton`). Заголовок страницы и прочие строки ведутся через i18n по правилам проекта. Если Transloco ещё не подключён, сделай пометку и перенеси строки, когда он появится.
 
@@ -954,14 +969,18 @@ constructor() {
 
 ### Функциональные guard'ы
 
-Файл `src/app/core/auth/auth.guards.ts`:
+Файл `src/app/features/auth/auth.guards.ts`:
 
 ```ts
-export const authGuard: CanActivateFn = () =>
-  inject(AuthService).isLoggedIn() || inject(Router).createUrlTree(['/login']);
+export const authGuard: CanActivateFn = () => {
+  // TODO: если пользователь вошёл, пропусти; иначе отправь на /login.
+  //       Подсказка: CanActivateFn может вернуть true или UrlTree — адрес, куда перенаправить.
+  //       UrlTree создаёт inject(Router).createUrlTree(['/login']).
+};
 
-export const guestGuard: CanActivateFn = () =>
-  !inject(AuthService).isLoggedIn() || inject(Router).createUrlTree(['/calendar']);
+export const guestGuard: CanActivateFn = () => {
+  // TODO: обратное: если пользователь уже вошёл, отправь на /calendar, иначе пропусти на /login.
+};
 ```
 
 **Почему функции, а не классы.** Современный Angular, классовые guard'ы устарели. `inject()` работает внутри функции так же, как в конструкторе.
@@ -998,20 +1017,7 @@ Guard читает `isLoggedIn()` синхронно. Это работает, �
 8. Выйти → cookie удалена, строки `Session` в БД нет, `/calendar` ведёт на `/login`.
 9. Войти повторно → новый `Calendar` **не** создаётся, у пользователя по-прежнему один.
 
-### Автотесты (минимум)
-
-**e2e бэкенда** (`test/`, через `supertest`):
-
-- `GET /api/auth/me` без cookie → 401;
-- `POST /api/auth/google` с `{}` → 400;
-- `POST /api/auth/google` с мусорным токеном → 401. Сеть не нужна: мусор отклоняется до обращения к Google.
-
-**Unit `AuthService`** с подменённым `OAuth2Client`: в тесте не ходим в Google, а возвращаем заранее заданный payload.
-
-- `email_verified: false` → `UnauthorizedException`;
-- новый пользователь → `upsertFromGoogle` и `create` сессии вызваны с правильными данными.
-
-**Unit `UserService`** (с тестовой БД или подменённым Prisma): повторный вход не создаёт второй календарь.
+Автотесты в проекте пока не пишем (решение автора). Проверка ручная, по списку выше.
 
 ## Чего здесь не делаем
 
@@ -1022,19 +1028,19 @@ Guard читает `isLoggedIn()` синхронно. Это работает, �
 
 ## Чек-лист
 
-- [ ] Google Cloud: consent screen (Testing), тестовые пользователи, Client ID, оба origin
-- [ ] `GOOGLE_CLIENT_ID` в `.env` и `.env.example`
-- [ ] Модель `Session` со всеми полями и миграция
-- [ ] `main.ts`: префикс `/api`, `cookieParser`, `ValidationPipe`, всё до `listen`
-- [ ] Модули `user`, `session`, `auth` с `exports` и `imports`
-- [ ] Константы сессии и опции cookie в одном месте
-- [ ] `SessionService.create`, `UserService.upsertFromGoogle`, `AuthService.loginWithGoogle`
-- [ ] `GoogleLoginDto` и `POST /api/auth/google`
-- [ ] `SessionService.validate` и `delete`, `AuthGuard` через `APP_GUARD`
-- [ ] `@Public()` на входе, `@CurrentUser()`
-- [ ] `GET /api/auth/me`, `POST /api/auth/logout`
+- [x] Google Cloud: consent screen (Testing), тестовые пользователи, Client ID, оба origin
+- [x] `GOOGLE_CLIENT_ID` в `.env` и `.env.example`
+- [x] Модель `Session` со всеми полями и миграция
+- [x] `main.ts`: префикс `/api`, `cookieParser`, `ValidationPipe`, всё до `listen`
+- [x] Модули `user`, `session`, `auth` с `exports` и `imports`
+- [x] Константы сессии и опции cookie в одном месте
+- [x] `SessionService.create`, `UserService.upsertFromGoogle`, `AuthService.loginWithGoogle`
+- [x] `GoogleLoginDto` и `POST /api/auth/google`
+- [x] `SessionService.validate` и `delete`, `AuthGuard` через `APP_GUARD`
+- [x] `@Public()` на входе, `@CurrentUser()`
+- [x] `GET /api/auth/me`, `POST /api/auth/logout`
 - [ ] Фронтенд: прокси, `provideHttpClient`, environments с Client ID
-- [ ] `AuthService` на signals, `loadMe` в `provideAppInitializer`
+- [ ] `AuthService`: методы возвращают Observable, состояние в signal, `loadMe` в `provideAppInitializer`
 - [ ] Загрузчик скрипта GIS и страница входа
 - [ ] `authGuard`, `guestGuard`, маршруты
-- [ ] Ручная проверка по шагу 10, e2e на 400 и 401
+- [ ] Ручная проверка полного цикла по шагу 10

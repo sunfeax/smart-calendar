@@ -5,6 +5,7 @@
 ## Сущности
 
 - **User**: профиль из Google. Пароля нет.
+- **Session**: сессия входа (хеш токена из cookie, срок, устройство).
 - **Calendar**: календарь (личный, с коллегами, с близким человеком).
 - **CalendarMember**: участие пользователя в календаре и его роль.
 - **TagCategory**: категория тегов внутри календаря.
@@ -42,7 +43,22 @@ model User {
   createdAt   DateTime         @default(now()) @db.Timestamptz(3)
   updatedAt   DateTime         @updatedAt @db.Timestamptz(3)
   memberships CalendarMember[]
+  sessions    Session[]
   events      Event[]          @relation("EventCreator")
+}
+
+model Session {
+  id         String   @id @default(uuid())
+  tokenHash  String   @unique // SHA-256 of the cookie token, the token itself is not stored
+  userId     String
+  userAgent  String?
+  lastUsedAt DateTime @default(now()) @db.Timestamptz(3) // last sliding renewal
+  expiresAt  DateTime @db.Timestamptz(3)
+  createdAt  DateTime @default(now()) @db.Timestamptz(3)
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([expiresAt])
 }
 
 model Calendar {
@@ -145,10 +161,13 @@ model EventException {
 | Порция | Что добавляется                                                                                                                                                                                  |
 | ------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | 1      | `CalendarRole`, `User` (без `locale` и `theme`), `Calendar`, `CalendarMember`, `Event` (поля `id`, `calendarId`, `title`, `description`, `startAt`, `endAt`, `allDay`, `createdAt`, `updatedAt`) |
+| 1а     | `Session` и связь `sessions` у `User` (вход через Google)                                                                                                                                        |
 | 2      | `TagCategory`, `Tag`, `EventTag` (теги и категории)                                                                                                                                              |
 | 3      | `icon` и `completedAt` у события, `locale`, `theme` и `timeZone` у пользователя                                                                                                                  |
 | 4      | `recurrenceRule` и `EventException` (повторы)                                                                                                                                                    |
 | 5      | `createdById` у события, если понадобится                                                                                                                                                        |
+
+Применены порции 1 и 1а.
 
 В каждой порции в схему входят только перечисленные модели и поля. Обратные связи, которые указывают на ещё не добавленные модели (например, `tagCategories` в `Calendar` или `exceptions` в `Event`), добавляются вместе с этими моделями.
 
