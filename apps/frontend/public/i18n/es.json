@@ -6,5 +6,16 @@
   "auth": {
     "loginError": "No se pudo iniciar sesión con Google",
     "googleScriptError": "No se pudo cargar el botón de inicio de sesión de Google"
+  },
+  "app": {
+    "name": "Smart Calendar"
+  },
+  "header": {
+    "userMenu": "Menú de usuario",
+    "lightTheme": "Tema claro",
+    "darkTheme": "Tema oscuro",
+    "logout": "Cerrar sesión",
+    "logoutTitle": "Cerrar sesión",
+    "logoutMessage": "¿Cerrar sesión en este dispositivo?"
   }
 }

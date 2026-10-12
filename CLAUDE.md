@@ -59,7 +59,7 @@ Prisma (v7): конфиг `apps/backend/prisma7.config.ts` (это имя по �
 
 Бэкенд работает как ESM (`"type": "module"`): относительные импорты пишутся с расширением `.js`. Тестовый раннер на обоих концах Vitest, но тестов пока нет.
 
-Фронтенд (`apps/frontend/src/app`): `core/` (конфиги `provide*`, константы, guards), `features/<фича>/` (страницы, сервисы, модели фичи), `shared/` (общие сервисы `ThemeService`, `LanguageService`, `DialogService`, `SnackbarService`, диалоги, модели). Тема и язык хранятся только в браузере (`localStorage`), не в профиле: тема по умолчанию тёмная, язык из сохранённого, иначе из браузера, иначе `ru`. Стили: токены в `src/styles/_tokens.scss` (светлая тема на `:root`, тёмная на `:root[data-theme='dark']`), шрифт Inter из пакета `@fontsource-variable/inter`.
+Фронтенд (`apps/frontend/src/app`): `core/` (конфиги `provide*`, константы, guards), `features/<фича>/` (страницы, сервисы, модели фичи), `shared/` (общие сервисы `ThemeService`, `LanguageService`, `DialogService`, `SnackbarService`, диалоги, модели, `components/` для переиспользуемых UI-блоков вроде шапки, `layouts/` для каркасов страниц: `AuthLayout`, `MainLayout`). Тема и язык хранятся только в браузере (`localStorage`), не в профиле: тема по умолчанию тёмная, язык из сохранённого, иначе из браузера, иначе `ru`. Стили: токены в `src/styles/_tokens.scss` (светлая тема на `:root`, тёмная на `:root[data-theme='dark']`), шрифт Inter из пакета `@fontsource-variable/inter`.
 
 ## Команды
 

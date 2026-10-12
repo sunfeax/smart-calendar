@@ -1,0 +1,47 @@
+<header class="header">
+  <h3 class="header__title">{{ 'app.name' | transloco }}</h3>
+
+  <button
+    type="button"
+    class="header__avatar"
+    [matMenuTriggerFor]="menu"
+    [attr.aria-label]="'header.userMenu' | transloco"
+  >
+    @if (user()?.avatarUrl; as avatarUrl) {
+      <img
+        class="header__avatar-img"
+        [src]="avatarUrl"
+        [alt]="user()?.name ?? ''"
+        referrerpolicy="no-referrer"
+      />
+    } @else {
+      {{ user()?.name?.charAt(0) }}
+    }
+  </button>
+
+  <mat-menu #menu="matMenu">
+    @if (user(); as currentUser) {
+      <div class="header__user">
+        <span>{{ currentUser.name }}</span>
+        <span>{{ currentUser.email }}</span>
+      </div>
+    }
+
+    <button mat-menu-item type="button" (click)="toggleTheme()">
+      <mat-icon>
+        {{ themeService.theme() === 'dark' ? 'light_mode' : 'dark_mode' }}
+      </mat-icon>
+      <span>
+        {{
+          (themeService.theme() === 'dark' ? 'header.lightTheme' : 'header.darkTheme')
+            | transloco
+        }}
+      </span>
+    </button>
+
+    <button mat-menu-item type="button" (click)="logout()">
+      <mat-icon>logout</mat-icon>
+      <span>{{ 'header.logout' | transloco }}</span>
+    </button>
+  </mat-menu>
+</header>

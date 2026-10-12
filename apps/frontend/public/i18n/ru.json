@@ -6,5 +6,16 @@
   "auth": {
     "loginError": "Не удалось войти через Google",
     "googleScriptError": "Не удалось загрузить кнопку входа Google"
+  },
+  "app": {
+    "name": "Smart Calendar"
+  },
+  "header": {
+    "userMenu": "Меню пользователя",
+    "lightTheme": "Светлая тема",
+    "darkTheme": "Тёмная тема",
+    "logout": "Выйти",
+    "logoutTitle": "Выход",
+    "logoutMessage": "Выйти из аккаунта на этом устройстве?"
   }
 }

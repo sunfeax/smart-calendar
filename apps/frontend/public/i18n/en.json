@@ -6,5 +6,16 @@
   "auth": {
     "loginError": "Couldn't sign in with Google",
     "googleScriptError": "Couldn't load the Google sign-in button"
+  },
+  "app": {
+    "name": "Smart Calendar"
+  },
+  "header": {
+    "userMenu": "User menu",
+    "lightTheme": "Light theme",
+    "darkTheme": "Dark theme",
+    "logout": "Sign out",
+    "logoutTitle": "Sign out",
+    "logoutMessage": "Sign out of your account on this device?"
   }
 }
