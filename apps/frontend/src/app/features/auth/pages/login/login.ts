@@ -57,10 +57,7 @@ export class Login {
           return this.waitForGoogleFrame(this.button().nativeElement);
         })
         .then(() => this.googleButtonState.set('ready'))
-        .catch(() => {
-          this.googleButtonState.set('error');
-          this.snackbar.error(this.transloco.translate('auth.googleScriptError'));
-        });
+        .catch(() => this.googleButtonState.set('error'));
     });
   }
 
