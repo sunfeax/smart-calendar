@@ -61,12 +61,16 @@
 
 **Как:**
 
+Настройки входа в Google Cloud Console теперь собраны в разделе **Google Auth Platform** (раньше это был «OAuth consent screen» в APIs & Services). Он разбит на страницы **Branding**, **Audience**, **Clients** и **Data Access**.
+
 1. [Google Cloud Console](https://console.cloud.google.com/) → создать проект.
-2. **APIs & Services → OAuth consent screen**: тип **External**, режим **Testing**. В **Test users** добавить себя и тестировщиков. В режиме Testing войти могут только они (до 100 человек), проверка приложения Google не нужна. Для публичного запуска режим переключается на Production (см. `01-stack.md`).
-3. **Credentials → Create credentials → OAuth client ID**, тип **Web application**.
-4. **Authorized JavaScript origins**: `http://localhost` **и** `http://localhost:4200`. Для localhost с портом Google требует оба. Это список адресов, на которых разрешено показывать кнопку.
-5. **Authorized redirect URIs** оставить пустым. Кнопка отдаёт токен прямо в JavaScript-callback на странице, перехода на другой адрес нет.
-6. Нажать Create, скопировать **Client ID**. **Client secret** в нашей схеме не нужен, никуда его не копируй.
+2. **Google Auth Platform → Branding**: название приложения, email поддержки. Для публичного запуска здесь же понадобятся ссылки на главную страницу и политику конфиденциальности.
+3. **Audience**: тип **External**, статус **Testing**. В **Test users** добавить себя и тестировщиков. В режиме Testing войти могут только они (до 100 человек), проверка приложения Google не нужна. Для публичного запуска статус переключается на Production (см. `01-stack.md`).
+4. **Data Access**: ничего добавлять не нужно. Для входа хватает базовых scope `openid`, `email`, `profile`, они есть по умолчанию.
+5. **Clients → Create client**, тип **Web application**.
+6. **Authorized JavaScript origins**: `http://localhost` **и** `http://localhost:4200`. Для localhost с портом Google требует оба. Это список адресов, на которых разрешено показывать кнопку.
+7. **Authorized redirect URIs** оставить пустым. Кнопка отдаёт токен прямо в JavaScript-callback на странице, перехода на другой адрес нет.
+8. Нажать Create, скопировать **Client ID**. **Client secret** в нашей схеме не нужен, никуда его не копируй.
 
 Client ID не секрет: он виден в коде любой страницы с кнопкой Google. Но держим его в одном месте на каждой стороне:
 
@@ -467,7 +471,7 @@ export class GoogleLoginDto {
 ```ts
 @Post('google')
 @HttpCode(HttpStatus.OK)
-async loginWithGoogle(
+async login(
   @Body() dto: GoogleLoginDto,
   @Headers('user-agent') userAgent: string | undefined,
   @Res({ passthrough: true }) res: Response,
@@ -846,8 +850,8 @@ me(): Observable<User | null> {
 
 Так же устроены остальные методы:
 
-- **`loginWithGoogle(credential)`** — `POST /api/auth/google` с `{ credential }`, в `tap` записать пользователя в signal. Переход на `/calendar` делает компонент после успешной подписки, а не сервис.
-- **`logout()`** — `POST /api/auth/logout`, в `tap` сбросить пользователя в `null`.
+- **`login(credential)`** — `POST /api/auth/google` с телом `{ credential }` (объект с полем, а не голая строка: бэкенд проверяет тело по `GoogleLoginDto`), в `tap` записать пользователя в signal. Переход на `/calendar` делает компонент после успешной подписки, а не сервис.
+- **`logout()`** — `POST /api/auth/logout` без тела (`null`), в `finalize` сбросить пользователя в `null`. `finalize` срабатывает и при успехе, и при ошибке, поэтому интерфейс покажет «не вошёл», даже если сети нет. Ошибка при этом не глотается и дойдёт до компонента. Без сети сессия на сервере и cookie останутся: httpOnly-cookie может удалить только ответ сервера.
 
 **Почему `me()` ловит все ошибки, а не только 401.** Отличать 401 от других ошибок имеет смысл, только если поведение разное. Сейчас оба случая дают «пользователь не вошёл», поэтому проверка не нужна. Когда появится экран ошибки, её вернём.
 
@@ -866,18 +870,19 @@ me(): Observable<User | null> {
   // TODO 3: catchError: поставь _user в null и верни of(null)
 }
 
-loginWithGoogle(credential: string): Observable<User> {
+login(credential: string): Observable<User> {
   // TODO: POST '/api/auth/google' с телом { credential }, в tap сохрани пользователя в _user
 }
 
 logout(): Observable<void> {
-  // TODO: POST '/api/auth/logout' с пустым телом, в tap поставь _user в null
+  // TODO: POST '/api/auth/logout' с телом null; пользователя в null нужно сбросить при любом исходе.
+  //       Подсказка: оператор finalize(() => ...) срабатывает и при завершении, и при ошибке потока.
 }
 ```
 
-Ошибку в `loginWithGoogle` здесь не ловим: её поймает подписка на странице входа и покажет сообщение (шаг 8.3).
+Ошибку в `login` здесь не ловим: её поймает подписка на странице входа и покажет сообщение (шаг 8.3).
 
-**Статус:** `me()` сделан. `loginWithGoogle` и `logout` пока не написаны (в коде сейчас `// login();`).
+**Статус:** `me()` и `login()` сделаны. `logout()` пока не написан.
 
 **Почему не `firstValueFrom` и не `async`.** Это работает, но тогда методы становятся Promise, и теряется возможность отменить или повторить запрос через операторы RxJS. Observable даёт эти возможности, а signal остаётся для состояния.
 
@@ -897,13 +902,25 @@ provideAppInitializer(() => inject(AuthService).me()),
 
 Google Identity Services — скрипт Google, который рисует кнопку «Войти через Google», открывает окно выбора аккаунта и отдаёт в наш callback ID token (`credential`). Ни redirect, ни client secret ему не нужны.
 
+### FedCM: как вход работает сейчас
+
+Раньше кнопка открывала popup-окно Google и общалась с ним через сторонние cookie. Браузеры эти cookie отключают, поэтому Google перевёл вход на **FedCM** (Federated Credential Management) — встроенный в браузер API входа через внешний аккаунт. В Chrome вместо popup появляется нативный диалог браузера с выбором аккаунта.
+
+Для кнопки FedCM включается флагом `use_fedcm_for_button: true` в `initialize`. По умолчанию он выключен, но Google прямо рекомендует включать его во всех новых приложениях. Что это даёт нам:
+
+- вход не зависит от сторонних cookie;
+- не нужно настраивать заголовок `Cross-Origin-Opener-Policy` (без FedCM popup-режиму нужен `same-origin-allow-popups`);
+- в браузерах без FedCM (Firefox, Safari) кнопка сама работает по-старому, через popup. Наш код от этого не меняется: в обоих случаях Google вызывает тот же `callback` с `response.credential`.
+
+Флаг `use_fedcm_for_prompt` из старых туториалов устарел и игнорируется. Он относился к One Tap, которую мы не используем.
+
 ### 8.1. Типы
 
 ```bash
 npm i -D @types/google.accounts
 ```
 
-В `tsconfig.app.json` поменять `"types": []` на `"types": ["google.accounts"]`. Без этого TypeScript не знает про глобальный объект `google`.
+В `tsconfig.app.json` поменять `"types": []` на `"types": ["google.accounts"]`. Без этого TypeScript не знает про глобальный объект `google`. Актуальная версия типов знает и `use_fedcm_for_button`.
 
 **Статус:** не сделано. В `package.json` фронтенда нет `@types/google.accounts`, а в `tsconfig.app.json` стоит `"types": []`.
 
@@ -956,11 +973,11 @@ protected readonly loginError = signal(false); // shown in the template when the
 constructor() {
   afterNextRender(async () => {
     // TODO 1: дождись загрузки скрипта Google (loadGoogleScript из 8.2).
-    // TODO 2: настрой вход: передай Client ID из environment и функцию, которую Google вызовет
-    //         с токеном после выбора аккаунта. В ней отправь токен через auth.loginWithGoogle,
-    //         при успехе перейди на /calendar, при ошибке поставь loginError в true.
-    //         Подсказка: google.accounts.id.initialize({ client_id, callback }); токен лежит
-    //         в response.credential.
+    // TODO 2: настрой вход: передай Client ID из environment, включи FedCM и передай функцию,
+    //         которую Google вызовет с токеном после выбора аккаунта. В ней отправь токен через
+    //         auth.login, при успехе перейди на /calendar, при ошибке поставь loginError в true.
+    //         Подсказка: google.accounts.id.initialize({ client_id, callback, use_fedcm_for_button: true });
+    //         токен лежит в response.credential.
     // TODO 3: нарисуй кнопку Google внутри элемента buttonHost.
     //         Подсказка: google.accounts.id.renderButton(элемент, { theme: 'outline', size: 'large' }).
   });
@@ -971,13 +988,26 @@ constructor() {
 
 - **`viewChild.required`** — ссылка на элемент `#googleButton` из шаблона, в виде signal.
 - **`afterNextRender`** — код выполнится после того, как Angular нарисует шаблон. Раньше нельзя: элемента для кнопки ещё нет в DOM.
-- **`initialize`** — настройка: какой у нас Client ID и куда отдать токен.
+- **`initialize`** — настройка: какой у нас Client ID, куда отдать токен и что использовать FedCM. Вызывается один раз перед `renderButton`.
 - **`renderButton`** — Google рисует свою кнопку внутри нашего элемента. Стилизовать её почти нельзя: так Google требует по брендингу.
-- **`callback`** — Google вызывает его с `response.credential` после выбора аккаунта. Вызов происходит вне Angular, но приложение zoneless и состояние на signals, поэтому интерфейс обновится сам. Подписка на `loginWithGoogle` закроется сама: `HttpClient` отдаёт один ответ и завершает поток.
+- **`callback`** — Google вызывает его с `response.credential` после выбора аккаунта. Вызов происходит вне Angular, но приложение zoneless и состояние на signals, поэтому интерфейс обновится сам. Подписка на `login` закроется сама: `HttpClient` отдаёт один ответ и завершает поток.
 
-**Тексты.** Кнопку Google локализует сама (опция `locale` в `renderButton`). Заголовок страницы и прочие строки ведутся через i18n по правилам проекта. Если Transloco ещё не подключён, сделай пометку и перенеси строки, когда он появится.
+**Тексты.** Кнопку Google локализует сама: по языку браузера или явно через опцию `locale: 'ru'` в `renderButton`. Опция `text` выбирает формулировку: `signin_with` («Войти через Google», по умолчанию) или `continue_with`. Заголовок страницы и прочие строки ведутся через i18n по правилам проекта. Если Transloco ещё не подключён, сделай пометку и перенеси строки, когда он появится.
 
-**Ошибки входа.** Если `loginWithGoogle` получил 401 (например, аккаунт не в списке тестовых), покажи пользователю понятное сообщение, а не молча ничего.
+**Ошибки входа.** Если `login` получил 401 (например, аккаунт не в списке тестовых), покажи пользователю понятное сообщение, а не молча ничего.
+
+### 8.4. Если кнопка не работает на localhost
+
+- **Кнопка не появилась, в консоли `The given origin is not allowed`.** Origins в Google Cloud не совпадают с адресом страницы, или изменения ещё не применились (до нескольких часов). Проверь, что в Clients есть оба адреса: `http://localhost` и `http://localhost:4200`.
+- **Ошибки из-за referrer при работе по http.** Google советует для тестов на `http://localhost` отдавать заголовок `Referrer-Policy: no-referrer-when-downgrade`. В dev-сервере Angular это делается в `angular.json` → `serve.options`:
+
+  ```json
+  "headers": { "Referrer-Policy": "no-referrer-when-downgrade" }
+  ```
+
+  Добавляй, только если без него кнопка не работает: это настройка только для разработки.
+
+- **Пустое окно и ошибки про `Cross-Origin-Opener-Policy`.** Значит, FedCM не включён и кнопка работает через popup. Проверь `use_fedcm_for_button: true` в `initialize`.
 
 ## Шаг 9. Фронтенд: guard маршрутов
 
