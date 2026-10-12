@@ -1,8 +1,9 @@
 import { afterNextRender, Component, ElementRef, inject, viewChild } from '@angular/core';
 import { Router } from '@angular/router';
 import { environment } from '../../../../../environments/environment.development';
-import { loadGoogleScript } from '../../google-script';
+import { routePaths } from '../../../../core/constants/routePaths';
 import { AuthService } from '../../service/auth.service';
+import { loadGoogleScript } from '../../utils/google-script';
 
 @Component({
   imports: [],
@@ -23,7 +24,7 @@ export class Login {
             client_id: environment.googleClientId,
             callback: response =>
               this.authService.login(response.credential).subscribe({
-                next: () => void this.router.navigateByUrl('/calendar'),
+                next: () => void this.router.navigateByUrl(routePaths.calendar),
                 error: () => alert('Error during login with Google'),
               }),
             use_fedcm_for_button: true,
