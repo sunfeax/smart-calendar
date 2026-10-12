@@ -10,23 +10,59 @@
     <span class="header__title">{{ 'app.name' | transloco }}</span>
   </a>
 
-  <button
-    type="button"
-    class="header__avatar"
-    [matMenuTriggerFor]="menu"
-    [attr.aria-label]="'header.userMenu' | transloco"
-  >
-    @if (user()?.avatarUrl; as avatarUrl) {
-      <img
-        class="header__avatar-img"
-        [src]="avatarUrl"
-        [alt]="user()?.name ?? ''"
-        referrerpolicy="no-referrer"
-      />
-    } @else {
-      {{ user()?.name?.charAt(0) }}
+  <div class="header__actions">
+    <button
+      matIconButton
+      type="button"
+      [attr.aria-label]="
+        (themeService.theme() === 'dark' ? 'header.lightTheme' : 'header.darkTheme')
+          | transloco
+      "
+      (click)="toggleTheme()"
+    >
+      <mat-icon>
+        {{ themeService.theme() === 'dark' ? 'light_mode' : 'dark_mode' }}
+      </mat-icon>
+    </button>
+
+    <button
+      matIconButton
+      type="button"
+      [matMenuTriggerFor]="langMenu"
+      [attr.aria-label]="'header.language' | transloco"
+    >
+      <mat-icon>translate</mat-icon>
+    </button>
+
+    <button
+      type="button"
+      class="header__avatar"
+      [matMenuTriggerFor]="menu"
+      [attr.aria-label]="'header.userMenu' | transloco"
+    >
+      @if (user()?.avatarUrl; as avatarUrl) {
+        <img
+          class="header__avatar-img"
+          [src]="avatarUrl"
+          [alt]="user()?.name ?? ''"
+          referrerpolicy="no-referrer"
+        />
+      } @else {
+        {{ user()?.name?.charAt(0) }}
+      }
+    </button>
+  </div>
+
+  <mat-menu #langMenu="matMenu">
+    @for (lang of languages; track lang) {
+      <button mat-menu-item type="button" (click)="setLanguage(lang)">
+        @if (language.lang() === lang) {
+          <mat-icon>check</mat-icon>
+        }
+        <span>{{ languageNames[lang] }}</span>
+      </button>
     }
-  </button>
+  </mat-menu>
 
   <mat-menu #menu="matMenu">
     @if (user(); as currentUser) {
@@ -35,18 +71,6 @@
         <span>{{ currentUser.email }}</span>
       </div>
     }
-
-    <button mat-menu-item type="button" (click)="toggleTheme()">
-      <mat-icon>
-        {{ themeService.theme() === 'dark' ? 'light_mode' : 'dark_mode' }}
-      </mat-icon>
-      <span>
-        {{
-          (themeService.theme() === 'dark' ? 'header.lightTheme' : 'header.darkTheme')
-            | transloco
-        }}
-      </span>
-    </button>
 
     <button mat-menu-item type="button" (click)="logout()">
       <mat-icon>logout</mat-icon>

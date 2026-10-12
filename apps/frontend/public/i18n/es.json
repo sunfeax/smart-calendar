@@ -16,6 +16,7 @@
     "darkTheme": "Tema oscuro",
     "logout": "Cerrar sesión",
     "logoutTitle": "Cerrar sesión",
-    "logoutMessage": "¿Cerrar sesión en este dispositivo?"
+    "logoutMessage": "¿Cerrar sesión en este dispositivo?",
+    "language": "Idioma"
   }
 }

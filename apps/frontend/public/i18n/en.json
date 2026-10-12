@@ -16,6 +16,7 @@
     "darkTheme": "Dark theme",
     "logout": "Sign out",
     "logoutTitle": "Sign out",
-    "logoutMessage": "Sign out of your account on this device?"
+    "logoutMessage": "Sign out of your account on this device?",
+    "language": "Language"
   }
 }
