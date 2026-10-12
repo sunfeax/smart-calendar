@@ -1,0 +1,10 @@
+{
+  "common": {
+    "cancel": "Cancel",
+    "confirm": "Confirm"
+  },
+  "auth": {
+    "loginError": "Couldn't sign in with Google",
+    "googleScriptError": "Couldn't load the Google sign-in button"
+  }
+}

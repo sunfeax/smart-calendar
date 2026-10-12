@@ -1,0 +1,10 @@
+{
+  "common": {
+    "cancel": "Отмена",
+    "confirm": "Подтвердить"
+  },
+  "auth": {
+    "loginError": "Не удалось войти через Google",
+    "googleScriptError": "Не удалось загрузить кнопку входа Google"
+  }
+}

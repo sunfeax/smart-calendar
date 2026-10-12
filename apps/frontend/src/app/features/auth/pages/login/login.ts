@@ -1,7 +1,10 @@
 import { afterNextRender, Component, ElementRef, inject, viewChild } from '@angular/core';
 import { Router } from '@angular/router';
+import { TranslocoService } from '@jsverse/transloco';
 import { environment } from '../../../../../environments/environment.development';
 import { routePaths } from '../../../../core/constants/routePaths';
+import { LanguageService } from '../../../../shared/services/language.service';
+import { SnackbarService } from '../../../../shared/services/snackbar.service';
 import { AuthService } from '../../service/auth.service';
 import { loadGoogleScript } from '../../utils/google-script';
 
@@ -14,6 +17,9 @@ import { loadGoogleScript } from '../../utils/google-script';
 export class Login {
   private readonly authService = inject(AuthService);
   private readonly router = inject(Router);
+  private readonly snackbar = inject(SnackbarService);
+  private readonly transloco = inject(TranslocoService);
+  private readonly language = inject(LanguageService);
   private readonly button = viewChild.required<ElementRef<HTMLElement>>('googleButton');
 
   constructor() {
@@ -25,7 +31,8 @@ export class Login {
             callback: response =>
               this.authService.login(response.credential).subscribe({
                 next: () => void this.router.navigateByUrl(routePaths.calendar),
-                error: () => alert('Error during login with Google'),
+                error: () =>
+                  this.snackbar.error(this.transloco.translate('auth.loginError')),
               }),
             use_fedcm_for_button: true,
           });
@@ -34,9 +41,12 @@ export class Login {
             theme: 'outline',
             size: 'large',
             text: 'signin_with',
+            locale: this.language.lang(),
           });
         })
-        .catch(() => alert('Failed to load the Google script'));
+        .catch(() =>
+          this.snackbar.error(this.transloco.translate('auth.googleScriptError')),
+        );
     });
   }
 }

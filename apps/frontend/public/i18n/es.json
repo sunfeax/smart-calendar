@@ -1,0 +1,10 @@
+{
+  "common": {
+    "cancel": "Cancelar",
+    "confirm": "Confirmar"
+  },
+  "auth": {
+    "loginError": "No se pudo iniciar sesión con Google",
+    "googleScriptError": "No se pudo cargar el botón de inicio de sesión de Google"
+  }
+}
