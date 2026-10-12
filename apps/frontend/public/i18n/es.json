@@ -5,7 +5,25 @@
   },
   "auth": {
     "loginError": "No se pudo iniciar sesión con Google",
-    "googleScriptError": "No se pudo cargar el botón de inicio de sesión de Google"
+    "googleScriptError": "No se pudo cargar el botón de inicio de sesión de Google",
+    "heroTitle": "Haz espacio",
+    "heroAccent": "para lo importante.",
+    "heroDescription": "Reúne tus planes en un calendario y avanza a tu ritmo.",
+    "welcome": "Te damos la bienvenida",
+    "signInTitle": "Entrar en tu calendario",
+    "signInDescription": "Continúa con tu cuenta de Google para abrir tu calendario.",
+    "googleLoading": "Cargando el botón de Google…",
+    "preview": {
+      "title": "Tu semana",
+      "monday": "Lun",
+      "tuesday": "Mar",
+      "wednesday": "Mié",
+      "thursday": "Jue",
+      "friday": "Vie",
+      "focus": "Tiempo para concentrarte",
+      "break": "Una pequeña pausa",
+      "personal": "Tiempo para ti"
+    }
   },
   "app": {
     "name": "Smart Calendar"

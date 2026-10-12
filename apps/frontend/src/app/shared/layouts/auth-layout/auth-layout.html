@@ -1,3 +1,50 @@
-<main class="auth-layout__content">
-  <router-outlet />
-</main>
+<div class="auth-layout">
+  <header class="auth-layout__brand">
+    <img src="brand/smart-calendar.svg" alt="" width="40" height="40" />
+    <span>{{ 'app.name' | transloco }}</span>
+  </header>
+
+  <main class="auth-layout__content">
+    <section class="auth-layout__intro" aria-labelledby="auth-heading">
+      <h1 id="auth-heading" class="auth-layout__heading">
+        {{ 'auth.heroTitle' | transloco }}
+        <span>{{ 'auth.heroAccent' | transloco }}</span>
+      </h1>
+      <p class="auth-layout__description">{{ 'auth.heroDescription' | transloco }}</p>
+
+      <div class="auth-layout__preview" aria-hidden="true">
+        <div class="auth-layout__preview-heading">
+          <span>{{ 'auth.preview.title' | transloco }}</span>
+        </div>
+        <div class="auth-layout__week">
+          @for (day of previewDays; track day.label) {
+            <div
+              class="auth-layout__day"
+              [class.auth-layout__day--selected]="$index === 1"
+            >
+              <span>{{ day.label | transloco }}</span>
+              <strong>{{ day.date }}</strong>
+            </div>
+          }
+        </div>
+        <div class="auth-layout__schedule">
+          <div class="auth-layout__event auth-layout__event--focus">
+            <span class="auth-layout__event-dot"></span>
+            {{ 'auth.preview.focus' | transloco }}
+          </div>
+          <div class="auth-layout__event auth-layout__event--break">
+            <span class="auth-layout__event-dot"></span>
+            {{ 'auth.preview.break' | transloco }}
+          </div>
+          <div class="auth-layout__event auth-layout__event--personal">
+            <span class="auth-layout__event-dot"></span>
+            {{ 'auth.preview.personal' | transloco }}
+          </div>
+        </div>
+      </div>
+    </section>
+    <div class="auth-layout__outlet">
+      <router-outlet />
+    </div>
+  </main>
+</div>

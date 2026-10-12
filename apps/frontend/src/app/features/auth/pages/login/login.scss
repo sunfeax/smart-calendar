@@ -1,6 +1,103 @@
+:host {
+  display: block;
+  width: 100%;
+}
+
 .login {
+  position: relative;
+  overflow: hidden;
+  padding: var(--space-12) var(--space-8);
+  border: var(--border-width-sm) solid var(--color-border-soft);
+  border-radius: var(--radius-3xl);
+  background: var(--color-surface);
+  box-shadow: var(--shadow-lg);
+}
+
+.login::before {
+  content: '';
+  position: absolute;
+  inset: 0 0 auto;
+  height: var(--border-width-md);
+  background: var(--gradient-brand);
+}
+
+.login__eyebrow {
+  margin: 0 0 var(--space-3);
+  color: var(--color-primary-text);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-semibold);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.login__heading {
+  margin: 0;
+  font-size: var(--font-size-3xl);
+  font-weight: var(--font-weight-semibold);
+  line-height: var(--line-height-tight);
+  letter-spacing: -0.03em;
+}
+
+.login__description {
+  margin: var(--space-4) 0 0;
+  color: var(--color-text-soft);
+  font-size: var(--font-size-sm);
+  line-height: var(--line-height-relaxed);
+}
+
+.login__action {
+  position: relative;
+  margin-top: var(--space-8);
+}
+
+.login__google-button {
   display: flex;
-  align-items: center;
   justify-content: center;
-  min-height: 100vh;
+  min-height: var(--space-12);
+  color-scheme: light;
+  visibility: hidden;
+  opacity: 0;
+  transition: opacity var(--duration-normal) var(--ease-standard);
+}
+
+.login__google-button--ready {
+  visibility: visible;
+  opacity: 1;
+}
+
+.login__status {
+  margin: 0;
+  padding-block: var(--space-3);
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+  text-align: center;
+}
+
+.login__action[aria-busy='true'] .login__status {
+  position: absolute;
+  inset: 0;
+}
+
+.login__status--error {
+  color: var(--color-danger);
+}
+
+.login__note {
+  margin: var(--space-6) 0 0;
+  padding-top: var(--space-5);
+  border-top: var(--border-width-sm) solid var(--color-border-soft);
+  color: var(--color-text-muted);
+  font-size: var(--font-size-xs);
+  line-height: var(--line-height-relaxed);
+  text-align: center;
+}
+
+@media (max-width: 400px) {
+  .login {
+    padding: var(--space-8) var(--space-5);
+  }
+
+  .login__heading {
+    font-size: var(--font-size-2xl);
+  }
 }

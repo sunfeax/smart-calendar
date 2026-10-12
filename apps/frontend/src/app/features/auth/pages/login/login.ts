@@ -1,6 +1,13 @@
-import { afterNextRender, Component, ElementRef, inject, viewChild } from '@angular/core';
+import {
+  afterNextRender,
+  Component,
+  ElementRef,
+  inject,
+  signal,
+  viewChild,
+} from '@angular/core';
 import { Router } from '@angular/router';
-import { TranslocoService } from '@jsverse/transloco';
+import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import { environment } from '../../../../../environments/environment.development';
 import { routePaths } from '../../../../core/constants/routePaths';
 import { LanguageService } from '../../../../shared/services/language.service';
@@ -8,8 +15,10 @@ import { SnackbarService } from '../../../../shared/services/snackbar.service';
 import { AuthService } from '../../service/auth.service';
 import { loadGoogleScript } from '../../utils/google-script';
 
+const GOOGLE_FRAME_TIMEOUT_MS = 3000;
+
 @Component({
-  imports: [],
+  imports: [TranslocoPipe],
   selector: 'app-login',
   styleUrl: './login.scss',
   templateUrl: './login.html',
@@ -21,6 +30,7 @@ export class Login {
   private readonly transloco = inject(TranslocoService);
   private readonly language = inject(LanguageService);
   private readonly button = viewChild.required<ElementRef<HTMLElement>>('googleButton');
+  protected readonly googleButtonState = signal<'loading' | 'ready' | 'error'>('loading');
 
   constructor() {
     afterNextRender(() => {
@@ -44,10 +54,36 @@ export class Login {
             text: 'signin_with',
             locale: this.language.lang(),
           });
+          return this.waitForGoogleFrame(this.button().nativeElement);
         })
-        .catch(() =>
-          this.snackbar.error(this.transloco.translate('auth.googleScriptError')),
-        );
+        .then(() => this.googleButtonState.set('ready'))
+        .catch(() => {
+          this.googleButtonState.set('error');
+          this.snackbar.error(this.transloco.translate('auth.googleScriptError'));
+        });
+    });
+  }
+
+  private waitForGoogleFrame(host: HTMLElement): Promise<void> {
+    return new Promise(resolve => {
+      const done = (): void => {
+        observer.disconnect();
+        clearTimeout(fallback);
+        resolve();
+      };
+      const watch = (frame: HTMLIFrameElement): void => {
+        observer.disconnect();
+        frame.addEventListener('load', done, { once: true });
+      };
+      const observer = new MutationObserver(() => {
+        const frame = host.querySelector('iframe');
+        if (frame) watch(frame);
+      });
+      const fallback = setTimeout(done, GOOGLE_FRAME_TIMEOUT_MS);
+
+      const frame = host.querySelector('iframe');
+      if (frame) watch(frame);
+      else observer.observe(host, { childList: true, subtree: true });
     });
   }
 }

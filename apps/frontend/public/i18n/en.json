@@ -5,7 +5,25 @@
   },
   "auth": {
     "loginError": "Couldn't sign in with Google",
-    "googleScriptError": "Couldn't load the Google sign-in button"
+    "googleScriptError": "Couldn't load the Google sign-in button",
+    "heroTitle": "Make room",
+    "heroAccent": "for what matters.",
+    "heroDescription": "Bring your plans into one calendar and move at your own pace.",
+    "welcome": "Welcome",
+    "signInTitle": "Sign in to your calendar",
+    "signInDescription": "Continue with your Google account to open your calendar.",
+    "googleLoading": "Loading the Google button…",
+    "preview": {
+      "title": "Your week",
+      "monday": "Mon",
+      "tuesday": "Tue",
+      "wednesday": "Wed",
+      "thursday": "Thu",
+      "friday": "Fri",
+      "focus": "Time to focus",
+      "break": "A little break",
+      "personal": "Time for yourself"
+    }
   },
   "app": {
     "name": "Smart Calendar"

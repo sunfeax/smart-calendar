@@ -5,7 +5,25 @@
   },
   "auth": {
     "loginError": "Не удалось войти через Google",
-    "googleScriptError": "Не удалось загрузить кнопку входа Google"
+    "googleScriptError": "Не удалось загрузить кнопку входа Google",
+    "heroTitle": "Оставьте место",
+    "heroAccent": "для важного.",
+    "heroDescription": "Соберите планы в одном календаре и двигайтесь в своём ритме.",
+    "welcome": "Добро пожаловать",
+    "signInTitle": "Войти в календарь",
+    "signInDescription": "Продолжите с аккаунтом Google, чтобы открыть свой календарь.",
+    "googleLoading": "Загружаем кнопку Google…",
+    "preview": {
+      "title": "Ваша неделя",
+      "monday": "Пн",
+      "tuesday": "Вт",
+      "wednesday": "Ср",
+      "thursday": "Чт",
+      "friday": "Пт",
+      "focus": "Время для фокуса",
+      "break": "Небольшой перерыв",
+      "personal": "Время для себя"
+    }
   },
   "app": {
     "name": "Smart Calendar"

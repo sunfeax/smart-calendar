@@ -1,3 +1,20 @@
-<main class="login">
-  <div #googleButton></div>
-</main>
+<section class="login" aria-labelledby="login-heading">
+  <p class="login__eyebrow">{{ 'auth.welcome' | transloco }}</p>
+  <h2 id="login-heading" class="login__heading">{{ 'auth.signInTitle' | transloco }}</h2>
+  <p class="login__description">{{ 'auth.signInDescription' | transloco }}</p>
+
+  <div class="login__action" [attr.aria-busy]="googleButtonState() === 'loading'">
+    <div
+      #googleButton
+      class="login__google-button"
+      [class.login__google-button--ready]="googleButtonState() === 'ready'"
+    ></div>
+    @if (googleButtonState() === 'loading') {
+      <p class="login__status" role="status">{{ 'auth.googleLoading' | transloco }}</p>
+    } @else if (googleButtonState() === 'error') {
+      <p class="login__status login__status--error" role="status">
+        {{ 'auth.googleScriptError' | transloco }}
+      </p>
+    }
+  </div>
+</section>

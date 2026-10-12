@@ -20,6 +20,12 @@
     transparent
   );
 
+  --gradient-brand-text: linear-gradient(
+    110deg,
+    var(--color-primary-text),
+    var(--color-secondary)
+  );
+
   --font-family-sans:
     'Inter Variable', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
   --font-family-mono: ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
@@ -33,6 +39,7 @@
   --font-size-2xl: 24px;
   --font-size-3xl: 30px;
   --font-size-4xl: 36px;
+  --font-size-display: 56px;
 
   --line-height-tight: 1.25;
   --line-height-normal: 1.5;
