@@ -1,39 +1,148 @@
-// Include theming for Angular Material with `mat.theme()`.
-// This Sass mixin will define CSS variables that are used for styling Angular Material
-// components according to the Material 3 design spec.
-// Learn more about theming and how to use it for your application's
-// custom components at https://material.angular.dev/guide/theming
 @use '@angular/material' as mat;
+@use '@fontsource-variable/inter';
+@use 'styles/tokens';
 
 html {
-  height: 100%;
   @include mat.theme(
     (
       color: (
+        theme-type: color-scheme,
         primary: mat.$magenta-palette,
         tertiary: mat.$violet-palette,
       ),
-      typography: Roboto,
+      typography: (
+        plain-family: (
+          'Inter Variable',
+          ui-sans-serif,
+          system-ui,
+          sans-serif,
+        ),
+        brand-family: (
+          'Inter Variable',
+          ui-sans-serif,
+          system-ui,
+          sans-serif,
+        ),
+        bold-weight: 700,
+        medium-weight: 500,
+        regular-weight: 400,
+      ),
       density: 0,
     )
   );
 }
 
-body {
-  // Default the application to a light color theme. This can be changed to
-  // `dark` to enable the dark color theme, or to `light dark` to defer to the
-  // user's system settings.
-  color-scheme: light;
-
-  // Set a default background, font and text colors for the application using
-  // Angular Material's system-level CSS variables. Learn more about these
-  // variables at https://material.angular.dev/guide/system-variables
-  background-color: var(--mat-sys-surface);
-  color: var(--mat-sys-on-surface);
-  font: var(--mat-sys-body-medium);
-
-  // Reset the user agent margin.
-  margin: 0;
-  height: 100%;
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
 }
-/* You can add global styles to this file, and also import other style files */
+
+html {
+  height: 100%;
+  font-size: 16px;
+}
+
+body {
+  height: 100%;
+  margin: 0;
+  background: var(--color-background);
+  color: var(--color-text);
+  font-family: var(--font-family-sans);
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-regular);
+  line-height: var(--line-height-normal);
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+}
+
+button,
+input,
+textarea,
+select {
+  font: inherit;
+}
+
+button {
+  border: 0;
+  padding: 0;
+  background: transparent;
+  color: inherit;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+img,
+svg {
+  display: block;
+  max-width: 100%;
+}
+
+input {
+  min-width: 0;
+}
+
+mat-form-field {
+  --mat-form-field-container-height: 48px;
+  --mat-form-field-container-vertical-padding: 12px;
+  --mat-form-field-outlined-container-shape: var(--radius-xl);
+  --mat-form-field-outlined-outline-color: var(--color-border);
+  --mat-form-field-outlined-hover-outline-color: var(--color-primary-text);
+  --mat-form-field-outlined-focus-outline-color: var(--color-primary-text);
+}
+
+button.mat-mdc-outlined-button,
+button.mat-mdc-button {
+  --mat-button-outlined-label-text-color: var(--color-primary-text);
+  --mat-button-text-label-text-color: var(--color-primary-text);
+}
+
+.btn-block {
+  width: 100%;
+}
+
+.btn-lg {
+  --mat-button-filled-container-height: 48px;
+}
+
+button mat-progress-spinner {
+  margin-right: var(--space-2);
+  --mat-progress-spinner-active-indicator-color: currentColor;
+}
+
+.multiline-tooltip {
+  white-space: pre-line;
+}
+
+.app-snack-bar {
+  --mat-snack-bar-container-color: var(--color-surface);
+  --mat-snack-bar-supporting-text-color: var(--color-text);
+  --mat-snack-bar-button-color: var(--color-primary-text);
+  --mat-snack-bar-container-shape: var(--radius-xl);
+  --snack-bar-accent: var(--color-primary);
+
+  .mdc-snackbar__surface {
+    border: var(--border-width-sm) solid var(--color-border-soft);
+    border-left: var(--border-width-lg) solid var(--snack-bar-accent);
+    box-shadow: var(--shadow-lg);
+  }
+}
+
+.app-snack-bar--success {
+  --snack-bar-accent: var(--color-success);
+}
+
+.app-snack-bar--error {
+  --snack-bar-accent: var(--color-danger);
+}
+
+.app-snack-bar--warning {
+  --snack-bar-accent: var(--color-warning);
+}
+
+.app-snack-bar--info {
+  --snack-bar-accent: var(--color-info);
+}
