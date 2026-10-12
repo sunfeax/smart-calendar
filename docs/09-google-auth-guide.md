@@ -4,7 +4,7 @@
 
 Читать по порядку: каждый шаг опирается на предыдущие.
 
-**Статус:** бэкенд (шаги 1–5) сделан, в этих шагах описано, как он устроен, с фактическими именами файлов. Фронтенд (шаги 6–9) в работе.
+**Статус:** бэкенд (шаги 1–5) сделан, в этих шагах описано, как он устроен, с фактическими именами файлов. Фронтенд: сделаны прокси, environments и `AuthService.me()` (шаги 6, 7). Не сделаны: типы Google (8.1), скрипт и страница входа (8), guards и маршруты (9).
 
 ## Как устроен вход
 
@@ -768,21 +768,33 @@ curl -i -X POST localhost:3000/api/auth/google -H 'Content-Type: application/jso
 "options": { "proxyConfig": "proxy.conf.json" }
 ```
 
+**Статус:** сделано (`proxy.conf.json` и `angular.json`).
+
 **Проверка:** перезапустить `npm run front`, открыть `http://localhost:4200/api/auth/me`. Должен прийти JSON с 401 от Nest, а не страница Angular.
 
 ### 6.2. HttpClient
 
-В `app.config.ts` в `providers` добавить `provideHttpClient(withFetch())`. Без этого `HttpClient` нельзя заинжектить. `withFetch()` переводит его на современный `fetch` вместо `XMLHttpRequest`.
+В `app.config.ts` в `providers` добавить `provideHttpClient()`. Без этого `HttpClient` нельзя заинжектить. Так сделано в проекте.
 
-`withCredentials` не нужен: для запросов на тот же origin браузер отправляет cookie сам.
+Опция `withFetch()` переводит `HttpClient` на современный `fetch` вместо `XMLHttpRequest`. Она не обязательна, для cookie и запросов к `/api` не нужна.
+
+`withCredentials` тоже не нужен: для запросов на тот же origin браузер отправляет cookie сам.
 
 ### 6.3. Client ID
 
-```bash
-npx ng generate environments
+Файлы окружения: `src/environments/environment.ts` (прод) и `environment.development.ts` (разработка). `angular.json` подменяет один на другой через `fileReplacements` в конфигурации `development`.
+
+Схематик `npx ng generate environments` создаёт эти файлы пустыми (`export const environment = {};`), поэтому поле добавляется руками:
+
+```ts
+export const environment = {
+  googleClientId: '...', // тот же Client ID, что в .env (GOOGLE_CLIENT_ID)
+};
 ```
 
-Команда создаст `src/environments/environment.ts` и `environment.development.ts` и настроит в `angular.json` подмену файла при сборке. В оба файла добавь `googleClientId: '...'`. Для прода позже понадобится свой Client ID (или тот же, но с доменом в origins).
+Client ID публичный, поэтому его можно держать в файле окружения. Для прода позже понадобится свой Client ID с доменом в origins, его вписываем в `environment.ts`.
+
+**Статус:** сделано, оба файла заполнены.
 
 ## Шаг 7. Фронтенд: `AuthService`
 
@@ -805,32 +817,41 @@ private readonly router = inject(Router);
 
 private readonly _user = signal<User | null>(null);
 readonly user = this._user.asReadonly();
-readonly isLoggedIn = computed(() => this._user() !== null);
+readonly isAuthenticated = computed(() => !!this._user());
 ```
 
 **Почему signal, а не `BehaviorSubject`.** Состоянию нужно значение «прямо сейчас», а не поток. Шаблон и guard читают его синхронно, а `computed` пересчитывается сам. Callback кнопки Google вызывается вне Angular, и signal обновляет интерфейс без дополнительных действий.
 
-**Тип `User`** пока описан вручную в `src/app/features/auth/models/user.interface.ts`: `id`, `email`, `name`, `avatarUrl`, ровно то, что возвращает `toProfile` на бэкенде. Когда появится генерация клиента из Swagger, замени на сгенерированный тип.
+**Тип `User`** пока описан вручную в `src/app/features/auth/models/user.interface.ts` (уже создан): `id`, `email`, `name`, `avatarUrl`, ровно то, что возвращает `toProfile` на бэкенде. Когда появится генерация клиента из Swagger, замени на сгенерированный тип.
 
 **Наружу только чтение.** Записывать в `_user` может только сам сервис. Компоненты получают `user` через `asReadonly()`.
 
 ### Методы: Observable и `tap`
 
-Метод делает запрос и возвращает Observable. Состояние обновляется внутри `tap`, то есть как побочный эффект на пути потока. Сам запрос при этом ничего не меняет, пока кто-то не подписался:
+Метод делает запрос и возвращает Observable. Состояние обновляется внутри `tap`, то есть как побочный эффект на пути потока. Сам запрос при этом ничего не меняет, пока кто-то не подписался.
+
+Одного метода для проверки сессии достаточно, поэтому `me()` сам обрабатывает ошибку: и при 401 (не вошёл), и при любой другой ошибке он сбрасывает пользователя и возвращает `null`:
 
 ```ts
-me(): Observable<User> {
+me(): Observable<User | null> {
   return this.http.get<User>('/api/auth/me').pipe(
     tap((user) => this._user.set(user)),
+    catchError(() => {
+      this._user.set(null);
+      return of(null);
+    }),
   );
 }
 ```
 
 Так же устроены остальные методы:
 
-- **`loadMe()`** — `me()` плюс обработка 401: 401 значит «не вошёл», это не ошибка. Такой ответ превращается в `null`, а не в сбой. Для этого `catchError` возвращает `of(null)`, а потом `tap` ставит состояние.
 - **`loginWithGoogle(credential)`** — `POST /api/auth/google` с `{ credential }`, в `tap` записать пользователя в signal. Переход на `/calendar` делает компонент после успешной подписки, а не сервис.
 - **`logout()`** — `POST /api/auth/logout`, в `tap` сбросить пользователя в `null`.
+
+**Почему `me()` ловит все ошибки, а не только 401.** Отличать 401 от других ошибок имеет смысл, только если поведение разное. Сейчас оба случая дают «пользователь не вошёл», поэтому проверка не нужна. Когда появится экран ошибки, её вернём.
+
+**Путь `'/api/auth/me'` с ведущим слешем.** Путь с ведущим слешем однозначный и не зависит от `<base href>`. В текущем коде слеша нет (`'api/auth/me'`), это стоит поправить.
 
 **Почему переход на `/login` и `/calendar` не в сервисе.** Сервис отвечает за состояние и запросы, решение, куда перейти, принадлежит компоненту. Так сервис можно использовать в любом месте.
 
@@ -839,15 +860,10 @@ me(): Observable<User> {
 ### Каркас методов
 
 ```ts
-me(): Observable<User> {
-  // TODO: GET '/api/auth/me' через this.http.get<User>(...), затем tap: сохрани пользователя в _user
-}
-
-loadMe(): Observable<User | null> {
-  // TODO 1: вызови me()
-  // TODO 2: catchError: при 401 верни of(null) и поставь _user в null;
-  //         другие ошибки залогируй и тоже верни of(null)
-  // TODO 3: tap: поставь _user в полученное значение
+me(): Observable<User | null> {
+  // TODO 1: GET '/api/auth/me' через this.http.get<User>(...)
+  // TODO 2: tap: сохрани пользователя в _user
+  // TODO 3: catchError: поставь _user в null и верни of(null)
 }
 
 loginWithGoogle(credential: string): Observable<User> {
@@ -861,17 +877,19 @@ logout(): Observable<void> {
 
 Ошибку в `loginWithGoogle` здесь не ловим: её поймает подписка на странице входа и покажет сообщение (шаг 8.3).
 
-**Почему не `firstValueFrom` и не `async`.** Раньше в гайде было `await firstValueFrom(...)`. Это работает, но тогда методы становятся Promise, и теряется возможность отменить или повторить запрос через операторы RxJS. Observable даёт эти возможности, а signal остаётся для состояния.
+**Статус:** `me()` сделан. `loginWithGoogle` и `logout` пока не написаны (в коде сейчас `// login();`).
+
+**Почему не `firstValueFrom` и не `async`.** Это работает, но тогда методы становятся Promise, и теряется возможность отменить или повторить запрос через операторы RxJS. Observable даёт эти возможности, а signal остаётся для состояния.
 
 ### Загрузка при старте
 
 В `app.config.ts`:
 
 ```ts
-provideAppInitializer(() => inject(AuthService).loadMe()),
+provideAppInitializer(() => inject(AuthService).me()),
 ```
 
-**Зачем:** Angular не начнёт навигацию, пока инициализатор не завершится. Инициализатор ждёт, пока Observable из `loadMe()` выдаст значение и завершится. Поэтому `catchError` и `of(null)` обязательны: без них поток упадёт с ошибкой, и приложение не запустится. Когда сработает guard маршрутов, состояние «вошёл / не вошёл» уже известно. Без этого guard при перезагрузке страницы увидел бы `null`, отправил бы на `/login`, и только потом пришёл бы ответ `/me`.
+**Зачем:** Angular не начнёт навигацию, пока инициализатор не завершится. Инициализатор ждёт, пока Observable из `me()` выдаст значение и завершится. Поэтому `catchError` с `of(null)` обязателен: без него поток упадёт с ошибкой, и приложение не запустится. Когда сработает guard маршрутов, состояние «вошёл / не вошёл» уже известно. Без этого guard при перезагрузке страницы увидел бы `null`, отправил бы на `/login`, и только потом пришёл бы ответ `/me`.
 
 ## Шаг 8. Фронтенд: страница входа с кнопкой Google
 
@@ -886,6 +904,8 @@ npm i -D @types/google.accounts
 ```
 
 В `tsconfig.app.json` поменять `"types": []` на `"types": ["google.accounts"]`. Без этого TypeScript не знает про глобальный объект `google`.
+
+**Статус:** не сделано. В `package.json` фронтенда нет `@types/google.accounts`, а в `tsconfig.app.json` стоит `"types": []`.
 
 ### 8.2. Загрузка скрипта
 
@@ -969,11 +989,13 @@ constructor() {
 
 ### Функциональные guard'ы
 
+**Статус:** не сделано. Маршруты в `app.routes.ts` сейчас без guard'ов.
+
 Файл `src/app/features/auth/auth.guards.ts`:
 
 ```ts
 export const authGuard: CanActivateFn = () => {
-  // TODO: если пользователь вошёл, пропусти; иначе отправь на /login.
+  // TODO: если пользователь вошёл (inject(AuthService).isAuthenticated()), пропусти; иначе отправь на /login.
   //       Подсказка: CanActivateFn может вернуть true или UrlTree — адрес, куда перенаправить.
   //       UrlTree создаёт inject(Router).createUrlTree(['/login']).
 };
@@ -997,7 +1019,7 @@ export const routes: Routes = [
 ];
 ```
 
-Guard читает `isLoggedIn()` синхронно. Это работает, потому что `provideAppInitializer` из шага 7 дождался ответа `/me` до первой навигации.
+Guard читает `isAuthenticated()` синхронно. Это работает, потому что `provideAppInitializer` из шага 7 дождался ответа `/me` до первой навигации.
 
 ### Позже: 401 посреди работы
 
@@ -1040,7 +1062,7 @@ Guard читает `isLoggedIn()` синхронно. Это работает, �
 - [x] `@Public()` на входе, `@CurrentUser()`
 - [x] `GET /api/auth/me`, `POST /api/auth/logout`
 - [ ] Фронтенд: прокси, `provideHttpClient`, environments с Client ID
-- [ ] `AuthService`: методы возвращают Observable, состояние в signal, `loadMe` в `provideAppInitializer`
+- [ ] `AuthService`: методы возвращают Observable, состояние в signal, `me()` в `provideAppInitializer` (сделано)
 - [ ] Загрузчик скрипта GIS и страница входа
 - [ ] `authGuard`, `guestGuard`, маршруты
 - [ ] Ручная проверка полного цикла по шагу 10
