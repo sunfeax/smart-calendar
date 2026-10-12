@@ -1,0 +1,16 @@
+<h2 mat-dialog-title>{{ data.title }}</h2>
+
+@if (data.message) {
+  <mat-dialog-content>
+    <p class="confirm__message">{{ data.message }}</p>
+  </mat-dialog-content>
+}
+
+<mat-dialog-actions align="end">
+  <button matButton="text" type="button" (click)="onCancel()">
+    {{ data.cancelText ?? ('common.cancel' | transloco) }}
+  </button>
+  <button matButton="filled" type="button" [class]="confirmClass" (click)="onConfirm()">
+    {{ data.confirmText ?? ('common.confirm' | transloco) }}
+  </button>
+</mat-dialog-actions>
