@@ -22,7 +22,9 @@
   - пакет `fullcalendar` напрямую не импортируем, только `@fullcalendar/angular`
   - нужны плагины видов (месяц, при необходимости multi-month) и тема. Темы v7: Breezy, Forma, Monarch, Pulse, у всех есть тёмные варианты. Точные пути импортов смотреть в доках v7, а не в туториалах под v6
   - платные плагины (resource-timeline и т. п.) не нужны
-- **i18n**: рекомендую Transloco (смена языка на лету, JSON-файлы по языкам). `@angular/localize` собирает отдельные бандлы на язык и для переключения на лету не подходит. Это решение стоит подтвердить.
+- **i18n**: Transloco (`@jsverse/transloco`): смена языка на лету, JSON-файлы по языкам в `public/i18n/`. Языки ru, en, es, резервный ru. Настройка в `core/config/language.config.ts`, выбор языка в `LanguageService`. `@angular/localize` собирает отдельные бандлы на язык и для переключения на лету не подходит; ngx-translate тоже рассматривали, Transloco выбран из-за официальных плагинов для множественного числа и проверки ключей.
+- **Шрифт**: Inter из пакета `@fontsource-variable/inter` (вариативный, с кириллицей, лежит в бандле). Иконки: Material Symbols Outlined.
+- **Стили**: дизайн-токены в `src/styles/_tokens.scss`, тёмная тема через `data-theme='dark'` на `<html>`. Токены Material (`--mat-sys-*`) привязаны к нашим, поэтому компоненты Material берут наши цвета.
 - **Даты**: `date-fns`; `temporal-polyfill` нужен FullCalendar.
 - **Повторы**: `rrule` (строки формата RFC 5545). Плагин FullCalendar для rrule проверить в доках v7.
 - **Иконки**: Simple Icons (`simple-icons`) для брендов, Lucide или Material Icons для общих значков, эмодзи.

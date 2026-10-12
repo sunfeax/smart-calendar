@@ -4,6 +4,8 @@ Smart Calendar web app: Angular 22 (standalone, signals, RxJS for HTTP) + Angula
 
 In development, `ng serve` proxies `/api` to the backend on port 3000 (`proxy.conf.json`). The Google Client ID lives in `src/environments/`.
 
+Translations live in `public/i18n/{ru,en,es}.json` (Transloco), design tokens in `src/styles/_tokens.scss`.
+
 See the root `CLAUDE.md` and `docs/04-calendar-frontend.md` for the calendar design and project rules.
 
 ## Setup

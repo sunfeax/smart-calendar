@@ -38,8 +38,6 @@ model User {
   email       String           @unique
   name        String
   avatarUrl   String?
-  locale      String           @default("ru")
-  theme       String           @default("system")
   createdAt   DateTime         @default(now()) @db.Timestamptz(3)
   updatedAt   DateTime         @updatedAt @db.Timestamptz(3)
   memberships CalendarMember[]
@@ -154,18 +152,20 @@ model EventException {
 
 У `User` добавится поле `timeZone String` (IANA, например `Europe/Madrid`), см. «Даты».
 
+Тема и язык в профиле не хранятся, только в браузере. Язык добавим в `User`, когда сервер начнёт отправлять письма и напоминания.
+
 ## Порядок внедрения
 
 Схему добавляем порциями, каждая порция отдельной миграцией: `npm run prisma:migrate -- --name <описание>`, затем `npx prisma generate`. Добавлять поля и таблицы потом дёшево, дороже всего менять устройство связей, поэтому оно выбрано в первой порции.
 
-| Порция | Что добавляется                                                                                                                                                                                  |
-| ------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| 1      | `CalendarRole`, `User` (без `locale` и `theme`), `Calendar`, `CalendarMember`, `Event` (поля `id`, `calendarId`, `title`, `description`, `startAt`, `endAt`, `allDay`, `createdAt`, `updatedAt`) |
-| 1а     | `Session` и связь `sessions` у `User` (вход через Google)                                                                                                                                        |
-| 2      | `TagCategory`, `Tag`, `EventTag` (теги и категории)                                                                                                                                              |
-| 3      | `icon` и `completedAt` у события, `locale`, `theme` и `timeZone` у пользователя                                                                                                                  |
-| 4      | `recurrenceRule` и `EventException` (повторы)                                                                                                                                                    |
-| 5      | `createdById` у события, если понадобится                                                                                                                                                        |
+| Порция | Что добавляется                                                                                                                                                         |
+| ------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1      | `CalendarRole`, `User`, `Calendar`, `CalendarMember`, `Event` (поля `id`, `calendarId`, `title`, `description`, `startAt`, `endAt`, `allDay`, `createdAt`, `updatedAt`) |
+| 1а     | `Session` и связь `sessions` у `User` (вход через Google)                                                                                                               |
+| 2      | `TagCategory`, `Tag`, `EventTag` (теги и категории)                                                                                                                     |
+| 3      | `icon` и `completedAt` у события, `timeZone` у пользователя                                                                                                             |
+| 4      | `recurrenceRule` и `EventException` (повторы)                                                                                                                           |
+| 5      | `createdById` у события, если понадобится                                                                                                                               |
 
 Применены порции 1 и 1а.
 
