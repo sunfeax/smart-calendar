@@ -3,8 +3,8 @@ import { ConfigService } from '@nestjs/config';
 import { OAuth2Client, type TokenPayload } from 'google-auth-library';
 import { User } from '../generated/prisma/client.js';
 import { SessionService } from '../session/session.service.js';
-import { GoogleProfile } from '../user/user.model.js';
-import { UserService } from '../user/user.service.js';
+import { GoogleProfile } from '../users/user.model.js';
+import { UserService } from '../users/user.service.js';
 
 @Injectable()
 export class AuthService {

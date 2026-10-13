@@ -1,9 +1,10 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
-import { PrismaModule } from './prisma/prisma.module.js';
 import { AuthModule } from './auth/auth.module.js';
-import { UserModule } from './user/user.module.js';
+import { CalendarModule } from './calendars/calendar.module.js';
+import { PrismaModule } from './prisma/prisma.module.js';
 import { SessionModule } from './session/session.module.js';
+import { UserModule } from './users/user.module.js';
 
 @Module({
   imports: [
@@ -12,6 +13,7 @@ import { SessionModule } from './session/session.module.js';
     AuthModule,
     UserModule,
     SessionModule,
+    CalendarModule,
   ],
 })
 export class AppModule {}
