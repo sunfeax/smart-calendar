@@ -7,7 +7,8 @@
     "build": "ng build",
     "watch": "ng build --watch --configuration development",
     "test": "ng test",
-    "lint": "eslint ."
+    "lint": "eslint .",
+    "api:gen": "ng-openapi -c openapi.config.ts"
   },
   "private": true,
   "packageManager": "npm@11.19.0",
@@ -34,6 +35,7 @@
     "@angular/compiler-cli": "^22.2.0",
     "@types/google.accounts": "^0.0.18",
     "jsdom": "^30.0.0",
+    "ng-openapi": "^0.4.1",
     "typescript": "~6.0.2",
     "vitest": "^5.0.0"
   }

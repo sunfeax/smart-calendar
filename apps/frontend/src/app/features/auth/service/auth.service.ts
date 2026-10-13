@@ -1,25 +1,27 @@
 import { HttpClient } from '@angular/common/http';
 import { computed, inject, Service, signal } from '@angular/core';
 import { catchError, finalize, Observable, of, tap } from 'rxjs';
-import { User } from '../models/user.interface';
+import { GoogleLoginDto, UserProfile } from '../../../api/generated';
 
 @Service()
 export class AuthService {
   private readonly authPath = '/api/auth';
   private readonly http = inject(HttpClient);
 
-  private readonly _user = signal<User | null>(null);
+  private readonly _user = signal<UserProfile | null>(null);
   readonly user = this._user.asReadonly();
   readonly isAuthenticated = computed(() => !!this._user());
 
-  login(credential: string): Observable<User> {
+  login(credential: string): Observable<UserProfile> {
     return this.http
-      .post<User>(`${this.authPath}/google`, { credential })
+      .post<UserProfile>(`${this.authPath}/google`, {
+        credential,
+      } satisfies GoogleLoginDto)
       .pipe(tap(user => this._user.set(user)));
   }
 
-  me(): Observable<User | null> {
-    return this.http.get<User>(`${this.authPath}/me`).pipe(
+  me(): Observable<UserProfile | null> {
+    return this.http.get<UserProfile>(`${this.authPath}/me`).pipe(
       tap(user => this._user.set(user)),
       catchError(() => {
         this._user.set(null);

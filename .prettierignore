@@ -5,3 +5,4 @@ coverage
 .angular
 package-lock.json
 *.min.js
+apps/frontend/src/app/api/generated
