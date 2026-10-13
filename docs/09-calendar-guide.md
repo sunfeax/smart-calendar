@@ -6,15 +6,15 @@
 
 **Статус:** схема Prisma и миграция есть (`Calendar`, `CalendarMember`, `Event`). Всё остальное в этом гайде ещё не сделано.
 
-## Решения, которые нужны от тебя до старта
+## Принятые решения
 
-Эти вопросы не закрыты в `08-open-questions.md`, но от них зависит код. Ниже моя рекомендация по каждому, но решаешь ты.
+Решения по этапу 2, которых не было в `08-open-questions.md`. Они определяют код ниже.
 
-1. **События «на весь день»: как хранить конец.** Рекомендую хранить ровно так, как отдаёт и ждёт FullCalendar: `startAt` = полночь UTC первого дня, `endAt` = полночь UTC дня **после** последнего (эксклюзивный конец). Тогда между API и календарём конвертировать нечего, а единственное место, где конец сдвигается на день, это диалог (пользователь выбирает последний день включительно). Альтернатива (хранить последний день включительно) заставит сдвигать конец в каждом месте, где событие едет в календарь или обратно.
-2. **Цвет календаря.** Рекомендую хранить **ключ палитры** (`blue`, `green`...), как для тегов, а не hex: так работают обе темы. Палитру из ~8 цветов нужно будет завести токенами в `_tokens.scss` (по паре на тему), этап 3 её переиспользует. Если выберешь hex, придётся потом переделывать.
-3. **Удаление календаря.** В этот гайд не входит: в `07-tasks.md` его нет, а ему нужны решения (можно ли удалить последний календарь, какое подтверждение, что с событиями). Бэкенд делает `GET`, `POST`, `PATCH` календарей. Вернёмся, когда появятся общие календари.
-4. **Поле «выполнено».** В roadmap оно упомянуто в диалоге, но колонки `completedAt` в схеме ещё нет (порция 3 в `03-data-model.md`). В гайд не включаю: добавим миграцией, когда скажешь.
-5. **Генератор клиента из OpenAPI.** Конкретный инструмент выбираем на шаге 8: нужна проверка совместимости с Angular 22, это новая зависимость и её надо обосновать.
+1. **События «на весь день».** Храним как FullCalendar: `startAt` = полночь UTC первого дня, `endAt` = полночь UTC дня **после** последнего (эксклюзивный конец). Между API и календарём конвертировать нечего. Единственное место, где конец сдвигается на день, это диалог (там пользователь выбирает последний день включительно).
+2. **Цвет календаря.** У каждого календаря **один цвет на весь календарь**. Он показывается на его плитке на экране выбора и как акцент на странице календаря. У событий этого цвета нет, карточки нейтральные. Хранится **ключ палитры** (`blue`, `green`...), а не hex: значения цветов лежат токенами отдельно для светлой и тёмной темы, поэтому цвет хорошо выглядит в обеих. Палитра ~8 цветов, этап 3 её переиспользует. (Принято по умолчанию, если нужен hex, скажи до шага 3.)
+3. **Календари как закладки.** После входа открывается экран с плитками календарей и плиткой «+». Клик по плитке открывает календарь, клик по «+» создаёт новый. Из календаря на экран плиток возвращаются кнопкой в шапке. Сайдбара нет. Календарь можно удалить, в том числе последний. Лимит числа календарей (1 бесплатный, много в премиуме) относится к монетизации и в этот этап не входит: сделаем его, когда решим модель (`08-open-questions.md`). Создание календаря проходит через один метод сервиса, туда лимит и встанет.
+4. **«Выполнено».** У каждого события есть отметка о выполнении (галочка на карточке и в диалоге), как в списке дел. Отдельного типа «задача» нет. В схему добавляется `completedAt` (порция 3 из `03-data-model.md`), шаг 4.
+5. **Swagger используем** (пробуем в этом проекте, чтобы решить, нужен ли он на работе). Бэкенд отдаёт спецификацию OpenAPI, из неё генерируются типы и сервисы для Angular (шаг 8). Ручные запросы к API идут через Swagger UI на `/api/docs`.
 
 ## Как это устроено
 
@@ -36,7 +36,7 @@ Angular                                   Nest
 
 1. **Одна точка проверки доступа.** Каждый метод сервиса, который трогает данные календаря, **первой строкой** вызывает `CalendarAccessService`. Фильтров «`where: { userId }`» в запросах к событиям нет и быть не должно (правило из `CLAUDE.md`).
 2. **Контроллеры тонкие.** Берут параметры и DTO, передают `user.id` и параметры в сервис, возвращают результат. Вся логика в сервисах.
-3. **Фронтенд не дублирует типы.** Типы запросов и ответов приходят из OpenAPI. Поэтому ответы бэкенда описываются **классами**, а не `interface` (Swagger не видит интерфейсы). Это касается и существующего `UserProfile`.
+3. **Фронтенд не дублирует типы.** Типы запросов и ответов приходят из OpenAPI (`/api/docs-json`). Поэтому ответы бэкенда описываются **классами**, а не `interface`: Swagger не видит интерфейсы. Это касается и существующего `UserProfile`. После правки DTO на бэкенде нужно заново сгенерировать клиент (шаг 8).
 4. **Даты везде ISO-строки.** На бэкенде `Date` допустим, в состоянии фронтенда нет.
 5. **Все списки ограничены.** События: диапазон дат (не шире N дней) плюс жёсткий `take`. Календари: `take`.
 
@@ -46,17 +46,17 @@ Angular                                   Nest
 | --- | -------- | ------------------------------------------------------------ |
 | 1   | бэкенд   | Swagger, `/api/docs`, ответы классами                        |
 | 2   | бэкенд   | `CalendarAccessService`: членство и роль                     |
-| 3   | бэкенд   | модуль `calendars`: список, создание, правка                 |
-| 4   | бэкенд   | модуль `events`: выборка за диапазон, создание, правка, удаление |
+| 3   | бэкенд   | модуль `calendars`: список, один, создание, правка, удаление |
+| 4   | бэкенд   | `completedAt`, модуль `events`: диапазон, создание, правка, удаление |
 | 5   | бэкенд   | ручная проверка доступа и границ диапазона                   |
 | 6   | фронтенд | цвета календаря в токенах, ключи переводов                   |
-| 7   | фронтенд | раскладка с сайдбаром, состояние выбранного календаря        |
+| 7   | фронтенд | маршруты и экран выбора календаря (плитки)                   |
 | 8   | фронтенд | клиент API из OpenAPI                                        |
 | 9   | фронтенд | страница календаря: события из API, навигация                |
-| 10  | фронтенд | диалог события, «+» на дате                                  |
+| 10  | фронтенд | диалог события, «+» на дате, галочка «выполнено»             |
 | 11  | фронтенд | drag-and-drop, ресайз, откат                                 |
 | 12  | фронтенд | удаление с отменой                                           |
-| 13  | фронтенд | переключатель календарей и цвет                              |
+| 13  | фронтенд | диалог календаря: создание, цвет, удаление                   |
 | 14  | везде    | сквозная проверка                                            |
 
 ---
@@ -82,6 +82,8 @@ npm i @nestjs/swagger
 **Предупреждение про `whitelist: true`.** `ValidationPipe({ whitelist: true })` выбрасывает из тела любое свойство DTO, у которого нет **ни одного** декоратора валидации. Поле без декоратора молча пропадёт. В каждом поле входных DTO должен быть хотя бы один декоратор (для необязательных `@IsOptional()` плюс правило).
 
 **Про безопасность.** UI документации публичен. На время беты на локальной машине это нормально, но в чек-лист этапа 6 стоит добавить «закрыть `/api/docs` в проде».
+
+**Запасной способ проверки.** Если нужно вызвать API без UI, подойдёт `curl -b "session=<значение>" ...`, значение cookie берётся из DevTools → Application → Cookies.
 
 **Проверка:** `npm run back`, `http://localhost:3000/api/docs` открывается и показывает `auth/*`. `GET /api/auth/me` в схеме возвращает не пустой объект, а поля профиля. Войдя через фронтенд, ты получаешь cookie на `localhost`; она уйдёт и на порт 3000, поэтому «Try it out» в Swagger UI работает от твоего пользователя.
 
@@ -155,9 +157,9 @@ export class CalendarAccessService {
 
 ---
 
-## Шаг 3. Модуль `calendars`: список, создание, правка
+## Шаг 3. Модуль `calendars`
 
-**Что:** `GET /api/calendars`, `POST /api/calendars`, `PATCH /api/calendars/:id`.
+**Что:** `GET /api/calendars`, `GET /api/calendars/:id`, `POST /api/calendars`, `PATCH /api/calendars/:id`, `DELETE /api/calendars/:id`.
 
 **Файлы:**
 
@@ -172,7 +174,7 @@ export class CalendarAccessService {
 
 ### 3.1. Константы и DTO
 
-Ключи цвета: список строк из решения 2 выше (`CALENDAR_COLORS`), по нему же валидируем. Лимит имени, например 100 символов.
+Ключи цвета: список строк из решения 2 (`CALENDAR_COLORS`), по нему же валидируем. Лимит имени, например 100 символов.
 
 ```ts
 export class CreateCalendarDto {
@@ -192,7 +194,7 @@ export class CalendarDto {
 }
 ```
 
-**Почему в ответе есть `role`.** Фронтенду нужно знать, что можно показывать: `VIEWER` не должен видеть кнопку «+». Роль живёт в `CalendarMember`, а не в `Calendar`, поэтому сервис отдаёт «календарь плюс моя роль».
+**Почему в ответе есть `role`.** Фронтенду нужно знать, что можно показывать: `VIEWER` не должен видеть «+» и галочки. Роль живёт в `CalendarMember`, а не в `Calendar`, поэтому сервис отдаёт «календарь плюс моя роль».
 
 **Название личного календаря пустое** (`name: ''`, см. `UserService`). Бэкенд ничего не подставляет, фронтенд покажет переведённое «Личный календарь». Валидация `name` при `PATCH` пустую строку не пропустит: это правка пользователем, а не системное значение.
 
@@ -213,9 +215,16 @@ export class CalendarsService {
     //       Hint: findMany returns an array; orderBy sorts; take limits the count.
   }
 
+  async get(userId: string, id: string): Promise<CalendarDto> {
+    // TODO: requireRole(VIEWER) already loads the membership; load the calendar itself and return CalendarDto
+    //       with the role from the membership. The calendar page needs the role, the color and the name.
+  }
+
   async create(userId: string, dto: CreateCalendarDto): Promise<CalendarDto> {
     // TODO: create the calendar and the OWNER membership for this user in one nested create,
     //       the same way UserService.upsertFromGoogle does it. Map to CalendarDto.
+    // ponytail: no limit on the number of calendars yet. When monetization is decided, the limit check
+    //           goes here, before the create, and nowhere else.
   }
 
   async update(userId: string, id: string, dto: UpdateCalendarDto): Promise<CalendarDto> {
@@ -223,6 +232,14 @@ export class CalendarsService {
     // TODO 2: update the calendar from the dto. A field that is undefined is not touched by Prisma,
     //         null clears it, so passing the dto fields as they are works.
     // TODO 3: return CalendarDto with the role from the membership you got in TODO 1.
+  }
+
+  async remove(userId: string, id: string): Promise<void> {
+    // TODO 1: only OWNER may delete: requireRole first.
+    // TODO 2: delete the calendar. Members and events go with it: the schema has onDelete: Cascade.
+    //         Hint: delete removes one row by a unique key (here the id). Unlike deleteMany it throws when
+    //         the row is missing, which is fine here: requireRole has just proved it exists.
+    //         Deleting the last calendar is allowed: the user then sees an empty picker with only "+".
   }
 }
 ```
@@ -235,7 +252,9 @@ export class CalendarsController {
   constructor(private readonly calendars: CalendarsService) {}
 
   // TODO: GET /calendars -> list
+  // TODO: GET /calendars/:id -> get
   // TODO: POST /calendars -> create. A created resource should answer 201 (Nest's @Post does it by default).
+  // TODO: DELETE /calendars/:id -> remove, answer 204 (see @HttpCode in AuthController.logout).
   // TODO: PATCH /calendars/:id -> update.
   //       Hint: ParseUUIDPipe in @Param('id', ParseUUIDPipe) rejects ids that are not UUIDs with a 400
   //       before your code runs; @Param reads a path segment, @Patch declares the verb.
@@ -243,7 +262,7 @@ export class CalendarsController {
 }
 ```
 
-**Проверка:** модули зарегистрированы (`CalendarsModule` в `imports` у `AppModule`), `npm run back` стартует. В Swagger UI: `GET /calendars` возвращает твой личный календарь с `role: "OWNER"` и `name: ""`. `POST` с пустым именем даёт `400`, с цветом не из списка тоже `400`. `PATCH` чужого (случайного) UUID даёт `404`.
+**Проверка:** модули зарегистрированы (`CalendarsModule` в `imports` у `AppModule`), `npm run back` стартует. В Swagger UI: `GET /calendars` возвращает твой личный календарь с `role: "OWNER"` и `name: ""`. `POST` с пустым именем даёт `400`, с цветом не из списка тоже `400`. `PATCH` и `DELETE` чужого (случайного) UUID дают `404`.
 
 ---
 
@@ -257,6 +276,12 @@ npx nest g module events && npx nest g service events --flat && npx nest g contr
 ```
 
 `EventsModule` импортирует `CalendarsModule` (там экспорт сервиса доступа).
+
+### 4.0. Миграция `completedAt`
+
+В модель `Event` в `schema.prisma` добавь необязательное поле `completedAt` с типом `DateTime?` и `@db.Timestamptz(3)`, как у остальных дат (комментарий: `null` = не выполнено). Затем `npm run prisma:migrate -- --name add_event_completed_at`. Клиент пересоздастся сам, но если типы не обновились, запусти `npm run prisma:generate`.
+
+**Почему дата, а не boolean.** Тот же флаг «выполнено», но с моментом отметки: бесплатно получаем «когда выполнил» для будущих отчётов, а цена нулевая. API при этом простой: клиент шлёт `completed: true/false`, а сервер сам ставит время.
 
 **Файлы:** `events.constants.ts`, `create-event.dto.ts`, `update-event.dto.ts`, `events-range.dto.ts` (query), `event.dto.ts` (ответ), `events.service.ts`, `events.controller.ts`.
 
@@ -276,6 +301,7 @@ export class CreateEventDto {
   // TODO: startAt: ISO 8601 string. Hint: @IsISO8601 checks the format; with { strict: true } it also rejects impossible dates.
   // TODO: endAt: optional ISO 8601 string.
   // TODO: allDay: optional boolean.
+  // TODO: completed: optional boolean (the client sends a flag, the server turns it into completedAt).
 }
 
 // TODO: UpdateEventDto: all fields optional (PartialType again).
@@ -287,7 +313,8 @@ export class EventsRangeDto {
 }
 
 export class EventDto {
-  // TODO: id, calendarId, title, description (string | null), startAt, endAt (| null), allDay, createdAt, updatedAt.
+  // TODO: id, calendarId, title, description (string | null), startAt, endAt (| null), allDay,
+  //       completedAt (| null), createdAt, updatedAt.
   //       Date fields are typed Date here; JSON turns them into ISO strings.
 }
 ```
@@ -341,6 +368,7 @@ export class EventsService {
     // TODO 1: requireRole(EDITOR).
     // TODO 2: parse the dates, run assertDates (below).
     // TODO 3: create the event with calendarId from the URL (never from the body: the DTO has no such field).
+    //         completed: true -> completedAt = now, otherwise null.
   }
 
   async update(userId: string, id: string, dto: UpdateEventDto): Promise<EventDto> {
@@ -349,7 +377,9 @@ export class EventsService {
     //         Careful: endAt: null in the dto means "clear it", undefined means "leave as is".
     // TODO 3: assertDates on the RESULT, not on the dto alone
     //         (moving a stored all-day event to a time, or changing only startAt past the stored endAt, must fail too).
-    // TODO 4: update and return. The calendar of an event never changes: do not let calendarId in.
+    // TODO 4: completed: true -> completedAt = now, but ONLY if the stored one is null (a repeated "true" must not
+    //         move the time); false -> null; undefined -> leave as is.
+    // TODO 5: update and return. The calendar of an event never changes: do not let calendarId in.
   }
 
   async remove(userId: string, id: string): Promise<void> {
@@ -380,7 +410,7 @@ export class EventsController {
 }
 ```
 
-**Проверка:** сборка и старт без ошибок, в Swagger UI видны четыре маршрута, а у `EventDto` и `EventsRangeDto` есть поля.
+**Проверка:** сборка и старт без ошибок, в Swagger UI видны маршруты и у `EventDto` и `EventsRangeDto` есть поля (подробный список проверок в шаге 5).
 
 ---
 
@@ -392,6 +422,11 @@ export class EventsController {
 | ---------------------------------------------------------------------------------- | ------------------------------------------------ |
 | Без cookie любой маршрут                                                           | 401                                              |
 | `GET /calendars` у двух пользователей                                              | у каждого только свой календарь                  |
+| `GET`, `PATCH`, `DELETE /calendars/:id` чужого календаря                           | 404                                              |
+| Роль `EDITOR` (через `prisma:studio`): `PATCH` и `DELETE` календаря                | 403                                              |
+| `DELETE` своего календаря с событиями                                              | 204, события и участие исчезли (проверь в `prisma:studio`) |
+| `PATCH { completed: true }` дважды подряд                                          | `completedAt` не меняется на втором запросе      |
+| `PATCH { completed: false }`                                                       | `completedAt` равен `null`                       |
 | Пользователь B читает события календаря A                                          | 404, не 403                                      |
 | Пользователь B делает `PATCH /events/:id` по id события из календаря A             | 404                                              |
 | В `prisma:studio` сменить свою роль в календаре на `VIEWER`: `POST` события        | 403, `GET` работает                              |
@@ -415,58 +450,54 @@ export class EventsController {
 
 **Палитра (решение 2).** В `src/styles/_tokens.scss` завести токены вида `--calendar-color-<ключ>` для каждого ключа из `CALENDAR_COLORS`, **значения для обеих тем** (светлая на `:root`, тёмная на `:root[data-theme='dark']`). Если цвет используется как фон с текстом, нужен парный токен `--color-on-*`. Проверь оба режима глазами.
 
-**Переводы.** Ключи добавляются сразу в **три** файла `public/i18n/{ru,en,es}.json` по мере появления в шагах 7–13: наборы должны совпадать. Предлагаю корни `sidebar.*`, `calendar.*`, `event.*`, `calendars.*` (название личного календаря, диалог календаря, названия цветов).
+**Переводы.** Ключи добавляются сразу в **три** файла `public/i18n/{ru,en,es}.json` по мере появления в шагах 7–13: наборы должны совпадать. Предлагаю корни `calendars.*` (экран плиток, название личного календаря, диалог календаря, названия цветов), `calendar.*` (страница календаря), `event.*` (диалог и карточка).
 
 **Проверка:** переключение темы меняет цвета образцов (можно временно вывести квадратики на странице календаря и убрать).
 
 ---
 
-## Шаг 7. Раскладка с сайдбаром и состояние выбранного календаря
+## Шаг 7. Маршруты и экран выбора календаря
 
-**Что:** слева панель со списком календарей, справа страница. Выбранный календарь известен и сайдбару, и странице календаря.
+**Что:** после входа открывается экран с плитками календарей. Клик по плитке ведёт на `/calendars/:id`. В шапке на странице календаря появляется кнопка «К календарям».
 
-**Почему состояние в сервисе, а не в компоненте.** Его читают два независимых компонента (сайдбар и страница), это «общее состояние приложения»: signal в сервисе (`01-stack.md`).
+**Почему выбранный календарь в адресе, а не в состоянии.** `/calendars/<id>` можно обновить, открыть в другой вкладке, вернуться «назад» браузера. Не нужен ни общий сервис, ни `localStorage`: страница календаря берёт id из маршрута и сама запрашивает данные. Это проще, чем хранить «выбранный» календарь, и именно так работают закладки браузера.
 
-### 7.1. Состояние
+### 7.1. Маршруты
 
-Типы календаря берутся из сгенерированного клиента (шаг 8). Поэтому **этот шаг удобно сделать после шага 8**, а сейчас сделать только вёрстку сайдбара и пустой каркас. Либо поменяй порядок шагов 7 и 8: решай сам.
+- В `routePaths` (`core/constants/routePaths.ts`) вместо `calendar` заведи `calendars` (`/calendars`, экран плиток) и путь страницы календаря с параметром.
+- В `app.routes.ts` оба маршрута внутри `MainLayout`, под `authGuard`. `''` перенаправляет на `calendars`.
+- Проверь, куда ведут `guestGuard` и страница входа после успешного входа: должно быть `calendars`.
+- Чтобы получить `:id` во входном параметре компонента, включи привязку параметров маршрута к `input()`. Подсказка: `withComponentInputBinding()` в `provideRouter` в `app.config.ts`. Альтернатива: `ActivatedRoute`, но она даёт Observable, а входной параметр сразу signal и удобнее для `rxResource`.
+
+### 7.2. Экран плиток
+
+Новая страница `features/calendar/pages/calendars/calendars.ts`. Данные страницы грузит `rxResource`, без общего сервиса.
 
 ```ts
-@Service()
-export class CalendarsState {
-  readonly calendars = signal<Calendar[]>([]); // Calendar: the generated type
-  readonly selectedId = signal<string | null>(null);
+export class Calendars {
+  private readonly api = inject(/* the generated calendars service, step 8 */);
 
-  readonly selected = computed(() => {
-    // TODO: the calendar with selectedId from the list, or null.
+  readonly calendars = rxResource({
+    stream: () => {
+      // TODO: the list of calendars from the API.
+    },
   });
-  readonly canEdit = computed(() => {
-    // TODO: true when the selected calendar's role is OWNER or EDITOR. The UI uses it to hide "+", disable drag and the like.
-    //       This is a convenience for the user: the backend checks the role anyway.
-  });
-
-  load(): Observable<Calendar[]> {
-    // TODO 1: fetch the list from the API.
-    // TODO 2: put it into `calendars`.
-    // TODO 3: choose selectedId: the id remembered in localStorage if that calendar still exists, otherwise the first one.
-    //         localStorage can throw or be empty (private window): wrap it in try/catch, the app must work without it.
-  }
-
-  select(id: string): void {
-    // TODO: set selectedId and remember it in localStorage (same try/catch).
-  }
+  // TODO: tile click -> navigate to the calendar page (Router with the path from routePaths).
+  // TODO: "+" tile -> opens the calendar dialog (step 13).
 }
 ```
 
-**Где вызывать `load()`.** `MainLayout` создаётся только для вошедших пользователей, это подходящее место: список нужен всей внутренней части приложения. Выбери способ подписки (с закрытием через `takeUntilDestroyed`, или `toSignal`) и объясни себе почему.
+Шаблон:
+- Плитка календаря: имя (пустое имя заменяется переводом «Личный календарь»), цветная полоса или фон цвета календаря из токенов, парный `--color-on-*` для текста на цвете.
+- Последней идёт плитка «+». У `VIEWER`-календарей плитка обычная, создавать новые можно всегда.
+- Пока грузится: заглушка. Ошибка: сообщение через `SnackbarService`. Календарей нет: видна только плитка «+».
+- Только токены, обе темы. Тексты через Transloco.
 
-### 7.2. Раскладка
+### 7.3. Кнопка в шапке
 
-- В `MainLayout` рядом с `<main>` добавить `<aside>` сайдбара (отдельный компонент в `shared/components/sidebar/`). Простая сетка из двух колонок: узкая постоянная панель, широкое содержимое. Сворачивание и телефон делаем на этапе 5.
-- Список календарей: имя (пустое имя заменяется переводом), цветная метка, активный выделен. Клик вызывает `select`.
-- Цвета, отступы, радиусы и шрифты только из токенов, оба режима темы.
+В `Header` на странице календаря показывай кнопку «К календарям» (ведёт на `/calendars`) и имя текущего календаря. Как шапка узнаёт, что она на странице календаря, выбери сам (данные маршрута, или страница кладёт имя в простой общий signal) и объясни выбор. Дешевле всего первое.
 
-**Проверка:** после входа слева виден «Личный календарь», он выбран. Перезагрузка страницы сохраняет выбор (когда календарей будет больше одного).
+**Проверка:** вход ведёт на `/calendars`, виден «Личный календарь» и плитка «+». Клик по плитке открывает `/calendars/<id>` (пока пустая страница). Обновление страницы остаётся на том же календаре. Кнопка в шапке возвращает на плитки.
 
 ---
 
@@ -477,16 +508,18 @@ export class CalendarsState {
 **Что нужно решить (и это новая зависимость, её нужно обосновать):** какой генератор. Критерии выбора:
 
 - умеет Angular `HttpClient` и отдаёт `Observable` (у нас методы возвращают Observable);
-- совместим с Angular 22 и с `@Service()`-стилем проекта, либо не мешает ему;
-- генерируется одной командой из URL спецификации (`http://localhost:3000/api/docs-json`), лежит в devDependencies, а результат в понятной папке.
+- работает с Angular 22 и не ломает стиль проекта (`@Service()`, standalone);
+- генерируется одной командой из URL спецификации (`http://localhost:3000/api/docs-json`), лежит в devDependencies, результат в понятной папке.
 
-Перед установкой дай мне знать: я сверю актуальные версии и совместимость, чтобы не ставить наугад. Тут легко ошибиться, много инструментов, часть уже не поддерживается.
+**Кандидаты** (по беглому поиску, совместимость с Angular 22 ни у одного не подтверждена, это надо проверять перед установкой по их README и changelog): [ng-openapi-gen](https://github.com/cyclosproject/ng-openapi-gen) (заточен именно под Angular, генерирует отдельные функции и один сервис `Api`), [Orval](https://orval.dev/docs/guides/angular) (может генерировать сервисы на `HttpClient` или на `httpResource`), hey-api/openapi-ts (в поиске не нашёлся, смотреть в его документации). Выбери, обоснуй, потом ставь. Если захочешь, я сверю детали по документации вместе с тобой.
 
 **Куда генерировать и коммитить ли.** Рекомендую `src/app/core/api/`, добавить в `.gitignore` (как клиент Prisma) и запускать скриптом `npm run api:gen` из `apps/frontend`. Минус: нужен работающий бэкенд при генерации. Реши, подходит ли тебе это, или лучше коммитить результат.
 
-**Проверка:** в сгенерированных типах есть `Calendar`, `Event` (имена по генератору) и методы для маршрутов из шагов 3–4, у ответов нет `any`.
+**Правило работы.** После любой правки DTO или ответа на бэкенде: перезапусти бэкенд, запусти `npm run api:gen`, проверь `npm run build`. Ошибки типов покажут, что на фронтенде сломалось.
 
-**Нужен ли свой `EventsApi`-сервис поверх?** Если сгенерированные сервисы отдают `Observable` и принимают простые параметры, **они и есть сервис-API**, оборачивать их не нужно (пока не появится причина). Преобразование API ↔ FullCalendar (см. шаг 9) живёт в отдельных функциях-мапперах, а не в слое запросов.
+**Проверка:** в сгенерированных типах есть календарь и событие (имена по генератору) и методы для маршрутов из шагов 3–4, у ответов нет `any`. Ниже в гайде события названы `ApiEvent`, а запросы создания `CreateEventPayload`: подставь реальные имена генератора (или заведи псевдонимы в одном файле).
+
+**Нужен ли свой `EventsApi`-сервис поверх?** Если сгенерированные методы отдают `Observable` и принимают простые параметры, **они и есть сервис-API**, оборачивать их не нужно (пока не появится причина). Преобразование API ↔ FullCalendar (см. шаг 9) живёт в отдельных функциях-мапперах, а не в слое запросов.
 
 ---
 
@@ -498,18 +531,29 @@ export class CalendarsState {
 
 ### 9.1. Загрузка
 
-Данные страницы грузит `rxResource` в компоненте (`01-stack.md`). Параметры: выбранный календарь и видимый диапазон; при их смене запрос повторяется, а устаревший отменяется.
+Данные страницы грузит `rxResource` в компоненте (`01-stack.md`). Календарь определяется адресом (шаг 7). Для страницы два ресурса: сам календарь (имя, роль, цвет) и его события за видимый диапазон. При смене параметров запрос повторяется, а устаревший отменяется.
 
 ```ts
 export class Calendar {
-  private readonly state = inject(CalendarsState);
-  // the generated events service: inject it here
+  readonly id = input.required<string>(); // bound from the route (step 7.1)
+  // the generated calendars and events services from step 8: inject them here
+
+  readonly calendar = rxResource({
+    params: () => this.id(),
+    stream: ({ params }) => {
+      // TODO: GET the calendar by id (name, role, color).
+    },
+  });
+  readonly canEdit = computed(() => {
+    // TODO: true when the calendar's role is OWNER or EDITOR. The UI uses it to hide "+", disable drag and the like.
+    //       This is a convenience for the user: the backend checks the role anyway.
+  });
 
   readonly range = signal<{ from: string; to: string } | null>(null); // ISO strings
 
   readonly events = rxResource({
     params: () => {
-      // TODO: return { calendarId, from, to } when both the calendar and the range are known,
+      // TODO: return { calendarId, from, to } when both the id and the range are known,
       //       otherwise undefined (the resource then stays idle and does not request).
     },
     stream: ({ params }) => {
@@ -525,7 +569,8 @@ export class Calendar {
 **На что смотреть при проверке:**
 
 - Что делает `events.value()` на время загрузки после смены `params`? Если оно становится `undefined`, события на секунду пропадут при каждом листании, и это будет выглядеть как мигание. Посмотри в документации Angular по `resource`, как этого избежать (например, помнить последнее значение в `computed`/`linkedSignal`).
-- Запрос не должен уходить, пока календарь не выбран.
+- Запрос не должен уходить, пока диапазон не известен. Переход на другой календарь (другой `:id`) перезапрашивает события.
+- Календарь по чужому или несуществующему id отвечает `404`: страница показывает понятное сообщение или уводит на `/calendars`, а не остаётся пустой.
 - Ошибка загрузки: `events.error()` показывается пользователю через `SnackbarService` с переведённым текстом, а не молча.
 - Быстрое листание: устаревший запрос отменяется (это даёт `rxResource`, убедись в Network).
 
@@ -535,7 +580,7 @@ export class Calendar {
 
 ```ts
 export function toCalendarEvent(event: ApiEvent): EventInput {
-  // TODO: API event -> FullCalendar input. Neutral card (no own colour, see 04-calendar-frontend.md).
+  // TODO: API event -> FullCalendar input. Neutral card (no own colour, see 04-calendar-frontend.md); completed comes from completedAt.
   //       For allDay events FullCalendar wants a plain date (YYYY-MM-DD) and an exclusive end: the API already
   //       stores exactly that (decision 1), so cut the ISO strings to the date part.
   //       For timed events pass the ISO instants as they are.
@@ -546,11 +591,11 @@ export function toCalendarEvent(event: ApiEvent): EventInput {
 
 ### 9.3. Навигация
 
-Свои кнопки на панели над календарём (Material, переведённые подписи): «назад», «вперёд», «Сегодня», заголовок текущего месяца. Они вызывают методы API компонента календаря (`prev`, `next`, `today`; как получить ссылку на календарь в Angular-обёртке v7, смотри в доках обёртки). Заголовок месяца берётся из данных календаря и обновляется при смене дат.
+Свои кнопки на панели над календарём (Material, переведённые подписи): «назад», «вперёд», «Сегодня», заголовок текущего месяца. Они вызывают методы API компонента календаря (`prev`, `next`, `today`; как получить ссылку на календарь в Angular-обёртке v7, смотри в доках обёртки). Заголовок месяца берётся из данных календаря и обновляется при смене дат. Цвет календаря показывается акцентом в этой панели.
 
 ---
 
-## Шаг 10. Диалог события и «+» на дате
+## Шаг 10. Диалог события, «+» на дате и «выполнено»
 
 **Что:** диалог создания и редактирования (Material), выбор дат через datepicker, кнопка «+» на дате.
 
@@ -568,7 +613,7 @@ export type EventDialogData =
   | { mode: 'edit'; event: ApiEvent };
 
 export type EventDialogResult =
-  | { action: 'save'; value: CreateEventPayload } // the generated request type
+  | { action: 'save'; value: CreateEventPayload } // the request type from step 8
   | { action: 'delete' }
   | undefined; // cancelled
 ```
@@ -577,7 +622,7 @@ export type EventDialogResult =
 
 ### 10.3. Форма
 
-Поля: название (обязательное), описание, «на весь день», начало (дата и время), окончание (дата и время). Время: нативный `<input type="time">`, отдельная библиотека не нужна. При `allDay` поля времени скрыты.
+Поля: название (обязательное), описание, «выполнено», «на весь день», начало (дата и время), окончание (дата и время). Время: нативный `<input type="time">`, отдельная библиотека не нужна. При `allDay` поля времени скрыты.
 
 ```ts
 export class EventDialog {
@@ -594,13 +639,23 @@ export class EventDialog {
 
 ### 10.4. Кнопка «+»
 
-В v7 проверь по документации, как вставить свою разметку в ячейку дня (в roadmap это помечено «проверить»). Запасной вариант: клик по пустой дате (`dateClick` из плагина interaction) открывает диалог создания, а «+» появляется на hover как оформление ячейки. Показывай «+» и разрешай создание, только если `state.canEdit()`. Клик по событию (`eventClick`) открывает диалог редактирования.
+В v7 проверь по документации, как вставить свою разметку в ячейку дня (в roadmap это помечено «проверить»). Запасной вариант: клик по пустой дате (`dateClick` из плагина interaction) открывает диалог создания, а «+» появляется на hover как оформление ячейки. Показывай «+» и разрешай создание, только если `canEdit()`. Клик по событию (`eventClick`) открывает диалог редактирования.
 
-### 10.5. Сохранение
+### 10.5. Галочка «выполнено» на карточке
+
+Отметка нужна у каждого события (решение 4). На карточке слева от названия маленький чекбокс, выполненное событие приглушено и зачёркнуто (цвета и перечёркивание через токены, оба режима темы).
+
+- Проверь по документации v7, как задать содержимое карточки (`eventContent` в roadmap), и как получить в нём данные события. Карточка из spike этапа 0 уже есть, продолжай её.
+- Клик по чекбоксу **не открывает диалог**: останови всплытие, иначе сработает `eventClick`.
+- Переключение это оптимистичное обновление, как перенос в шаге 11: сначала меняем локально, потом `PATCH { completed }`, при ошибке возвращаем назад и показываем сообщение. Общий код с шагом 11 выноси в один метод страницы.
+- У `VIEWER` чекбокс отключён (`canEdit()`).
+- Подпись для скринридера: у чекбокса должен быть переведённый `aria-label`.
+
+### 10.6. Сохранение
 
 После закрытия диалога страница делает запрос. Для создания и правки: на успех обновить `events` локально (`events.update(...)`, без полной перезагрузки списка), на ошибку показать `SnackbarService.error` с переводом. Диалог при ошибке закрыт, поэтому введённое пользователем пропадёт: подумай, как это смягчить (например, не закрывать диалог, пока запрос не завершился). Это твоё решение, объясни выбор.
 
-**Проверка:** создание события кликом по дате, редактирование по клику на событие, многодневное событие на весь день сохраняется и показывается ровно на выбранные дни, событие со временем сохраняет время, у `VIEWER` нет «+» и нет сохранения. В Network нет повторной полной перезагрузки после сохранения.
+**Проверка:** создание события кликом по дате, редактирование по клику на событие, многодневное событие на весь день сохраняется и показывается ровно на выбранные дни, событие со временем сохраняет время, у `VIEWER` нет «+», нет сохранения и чекбокс отключён. Отметка «выполнено» ставится с карточки и из диалога, держится после перезагрузки и откатывается при ошибке сети. В Network нет повторной полной перезагрузки после сохранения.
 
 ---
 
@@ -611,7 +666,7 @@ export class EventDialog {
 **Идея.** FullCalendar при перетаскивании уже показал событие на новом месте. Твоя задача: отправить изменение и, если сервер отказал, вернуть событие назад. В колбэках переноса и ресайза аргумент содержит функцию `revert()` для этого. Проверь по докам v7 точные названия колбэков и поля аргумента (в v6 это `eventDrop` и `eventResize`).
 
 ```ts
-// editable only when state.canEdit()
+// editable only when canEdit()
 onEventChanged(arg: /* drop or resize argument, check v7 types */): void {
   // TODO 1: build the PATCH payload from the new start/end/allDay of arg.event
   //         (the reverse of the mapper; remember an all-day end is already exclusive on both sides).
@@ -656,16 +711,18 @@ onDelete(event: ApiEvent): void {
 
 ---
 
-## Шаг 13. Переключатель календарей и цвет
+## Шаг 13. Диалог календаря: создание, цвет, удаление
 
-**Что:** выбор календаря в сайдбаре уже есть (шаг 7). Остаётся: показать цвет календаря и дать его менять, и создать новый календарь.
+**Что:** на экране плиток (шаг 7) плитка «+» создаёт календарь, у существующей плитки можно сменить название и цвет и удалить календарь.
 
-- На карточках событий цвет календаря не применяется (карточка нейтральная, см. `04-calendar-frontend.md`). Цвет виден как метка в сайдбаре и, например, как акцент в шапке страницы.
-- Один небольшой диалог «Календарь»: название и выбор цвета из палитры (`CALENDAR_COLORS`). Используется и для создания (`POST`), и для правки (`PATCH`, только `OWNER`: для остальных пункт скрыт или отключён).
-- После успешного ответа список в `CalendarsState` обновляется локально (без перезагрузки). Создание нового календаря выбирает его.
+- Один небольшой диалог «Календарь»: название и выбор цвета из палитры (`CALENDAR_COLORS`). Используется и для создания (`POST`), и для правки (`PATCH`). Как и диалог события, он **не ходит в API сам**, а возвращает результат странице.
+- Правка и удаление только для `OWNER`: у остальных пунктов меню на плитке нет. Это удобство, бэкенд всё равно ответит `403`.
+- Меню на плитке (три точки, на hover или всегда) с пунктами «Изменить» и «Удалить». Клик по самой плитке открывает календарь, поэтому меню останавливает всплытие клика.
+- **Удаление** идёт через `DialogService.confirm` (он уже есть). Текст подтверждения прямо говорит, что события календаря удалятся безвозвратно. Здесь нет отмены как у события: календарь с событиями слишком большая потеря, подтверждения достаточно.
+- После успешного ответа список плиток обновляется локально (`calendars.update(...)`), без перезагрузки. Создание нового календаря сразу открывает его.
 - Подписи цветов переводятся, цвета берутся из токенов (шаг 6), не из hex в шаблонах.
 
-**Проверка:** создать второй календарь, переключиться: события разных календарей не смешиваются, выбор сохраняется после перезагрузки. Сменить цвет: метка в сайдбаре обновилась в обеих темах.
+**Проверка:** создать второй календарь, открыть его и вернуться: события календарей не смешиваются. Сменить цвет: плитка обновилась в обеих темах. Удалить календарь с событиями: подтверждение, плитка исчезла, через `prisma:studio` событий нет. Удалить последний календарь: остаётся только «+», создание нового работает.
 
 ---
 
@@ -673,13 +730,13 @@ onDelete(event: ApiEvent): void {
 
 Пройди сценарии руками, в обеих темах и на всех трёх языках (без захардкоженных строк в шаблонах).
 
-1. Вход → виден «Личный календарь» и пустой месяц на всю высоту, неделя начинается с понедельника.
+1. Вход → экран плиток с «Личный календарь» и «+». Клик по плитке: пустой месяц на всю высоту, неделя начинается с понедельника.
 2. Создание обычного события, события на весь день и многодневного. Все видны на своих датах после перезагрузки страницы.
 3. Листание по месяцам, «Сегодня». Многодневное событие на стыке месяцев видно в обоих.
 4. Перенос и ресайз, затем откат при выключенной сети.
 5. Удаление с отменой и без.
-6. Второй календарь и переключение. Второй пользователь не видит ничего чужого.
-7. `VIEWER` (роль из `prisma:studio`): интерфейс без «+», без переноса и сохранения, бэкенд всё равно отвечает 403.
+6. Второй календарь: создание, цвет, возврат на плитки кнопкой в шапке, удаление (в том числе последнего). Второй пользователь не видит ничего чужого.
+7. `VIEWER` (роль из `prisma:studio`): интерфейс без «+», без переноса, сохранения и отметки «выполнено», бэкенд всё равно отвечает 403.
 8. Набор ключей во всех трёх `i18n` одинаков, `npm run lint` и `npm run format:check` чистые, `npm run build` в обоих приложениях проходит.
 
-После этого в `07-tasks.md` отмечаются пункты этапа 2, а в `03-data-model.md` исправляется формулировка про границу диапазона (шаг 4.3).
+После этого в `07-tasks.md` отмечаются пункты этапа 2 (пункт про сайдбар заменяется экраном плиток, добавляются «выполнено» и удаление календаря), а в `03-data-model.md` исправляется формулировка про границу диапазона (шаг 4.3), и `completedAt` переходит из порции 3 в применённые.

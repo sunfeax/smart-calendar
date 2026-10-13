@@ -4,10 +4,3 @@ export interface GoogleProfile {
   name: string;
   avatarUrl?: string;
 }
-
-export interface UserProfile {
-  id: string;
-  name: string;
-  email: string;
-  avatarUrl: string | null;
-}

@@ -13,7 +13,7 @@ import type { Response } from 'express';
 import type { User } from '../generated/prisma/client.js';
 import { SESSION_COOKIE, SESSION_COOKIE_OPTIONS } from '../session/session.constants.js';
 import { SessionService } from '../session/session.service.js';
-import type { UserProfile } from '../user/user.model.js';
+import { UserProfile } from '../user/user-profile.dto.js';
 import type { AuthReq } from './auth.model.js';
 import { AuthService } from './auth.service.js';
 import { CurrentUser } from './decorators/current-user.decorator.js';
