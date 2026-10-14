@@ -11,7 +11,7 @@
 Решения по этапу 2, которых не было в `08-open-questions.md`. Они определяют код ниже.
 
 1. **События «на весь день».** Храним как FullCalendar: `startAt` = полночь UTC первого дня, `endAt` = полночь UTC дня **после** последнего (эксклюзивный конец). Между API и календарём конвертировать нечего. Единственное место, где конец сдвигается на день, это диалог (там пользователь выбирает последний день включительно).
-2. **Цвет календаря.** У каждого календаря **один цвет на весь календарь**. Он показывается на его плитке на экране выбора и как акцент на странице календаря. У событий этого цвета нет, карточки нейтральные. Хранится **ключ палитры** (`blue`, `green`...), а не hex: значения цветов лежат токенами отдельно для светлой и тёмной темы, поэтому цвет хорошо выглядит в обеих. Палитра ~8 цветов, этап 3 её переиспользует. (Принято по умолчанию, если нужен hex, скажи до шага 3.)
+2. **Цвет календаря.** У каждого календаря **один цвет на весь календарь**. Он показывается на его плитке на экране выбора и как акцент на странице календаря. У событий этого цвета нет, карточки нейтральные. Хранится **ключ палитры** (`BLUE`, `GREEN`...), а не hex: значения цветов лежат токенами отдельно для светлой и тёмной темы, поэтому цвет хорошо выглядит в обеих. Палитра ~8 цветов, этап 3 её переиспользует. (Принято по умолчанию, если нужен hex, скажи до шага 3.)
 3. **Календари как закладки.** После входа открывается экран с плитками календарей и плиткой «+». Клик по плитке открывает календарь, клик по «+» создаёт новый. Из календаря на экран плиток возвращаются кнопкой в шапке. Сайдбара нет. Календарь можно удалить, в том числе последний. Лимит числа календарей (1 бесплатный, много в премиуме) относится к монетизации и в этот этап не входит: сделаем его, когда решим модель (`08-open-questions.md`). Создание календаря проходит через один метод сервиса, туда лимит и встанет.
 4. **«Выполнено».** У каждого события есть отметка о выполнении (галочка на карточке и в диалоге), как в списке дел. Отдельного типа «задача» нет. В схему добавляется `completedAt` (порция 3 из `03-data-model.md`), шаг 4.
 5. **Swagger используем** (пробуем в этом проекте, чтобы решить, нужен ли он на работе). Бэкенд отдаёт спецификацию OpenAPI, из неё генерируются типы и сервисы для Angular (шаг 8). Ручные запросы к API идут через Swagger UI на `/api/docs`.
@@ -111,7 +111,7 @@ npx nest g module calendars && npx nest g service calendars/calendar-access --fl
 **Каркас:**
 
 ```ts
-// TODO: ranks of roles: VIEWER < EDITOR < OWNER. A plain object typed Record<CalendarRole, number>.
+// TODO: ранги ролей: VIEWER < EDITOR < OWNER. Простой объект с типом Record<CalendarRole, number>.
 const ROLE_RANK: Record<CalendarRole, number> = {
   /* ... */
 };
@@ -120,30 +120,30 @@ const ROLE_RANK: Record<CalendarRole, number> = {
 export class CalendarAccessService {
   constructor(private readonly prisma: PrismaService) {}
 
-  /** Returns the membership if the user has at least `minRole` in the calendar, otherwise throws. */
+  /** Возвращает членство, если у пользователя в календаре роль не ниже `minRole`, иначе бросает исключение. */
   async requireRole(
     userId: string,
     calendarId: string,
     minRole: CalendarRole,
   ): Promise<CalendarMember> {
-    // TODO 1: find the membership by the pair (calendarId, userId).
-    //         Hint: for @@id([calendarId, userId]) Prisma generates a composite key named
-    //         calendarId_userId, you pass it to findUnique's where.
-    // TODO 2: no membership -> NotFoundException (hint: it comes from @nestjs/common and gives a 404).
-    // TODO 3: membership role ranks lower than minRole -> ForbiddenException (403).
-    // TODO 4: return the membership.
+    // TODO 1: найти членство по паре (calendarId, userId).
+    //         Подсказка: для @@id([calendarId, userId]) Prisma создаёт составной ключ с именем
+    //         calendarId_userId, его передают в where метода findUnique.
+    // TODO 2: членства нет -> NotFoundException (подсказка: он из @nestjs/common и даёт 404).
+    // TODO 3: ранг роли членства ниже minRole -> ForbiddenException (403).
+    // TODO 4: вернуть членство.
   }
 
-  /** Same check for an event: finds its calendar first. Returns the event. */
+  /** Та же проверка для события: сначала находит его календарь. Возвращает событие. */
   async requireEventRole(
     userId: string,
     eventId: string,
     minRole: CalendarRole,
   ): Promise<Event> {
-    // TODO 1: find the event by id.
-    // TODO 2: not found -> NotFoundException.
-    // TODO 3: reuse requireRole with event.calendarId, do not copy the check.
-    // TODO 4: return the event.
+    // TODO 1: найти событие по id.
+    // TODO 2: не найдено -> NotFoundException.
+    // TODO 3: вызвать requireRole с event.calendarId, проверку не копировать.
+    // TODO 4: вернуть событие.
   }
 }
 ```
@@ -178,19 +178,19 @@ export class CalendarAccessService {
 
 ```ts
 export class CreateCalendarDto {
-  // TODO: name: string, not empty, up to the limit from the constants.
-  // TODO: color: optional, one of CALENDAR_COLORS.
-  //       Hint: @IsIn takes an array of allowed values; @IsOptional skips the rules for undefined AND null.
+  // TODO: name: string, не пустая, до предела из констант.
+  // TODO: color: необязательный, одно из CALENDAR_COLORS.
+  //       Подсказка: @IsIn принимает массив допустимых значений; @IsOptional пропускает правила и для undefined, и для null.
 }
 
-// TODO: UpdateCalendarDto: the same fields, all optional.
-//       Hint: PartialType from @nestjs/swagger builds such a class from another one and keeps its validators
-//       (the one from @nestjs/mapped-types would hide the fields from Swagger).
+// TODO: UpdateCalendarDto: те же поля, все необязательные.
+//       Подсказка: PartialType из @nestjs/swagger строит такой класс из другого и сохраняет его валидаторы
+//       (версия из @nestjs/mapped-types скрыла бы поля от Swagger).
 
 export class CalendarDto {
   // TODO: id, name, color (string | null), role (CalendarRole).
-  //       It is a class, not an interface, so that Swagger sees it. Fields are plain, no decorators needed
-  //       (the plugin from step 1 reads the types).
+  //       Это класс, а не interface, чтобы Swagger его видел. Поля простые, декораторы не нужны
+  //       (плагин из шага 1 читает типы).
 }
 ```
 
@@ -209,37 +209,37 @@ export class CalendarsService {
   ) {}
 
   async list(userId: string): Promise<CalendarDto[]> {
-    // TODO: take the user's memberships with their calendars (include), oldest first,
-    //       limited with take (a list from the DB is never unbounded, pick a constant like 100),
-    //       map each membership to a CalendarDto.
-    //       Hint: findMany returns an array; orderBy sorts; take limits the count.
+    // TODO: взять членства пользователя вместе с календарями (include), от старых к новым,
+    //       ограничить через take (список из БД никогда не бывает безграничным, возьми константу, например 100),
+    //       каждое членство преобразовать в CalendarDto.
+    //       Подсказка: findMany возвращает массив, orderBy сортирует, take ограничивает количество.
   }
 
   async get(userId: string, id: string): Promise<CalendarDto> {
-    // TODO: requireRole(VIEWER) already loads the membership; load the calendar itself and return CalendarDto
-    //       with the role from the membership. The calendar page needs the role, the color and the name.
+    // TODO: requireRole(VIEWER) уже загружает членство; загрузить сам календарь и вернуть CalendarDto
+    //       с ролью из членства. Странице календаря нужны роль, цвет и название.
   }
 
   async create(userId: string, dto: CreateCalendarDto): Promise<CalendarDto> {
-    // TODO: create the calendar and the OWNER membership for this user in one nested create,
-    //       the same way UserService.upsertFromGoogle does it. Map to CalendarDto.
-    // ponytail: no limit on the number of calendars yet. When monetization is decided, the limit check
-    //           goes here, before the create, and nowhere else.
+    // TODO: создать календарь и членство OWNER для этого пользователя одним вложенным create,
+    //       так же, как UserService.upsertFromGoogle. Преобразовать в CalendarDto.
+    // ponytail: пока нет лимита числа календарей. Когда решим монетизацию, проверка лимита
+    //           будет здесь, перед create, и нигде больше.
   }
 
   async update(userId: string, id: string, dto: UpdateCalendarDto): Promise<CalendarDto> {
-    // TODO 1: only OWNER may change settings: requireRole first, before any write.
-    // TODO 2: update the calendar from the dto. A field that is undefined is not touched by Prisma,
-    //         null clears it, so passing the dto fields as they are works.
-    // TODO 3: return CalendarDto with the role from the membership you got in TODO 1.
+    // TODO 1: менять настройки может только OWNER: requireRole первым, до любой записи.
+    // TODO 2: обновить календарь из dto. Поле, которое undefined, Prisma не трогает,
+    //         null его очищает, поэтому можно передать поля dto как есть.
+    // TODO 3: вернуть CalendarDto с ролью из членства, полученного в TODO 1.
   }
 
   async remove(userId: string, id: string): Promise<void> {
-    // TODO 1: only OWNER may delete: requireRole first.
-    // TODO 2: delete the calendar. Members and events go with it: the schema has onDelete: Cascade.
-    //         Hint: delete removes one row by a unique key (here the id). Unlike deleteMany it throws when
-    //         the row is missing, which is fine here: requireRole has just proved it exists.
-    //         Deleting the last calendar is allowed: the user then sees an empty picker with only "+".
+    // TODO 1: удалять может только OWNER: requireRole первым.
+    // TODO 2: удалить календарь. Участники и события уйдут вместе с ним: в схеме стоит onDelete: Cascade.
+    //         Подсказка: delete удаляет одну строку по уникальному ключу (здесь по id). В отличие от deleteMany
+    //         он бросает ошибку, если строки нет. Здесь это нормально: requireRole только что подтвердил, что она есть.
+    //         Удаление последнего календаря разрешено: пользователь увидит пустой выбор только с кнопкой «+».
   }
 }
 ```
@@ -253,12 +253,12 @@ export class CalendarsController {
 
   // TODO: GET /calendars -> list
   // TODO: GET /calendars/:id -> get
-  // TODO: POST /calendars -> create. A created resource should answer 201 (Nest's @Post does it by default).
-  // TODO: DELETE /calendars/:id -> remove, answer 204 (see @HttpCode in AuthController.logout).
+  // TODO: POST /calendars -> create. Созданный ресурс отвечает 201 (@Post делает это по умолчанию).
+  // TODO: DELETE /calendars/:id -> remove, ответ 204 (см. @HttpCode в AuthController.logout).
   // TODO: PATCH /calendars/:id -> update.
-  //       Hint: ParseUUIDPipe in @Param('id', ParseUUIDPipe) rejects ids that are not UUIDs with a 400
-  //       before your code runs; @Param reads a path segment, @Patch declares the verb.
-  // User comes from @CurrentUser(). The controller does not check roles: that is the service's job.
+  //       Подсказка: ParseUUIDPipe в @Param('id', ParseUUIDPipe) отклоняет id, которые не UUID, с ответом 400
+  //       до вызова твоего кода; @Param читает сегмент пути, @Patch задаёт метод.
+  // Пользователь берётся из @CurrentUser(). Контроллер роли не проверяет: это работа сервиса.
 }
 ```
 
@@ -289,33 +289,33 @@ npx nest g module events && npx nest g service events --flat && npx nest g contr
 
 ```ts
 // events.constants.ts
-// TODO: TITLE_MAX (e.g. 200), DESCRIPTION_MAX (e.g. 5000),
-//       RANGE_MAX_DAYS (the widest range one request may ask for: a 6-week month grid is 42 days, give some room),
-//       RANGE_MAX_ITEMS (hard take for the query, a safety net on top of the range limit).
+// TODO: TITLE_MAX (например, 200), DESCRIPTION_MAX (например, 5000),
+//       RANGE_MAX_DAYS (самый широкий диапазон, который может запросить один запрос: сетка месяца на 6 недель — 42 дня, с запасом),
+//       RANGE_MAX_ITEMS (жёсткий take для запроса, страховка поверх ограничения диапазона).
 ```
 
 ```ts
 export class CreateEventDto {
-  // TODO: title: string, not empty, max TITLE_MAX.
-  // TODO: description: optional string, max DESCRIPTION_MAX.
-  // TODO: startAt: ISO 8601 string. Hint: @IsISO8601 checks the format; with { strict: true } it also rejects impossible dates.
-  // TODO: endAt: optional ISO 8601 string.
-  // TODO: allDay: optional boolean.
-  // TODO: completed: optional boolean (the client sends a flag, the server turns it into completedAt).
+  // TODO: title: string, не пустая, максимум TITLE_MAX.
+  // TODO: description: необязательная строка, максимум DESCRIPTION_MAX.
+  // TODO: startAt: строка ISO 8601. Подсказка: @IsISO8601 проверяет формат; с { strict: true } он также отклоняет несуществующие даты.
+  // TODO: endAt: необязательная строка ISO 8601.
+  // TODO: allDay: необязательное boolean.
+  // TODO: completed: необязательное boolean (клиент присылает флаг, сервер превращает его в completedAt).
 }
 
-// TODO: UpdateEventDto: all fields optional (PartialType again).
-//       The client can send endAt: null or description: null to clear them: @IsOptional lets null through.
+// TODO: UpdateEventDto: все поля необязательные (снова PartialType).
+//       Клиент может прислать endAt: null или description: null, чтобы их очистить: @IsOptional пропускает null.
 
 export class EventsRangeDto {
-  // TODO: from and to: ISO 8601 strings, both required.
-  //       Hint: @Query() fills this DTO from the query string; the ValidationPipe checks it like a body.
+  // TODO: from и to: строки ISO 8601, оба обязательные.
+  //       Подсказка: @Query() заполняет этот DTO из строки запроса; ValidationPipe проверяет его так же, как тело.
 }
 
 export class EventDto {
   // TODO: id, calendarId, title, description (string | null), startAt, endAt (| null), allDay,
   //       completedAt (| null), createdAt, updatedAt.
-  //       Date fields are typed Date here; JSON turns them into ISO strings.
+  //       Поля дат здесь типизированы как Date; JSON превращает их в строки ISO.
 }
 ```
 
@@ -354,41 +354,41 @@ export class EventsService {
   ) {}
 
   async listRange(userId: string, calendarId: string, query: EventsRangeDto): Promise<EventDto[]> {
-    // TODO 1: requireRole(VIEWER) first.
-    // TODO 2: parse from/to to Date. Throw BadRequestException when: from is not before to,
-    //         or the range is wider than RANGE_MAX_DAYS. (date-fns is not in the backend yet; plain arithmetic
-    //         on milliseconds is enough for one comparison, do not add a dependency for it.)
-    // TODO 3: query the events of this calendar by the rule from 4.3, sorted by startAt, limited by RANGE_MAX_ITEMS.
-    //         Hint: in a Prisma where you combine conditions with AND / OR, and compare dates with lt / gt / gte.
-    //         The existing index (calendarId, startAt) serves this query.
-    // TODO 4: return them as EventDto[].
+    // TODO 1: сначала requireRole(VIEWER).
+    // TODO 2: разобрать from/to в Date. Бросить BadRequestException, если: from не раньше to,
+    //         или диапазон шире RANGE_MAX_DAYS. (date-fns в бэкенде пока нет; для одного сравнения хватит арифметики
+    //         в миллисекундах, зависимость для этого не добавляем.)
+    // TODO 3: выбрать события календаря по правилу из 4.3, отсортированные по startAt, ограниченные RANGE_MAX_ITEMS.
+    //         Подсказка: в where Prisma условия объединяют через AND / OR, даты сравниваются через lt / gt / gte.
+    //         Существующий индекс (calendarId, startAt) обслуживает этот запрос.
+    // TODO 4: вернуть их как EventDto[].
   }
 
   async create(userId: string, calendarId: string, dto: CreateEventDto): Promise<EventDto> {
     // TODO 1: requireRole(EDITOR).
-    // TODO 2: parse the dates, run assertDates (below).
-    // TODO 3: create the event with calendarId from the URL (never from the body: the DTO has no such field).
-    //         completed: true -> completedAt = now, otherwise null.
+    // TODO 2: разобрать даты, вызвать assertDates (ниже).
+    // TODO 3: создать событие с calendarId из URL (никогда не из тела: в DTO такого поля нет).
+    //         completed: true -> completedAt = сейчас, иначе null.
   }
 
   async update(userId: string, id: string, dto: UpdateEventDto): Promise<EventDto> {
-    // TODO 1: requireEventRole(EDITOR): it also gives you the current event.
-    // TODO 2: build the resulting startAt / endAt / allDay: dto value if present, else the stored one.
-    //         Careful: endAt: null in the dto means "clear it", undefined means "leave as is".
-    // TODO 3: assertDates on the RESULT, not on the dto alone
-    //         (moving a stored all-day event to a time, or changing only startAt past the stored endAt, must fail too).
-    // TODO 4: completed: true -> completedAt = now, but ONLY if the stored one is null (a repeated "true" must not
-    //         move the time); false -> null; undefined -> leave as is.
-    // TODO 5: update and return. The calendar of an event never changes: do not let calendarId in.
+    // TODO 1: requireEventRole(EDITOR): он же отдаёт текущее событие.
+    // TODO 2: собрать итоговые startAt / endAt / allDay: значение из dto, если оно есть, иначе сохранённое.
+    //         Внимание: endAt: null в dto означает «очистить», undefined — «оставить как есть».
+    // TODO 3: assertDates по ИТОГОВЫМ значениям, а не только по dto
+    //         (перенос сохранённого события на весь день на время, или изменение только startAt за сохранённый endAt, тоже должны падать).
+    // TODO 4: completed: true -> completedAt = сейчас, но ТОЛЬКО если сохранённое значение null (повторное «true» не должно
+    //         двигать время); false -> null; undefined -> оставить как есть.
+    // TODO 5: обновить и вернуть. Календарь события никогда не меняется: не пускать calendarId.
   }
 
   async remove(userId: string, id: string): Promise<void> {
-    // TODO: requireEventRole(EDITOR), then delete. Hint: deleteMany by id does not fail if the row
-    //       is already gone (the same reason SessionService.delete uses it): a repeated DELETE is harmless.
+    // TODO: requireEventRole(EDITOR), затем удалить. Подсказка: deleteMany по id не падает, если строки уже нет
+    //       (по той же причине это делает SessionService.delete): повторный DELETE безвреден.
   }
 
   private assertDates(startAt: Date, endAt: Date | null, allDay: boolean): void {
-    // TODO: the two rules from 4.2. BadRequestException with a clear message on violation.
+    // TODO: два правила из 4.2. При нарушении BadRequestException с понятным сообщением.
   }
 }
 ```
@@ -405,8 +405,8 @@ export class EventsController {
   // TODO: GET calendars/:calendarId/events        -> listRange  (@Query() EventsRangeDto)
   // TODO: POST calendars/:calendarId/events       -> create
   // TODO: PATCH events/:id                        -> update
-  // TODO: DELETE events/:id                       -> remove, answer 204 (see @HttpCode in AuthController.logout)
-  // Every id param goes through ParseUUIDPipe.
+  // TODO: DELETE events/:id                       -> remove, ответ 204 (см. @HttpCode в AuthController.logout)
+  // Каждый id в параметрах проходит через ParseUUIDPipe.
 }
 ```
 
@@ -479,11 +479,11 @@ export class Calendars {
 
   readonly calendars = rxResource({
     stream: () => {
-      // TODO: the list of calendars from the API.
+      // TODO: список календарей из API.
     },
   });
-  // TODO: tile click -> navigate to the calendar page (Router with the path from routePaths).
-  // TODO: "+" tile -> opens the calendar dialog (step 13).
+  // TODO: клик по плитке -> переход на страницу календаря (Router с путём из routePaths).
+  // TODO: плитка «+» -> открывает диалог календаря (шаг 13).
 }
 ```
 
@@ -535,34 +535,34 @@ export class Calendars {
 
 ```ts
 export class Calendar {
-  readonly id = input.required<string>(); // bound from the route (step 7.1)
-  // the generated calendars and events services from step 8: inject them here
+  readonly id = input.required<string>(); // приходит из маршрута (шаг 7.1)
+  // сгенерированные сервисы календарей и событий из шага 8: инжектировать здесь
 
   readonly calendar = rxResource({
     params: () => this.id(),
     stream: ({ params }) => {
-      // TODO: GET the calendar by id (name, role, color).
+      // TODO: GET календаря по id (название, роль, цвет).
     },
   });
   readonly canEdit = computed(() => {
-    // TODO: true when the calendar's role is OWNER or EDITOR. The UI uses it to hide "+", disable drag and the like.
-    //       This is a convenience for the user: the backend checks the role anyway.
+    // TODO: true, если роль календаря OWNER или EDITOR. По этому UI скрывает «+», отключает перенос и т. п.
+    //       Это удобство для пользователя: бэкенд всё равно проверяет роль.
   });
 
-  readonly range = signal<{ from: string; to: string } | null>(null); // ISO strings
+  readonly range = signal<{ from: string; to: string } | null>(null); // строки ISO
 
   readonly events = rxResource({
     params: () => {
-      // TODO: return { calendarId, from, to } when both the id and the range are known,
-      //       otherwise undefined (the resource then stays idle and does not request).
+      // TODO: вернуть { calendarId, from, to}, когда известны и id, и диапазон,
+      //       иначе undefined (ресурс тогда простаивает и не делает запрос).
     },
     stream: ({ params }) => {
-      // TODO: ask the API for the events of that calendar in that range. Returns an Observable.
+      // TODO: запросить у API события этого календаря за этот диапазон. Возвращает Observable.
     },
   });
 
-  // TODO: the FullCalendar options (plugins, month view, Monday first, ru locale, fill the parent's height).
-  //       When the visible dates change, write the new range into `range` as ISO strings.
+  // TODO: опции FullCalendar (плагины, вид месяца, понедельник первым, русская локаль, заполнение высоты родителя).
+  //       При смене видимых дат записывать новый диапазон в `range` строками ISO.
 }
 ```
 
@@ -580,10 +580,10 @@ export class Calendar {
 
 ```ts
 export function toCalendarEvent(event: ApiEvent): EventInput {
-  // TODO: API event -> FullCalendar input. Neutral card (no own colour, see 04-calendar-frontend.md); completed comes from completedAt.
-  //       For allDay events FullCalendar wants a plain date (YYYY-MM-DD) and an exclusive end: the API already
-  //       stores exactly that (decision 1), so cut the ISO strings to the date part.
-  //       For timed events pass the ISO instants as they are.
+  // TODO: событие из API -> вход FullCalendar. Нейтральная карточка (собственного цвета нет, см. 04-calendar-frontend.md); completed берётся из completedAt.
+  //       Для событий на весь день FullCalendar нужна обычная дата (YYYY-MM-DD) и эксклюзивный конец: API уже
+  //       хранит именно это (решение 1), поэтому обрезать строки ISO до даты.
+  //       Для событий со временем передавать мгновения ISO как есть.
 }
 ```
 
@@ -609,13 +609,13 @@ export function toCalendarEvent(event: ApiEvent): EventInput {
 
 ```ts
 export type EventDialogData =
-  | { mode: 'create'; date: string } // date: ISO date of the clicked cell
+  | { mode: 'create'; date: string } // date: ISO-дата нажатой ячейки
   | { mode: 'edit'; event: ApiEvent };
 
 export type EventDialogResult =
-  | { action: 'save'; value: CreateEventPayload } // the request type from step 8
+  | { action: 'save'; value: CreateEventPayload } // тип запроса из шага 8
   | { action: 'delete' }
-  | undefined; // cancelled
+  | undefined; // отменено
 ```
 
 Диалог **не ходит в API сам**: он возвращает результат, а страница календаря выполняет запрос и обновляет данные. Так откат, ошибки и локальное обновление остаются в одном месте, а диалог легко править. Открывается через `MatDialog` (по образцу `DialogService`).
@@ -626,10 +626,10 @@ export type EventDialogResult =
 
 ```ts
 export class EventDialog {
-  // TODO: the form. Pick the approach yourself (reactive forms or Angular 22 signal forms) and check it in the Angular 22 docs;
-  //       be ready to explain the choice. Validation: title is required, the end is not before the start.
-  // TODO: on create, the start date is the clicked date; on edit the form is filled from the event.
-  // TODO: submit -> build the payload (see the trap below) and close with { action: 'save', value }.
+  // TODO: форма. Подход выбираешь сам (reactive forms или signal forms в Angular 22), проверь в документации Angular 22;
+  //       будь готов объяснить выбор. Валидация: название обязательно, конец не раньше начала.
+  // TODO: при создании дата начала — выбранная дата; при правке форма заполняется из события.
+  // TODO: отправка -> собрать payload (см. ловушку ниже) и закрыть с { action: 'save', value }.
 }
 ```
 
@@ -666,13 +666,13 @@ export class EventDialog {
 **Идея.** FullCalendar при перетаскивании уже показал событие на новом месте. Твоя задача: отправить изменение и, если сервер отказал, вернуть событие назад. В колбэках переноса и ресайза аргумент содержит функцию `revert()` для этого. Проверь по докам v7 точные названия колбэков и поля аргумента (в v6 это `eventDrop` и `eventResize`).
 
 ```ts
-// editable only when canEdit()
-onEventChanged(arg: /* drop or resize argument, check v7 types */): void {
-  // TODO 1: build the PATCH payload from the new start/end/allDay of arg.event
-  //         (the reverse of the mapper; remember an all-day end is already exclusive on both sides).
-  // TODO 2: send it. On success, update the event in `events` locally.
-  // TODO 3: on error -> arg.revert() and SnackbarService.error with a translated message.
-  // Watch for: a timed event dragged into the all-day row (allDay changes) and back.
+// редактируется только при canEdit()
+onEventChanged(arg: /* аргумент переноса или ресайза, типы проверь в v7 */): void {
+  // TODO 1: собрать payload для PATCH из новых start/end/allDay у arg.event
+  //         (обратная операция к маппингу; помни, что конец события на весь день уже эксклюзивный с обеих сторон).
+  // TODO 2: отправить. При успехе обновить событие в `events` локально.
+  // TODO 3: при ошибке -> arg.revert() и SnackbarService.error с переведённым сообщением.
+  // Следи за случаем: событие со временем перетащили в строку «на весь день» (allDay меняется) и обратно.
 }
 ```
 
@@ -694,14 +694,14 @@ onEventChanged(arg: /* drop or resize argument, check v7 types */): void {
 **Что нужно доработать в `SnackbarService`.** Сейчас его методы ничего не возвращают и умеют только кнопку-крестик (`'✕'`). Нужен метод, который показывает уведомление с **действием** и сообщает, закрылось ли оно кнопкой действия или само. Подсказка: `MatSnackBar.open` возвращает `MatSnackBarRef`; у него есть `afterDismissed()` с флагом `dismissedByAction`. Стиль уведомления (`app-snack-bar--*`) и конфиг не меняй. Сделай метод, не ломающий существующие четыре.
 
 ```ts
-// SnackbarService: add a method with an action. Return an Observable<boolean> (true = the action was pressed).
+// SnackbarService: добавь метод с действием. Возвращает Observable<boolean> (true = нажато действие).
 
-// Calendar page
+// Страница календаря
 onDelete(event: ApiEvent): void {
-  // TODO 1: remove the event from `events` locally (the user sees it disappear at once).
-  // TODO 2: show the snackbar with "Undo".
-  // TODO 3: undo pressed -> put the event back locally, no request.
-  // TODO 4: dismissed without undo -> send DELETE; on error put the event back and show an error.
+  // TODO 1: убрать событие из `events` локально (пользователь сразу видит, что оно пропало).
+  // TODO 2: показать уведомление с кнопкой «Отменить».
+  // TODO 3: нажата отмена -> вернуть событие локально, без запроса.
+  // TODO 4: закрыто без отмены -> отправить DELETE; при ошибке вернуть событие и показать ошибку.
 }
 ```
 

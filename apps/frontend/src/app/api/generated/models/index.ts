@@ -9,4 +9,4 @@
 */
 export * from "./google-login-dto";
 export * from "./request-options";
-export * from "./user-profile";
+export * from "./user-profile-dto";

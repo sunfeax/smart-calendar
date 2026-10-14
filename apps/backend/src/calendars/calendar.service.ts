@@ -1,47 +1,56 @@
-import { ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
-import { CalendarMember, Event } from '../generated/prisma/client.js';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { CalendarRole } from '../generated/prisma/enums.js';
 import { PrismaService } from '../prisma/prisma.service.js';
-
-const ROLE_RANK: Record<CalendarRole, number> = {
-  OWNER: 3,
-  EDITOR: 2,
-  VIEWER: 1,
-};
+import { CalendarAccessService } from './calendar-access.service.js';
+import { CalendarDto } from './calendar.dto.js';
 
 @Injectable()
 export class CalendarService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly access: CalendarAccessService,
+  ) {}
 
-  async requireRole(
-    userId: string,
-    calendarId: string,
-    minRole: CalendarRole,
-  ): Promise<CalendarMember> {
-    const membership = await this.prisma.calendarMember.findUnique({
-      where: { calendarId_userId: { calendarId, userId } },
-    });
+  // async list(userId: string): Promise<CalendarDto[]> {
+  // TODO: взять членства пользователя вместе с календарями (include), от старых к новым,
+  //       ограничить через take (список из БД никогда не бывает безграничным, возьми константу, например 100),
+  //       каждое членство преобразовать в CalendarDto.
+  //       Подсказка: findMany возвращает массив, orderBy сортирует, take ограничивает количество.
+  // }
 
-    if (!membership) throw new NotFoundException();
+  async get(userId: string, id: string): Promise<CalendarDto> {
+    const membership = await this.access.requireRole(userId, id, CalendarRole.VIEWER);
+    const calendar = await this.prisma.calendar.findUnique({ where: { id } });
 
-    if (ROLE_RANK[membership.role] < ROLE_RANK[minRole]) throw new ForbiddenException();
+    if (!calendar) throw new NotFoundException();
 
-    return membership;
+    return {
+      id: calendar.id,
+      name: calendar.name,
+      color: calendar.color,
+      role: membership.role,
+    };
   }
 
-  async requireEventRole(
-    userId: string,
-    eventId: string,
-    minRole: CalendarRole,
-  ): Promise<Event> {
-    const event = await this.prisma.event.findUnique({
-      where: { id: eventId },
-    });
+  // async create(userId: string, dto: CreateCalendarDto): Promise<CalendarDto> {
+  // TODO: создать календарь и членство OWNER для этого пользователя одним вложенным create,
+  //       так же, как UserService.upsertFromGoogle. Преобразовать в CalendarDto.
+  // ponytail: пока нет лимита числа календарей. Когда решим монетизацию, проверка лимита
+  //           будет здесь, перед create, и нигде больше.
+  // }
 
-    if (!event) throw new NotFoundException();
+  // async update(userId: string, id: string, dto: UpdateCalendarDto): Promise<CalendarDto> {
+  // TODO 1: менять настройки может только OWNER: requireRole первым, до любой записи.
+  // TODO 2: обновить календарь из dto. Поле, которое undefined, Prisma не трогает,
+  //         null его очищает, поэтому можно передать поля dto как есть.
+  // TODO 3: вернуть CalendarDto с ролью из членства, полученного в TODO 1.
+  // }
 
-    await this.requireRole(userId, event.calendarId, minRole);
-
-    return event;
-  }
+  // async remove(userId: string, id: string): Promise<void> {
+  // TODO 1: удалять может только OWNER: requireRole первым.
+  // TODO 2: удалить календарь. Участники и события уйдут вместе с ним: в схеме стоит onDelete: Cascade.
+  //         Подсказка: delete удаляет одну строку по уникальному ключу (здесь по id). В отличие от deleteMany
+  //         он бросает ошибку, если строки нет. Здесь это нормально: requireRole только что подтвердил, что она есть.
+  //         Удаление последнего календаря разрешено: пользователь увидит пустой выбор только с кнопкой «+».
+  // }
 }

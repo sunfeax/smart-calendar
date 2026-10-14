@@ -13,7 +13,7 @@ import type { Response } from 'express';
 import type { User } from '../generated/prisma/client.js';
 import { SESSION_COOKIE, SESSION_COOKIE_OPTIONS } from '../session/session.constants.js';
 import { SessionService } from '../session/session.service.js';
-import { UserProfile } from '../users/user-profile.dto.js';
+import { UserProfileDto } from '../users/user-profile.dto.js';
 import type { AuthReq } from './auth.model.js';
 import { AuthService } from './auth.service.js';
 import { CurrentUser } from './decorators/current-user.decorator.js';
@@ -44,7 +44,7 @@ export class AuthController {
   }
 
   @Get('me')
-  me(@CurrentUser() user: User): UserProfile {
+  me(@CurrentUser() user: User): UserProfileDto {
     return this.toProfile(user);
   }
 
@@ -58,7 +58,7 @@ export class AuthController {
     response.clearCookie(SESSION_COOKIE, SESSION_COOKIE_OPTIONS);
   }
 
-  private toProfile(user: User): UserProfile {
+  private toProfile(user: User): UserProfileDto {
     return {
       id: user.id,
       name: user.name,
