@@ -6,5 +6,7 @@ export const ROLE_RANK: Record<CalendarRole, number> = {
   VIEWER: 1,
 } as const;
 
-// Source of truth is the Prisma enum: the DB, DTOs and @IsIn all use the same values
 export const CALENDAR_COLORS = Object.values(CalendarColor);
+
+export const MAX_CALENDARS_PER_USER = 3;
+export const MAX_CALENDARS = 100;
