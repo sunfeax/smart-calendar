@@ -1,7 +1,8 @@
 import { Injectable } from '@nestjs/common';
+import { ONE_DAY_MS } from '../common/constants.js';
 import { PrismaService } from '../prisma/prisma.service.js';
 import { generateToken, hashToken } from './session-token.js';
-import { SESSION_ONE_DAY_MS, SESSION_TTL_MS } from './session.constants.js';
+import { SESSION_TTL_MS } from './session.constants.js';
 import { SessionWithUser } from './session.model.js';
 
 @Injectable()
@@ -39,7 +40,7 @@ export class SessionService {
       return null;
     }
 
-    if (Date.now() - session.lastUsedAt.getTime() > SESSION_ONE_DAY_MS) {
+    if (Date.now() - session.lastUsedAt.getTime() > ONE_DAY_MS) {
       session = await this.prisma.session.update({
         where: { id: session.id },
         data: {

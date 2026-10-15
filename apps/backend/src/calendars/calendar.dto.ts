@@ -1,15 +1,11 @@
 import { PartialType } from '@nestjs/swagger';
-import { Transform } from 'class-transformer';
-import { IsIn, IsNotEmpty, IsOptional, IsString, MaxLength } from 'class-validator';
+import { IsIn, IsOptional, MaxLength } from 'class-validator';
+import { IsNotBlank } from '../common/is-not-blank.decorator.js';
 import { type CalendarColor, type CalendarRole } from '../generated/prisma/enums.js';
 import { CALENDAR_COLORS } from './calendar.constants.js';
 
 export class CalendarCreateDto {
-  @Transform(({ value }: { value: unknown }) =>
-    typeof value === 'string' ? value.trim() : value,
-  )
-  @IsString()
-  @IsNotEmpty()
+  @IsNotBlank()
   @MaxLength(100)
   name!: string;
 
