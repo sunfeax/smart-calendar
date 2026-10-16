@@ -5,7 +5,7 @@ import { Event } from '../generated/prisma/client.js';
 import { CalendarRole } from '../generated/prisma/enums.js';
 import { PrismaService } from '../prisma/prisma.service.js';
 import { RANGE_MAX_DAYS, RANGE_MAX_ITEMS } from './event.constants.js';
-import { EventCreateDto, EventDto, EventsRangeDto } from './event.dto.js';
+import { EventCreateDto, EventDto, EventsRangeDto, EventUpdateDto } from './event.dto.js';
 
 @Injectable()
 export class EventService {
@@ -73,28 +73,48 @@ export class EventService {
     return this.toDto(event);
   }
 
-  // async update(userId: string, id: string, dto: EventUpdateDto): Promise<EventDto> {
-  //   await this.access.requireRole(userId, id, CalendarRole.EDITOR);
+  async update(userId: string, id: string, dto: EventUpdateDto): Promise<EventDto> {
+    const event = await this.access.requireEventRole(userId, id, CalendarRole.EDITOR);
 
-  //   const startAt = dto.startAt ? new Date(dto.startAt) : undefined;
-  //   const endAt = dto.endAt ? new Date(dto.endAt) : null;
-  //   const allDay = dto.allDay ?? false;
+    const startAt = dto.startAt ? new Date(dto.startAt) : event.startAt;
+    let endAt = event.endAt;
+    const allDay = dto.allDay ?? event.allDay;
 
-  //   this.assertDates(startAt, endAt, allDay);
+    if (dto.endAt === null) {
+      endAt = null;
+    } else if (dto.endAt) {
+      endAt = new Date(dto.endAt);
+    }
 
-  //   // TODO 2: собрать итоговые startAt / endAt / allDay: значение из dto, если оно есть, иначе сохранённое.
-  //   //         Внимание: endAt: null в dto означает «очистить», undefined — «оставить как есть».
-  //   // TODO 3: assertDates по ИТОГОВЫМ значениям, а не только по dto
-  //   //         (перенос сохранённого события на весь день на время, или изменение только startAt за сохранённый endAt, тоже должны падать).
-  //   // TODO 4: completed: true -> completedAt = сейчас, но ТОЛЬКО если сохранённое значение null (повторное «true» не должно
-  //   //         двигать время); false -> null; undefined -> оставить как есть.
-  //   // TODO 5: обновить и вернуть. Календарь события никогда не меняется: не пускать calendarId.
-  // }
+    this.assertDates(startAt, endAt, allDay);
 
-  // async remove(userId: string, id: string): Promise<void> {
-  //   // TODO: requireEventRole(EDITOR), затем удалить. Подсказка: deleteMany по id не падает, если строки уже нет
-  //   //       (по той же причине это делает SessionService.delete): повторный DELETE безвреден.
-  // }
+    let completedAt = event.completedAt;
+
+    if (dto.completed === false) {
+      completedAt = null;
+    } else if (dto.completed && !completedAt) {
+      completedAt = new Date();
+    }
+
+    const eventUpdated = await this.prisma.event.update({
+      where: { id },
+      data: {
+        title: dto.title,
+        description: dto.description,
+        startAt,
+        endAt,
+        allDay,
+        completedAt,
+      },
+    });
+
+    return this.toDto(eventUpdated);
+  }
+
+  async remove(userId: string, id: string): Promise<void> {
+    await this.access.requireEventRole(userId, id, CalendarRole.EDITOR);
+    await this.prisma.event.deleteMany({ where: { id } });
+  }
 
   private assertDates(startAt: Date, endAt: Date | null, allDay: boolean): void {
     if (endAt && endAt <= startAt) {

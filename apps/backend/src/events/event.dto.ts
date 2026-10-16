@@ -10,14 +10,14 @@ export class EventCreateDto {
 
   @IsOptional()
   @MaxLength(DESCRIPTION_MAX)
-  description?: string;
+  description?: string | null;
 
   @IsISO8601({ strict: true })
   startAt!: string;
 
   @IsOptional()
   @IsISO8601({ strict: true })
-  endAt?: string;
+  endAt?: string | null;
 
   @IsOptional()
   @IsBoolean()
