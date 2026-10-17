@@ -36,5 +36,18 @@
     "logoutTitle": "Sign out",
     "logoutMessage": "Sign out of your account on this device?",
     "language": "Language"
+  },
+  "calendars": {
+    "personal": "Personal calendar",
+    "colors": {
+      "RED": "Red",
+      "ORANGE": "Orange",
+      "YELLOW": "Yellow",
+      "GREEN": "Green",
+      "TEAL": "Teal",
+      "BLUE": "Blue",
+      "VIOLET": "Violet",
+      "PINK": "Pink"
+    }
   }
 }

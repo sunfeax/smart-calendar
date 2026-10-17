@@ -36,5 +36,18 @@
     "logoutTitle": "Cerrar sesión",
     "logoutMessage": "¿Cerrar sesión en este dispositivo?",
     "language": "Idioma"
+  },
+  "calendars": {
+    "personal": "Calendario personal",
+    "colors": {
+      "RED": "Rojo",
+      "ORANGE": "Naranja",
+      "YELLOW": "Amarillo",
+      "GREEN": "Verde",
+      "TEAL": "Turquesa",
+      "BLUE": "Azul",
+      "VIOLET": "Violeta",
+      "PINK": "Rosa"
+    }
   }
 }

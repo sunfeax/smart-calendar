@@ -383,8 +383,9 @@ export class EventsService {
   }
 
   async remove(userId: string, id: string): Promise<void> {
-    // TODO: requireEventRole(EDITOR), затем удалить. Подсказка: deleteMany по id не падает, если строки уже нет
-    //       (по той же причине это делает SessionService.delete): повторный DELETE безвреден.
+    // TODO: requireEventRole(EDITOR), затем удалить. Повторный DELETE ответит 404: события уже нет, и requireEventRole
+    //       это увидит. Подсказка: deleteMany по id не падает, если строки уже нет. Это страхует от гонки, когда два
+    //       запроса одновременно прошли проверку, а удалить успел только один (по той же причине так делает SessionService.delete).
   }
 
   private assertDates(startAt: Date, endAt: Date | null, allDay: boolean): void {
@@ -438,7 +439,7 @@ export class EventsController {
 | `PATCH` только `startAt` позже сохранённого `endAt`                                | 400                                              |
 | `PATCH { endAt: null }`                                                            | конец очищен                                     |
 | `POST` с лишним полем `calendarId` в теле                                          | поле проигнорировано (событие в календаре из URL) |
-| Повторный `DELETE`                                                                 | 204 оба раза                                     |
+| Повторный `DELETE` того же события                                                 | 404: события уже нет                             |
 
 После проверки верни роль `OWNER`.
 
