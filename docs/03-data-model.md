@@ -62,7 +62,6 @@ model Session {
 model Calendar {
   id            String           @id @default(uuid())
   name          String
-  color         String?
   createdAt     DateTime         @default(now()) @db.Timestamptz(3)
   updatedAt     DateTime         @updatedAt @db.Timestamptz(3)
   members       CalendarMember[]
@@ -185,7 +184,7 @@ model EventException {
 | Создавать теги и назначать их событиям                    | да    | да                  | нет    |
 | Создавать ссылку-приглашение                              | да    | да                  | нет    |
 | Удалять участников                                        | да    | да, кроме владельца | нет    |
-| Настройки календаря (название, цвет), удаление календаря  | да    | нет                 | нет    |
+| Настройки календаря (название), удаление календаря  | да    | нет                 | нет    |
 | Удалить владельца из календаря                            | нет   | нет                 | нет    |
 | Передать владение                                         | позже | нет                 | нет    |
 
