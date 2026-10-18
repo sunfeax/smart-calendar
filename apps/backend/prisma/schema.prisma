@@ -27,7 +27,7 @@ model User {
 
 model Calendar {
   id        String           @id @default(uuid())
-  name      String
+  name      String           @default("")
   createdAt DateTime         @default(now()) @db.Timestamptz(3)
   updatedAt DateTime         @updatedAt @db.Timestamptz(3)
   members   CalendarMember[]

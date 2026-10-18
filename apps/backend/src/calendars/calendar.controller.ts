@@ -12,7 +12,7 @@ import {
 } from '@nestjs/common';
 import { CurrentUser } from '../auth/decorators/current-user.decorator.js';
 import type { User } from '../generated/prisma/client.js';
-import { CalendarCreateDto, CalendarDto, CalendarUpdateDto } from './calendar.dto.js';
+import { CalendarDto, CalendarUpdateDto } from './calendar.dto.js';
 import { CalendarService } from './calendar.service.js';
 
 @Controller('calendars')
@@ -33,11 +33,8 @@ export class CalendarController {
   }
 
   @Post()
-  create(
-    @CurrentUser() user: User,
-    @Body() dto: CalendarCreateDto,
-  ): Promise<CalendarDto> {
-    return this.calendarService.create(user.id, dto);
+  create(@CurrentUser() user: User): Promise<CalendarDto> {
+    return this.calendarService.create(user.id);
   }
 
   @Patch(':id')

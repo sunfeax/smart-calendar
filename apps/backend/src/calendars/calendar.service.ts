@@ -3,7 +3,7 @@ import { CalendarRole } from '../generated/prisma/enums.js';
 import { PrismaService } from '../prisma/prisma.service.js';
 import { CalendarAccessService } from './calendar-access.service.js';
 import { MAX_CALENDARS, MAX_CALENDARS_PER_USER } from './calendar.constants.js';
-import { CalendarCreateDto, CalendarDto, CalendarUpdateDto } from './calendar.dto.js';
+import { CalendarDto, CalendarUpdateDto } from './calendar.dto.js';
 
 @Injectable()
 export class CalendarService {
@@ -40,7 +40,7 @@ export class CalendarService {
     };
   }
 
-  async create(userId: string, dto: CalendarCreateDto): Promise<CalendarDto> {
+  async create(userId: string): Promise<CalendarDto> {
     const calendarCount = await this.prisma.calendarMember.count({
       where: { userId, role: CalendarRole.OWNER },
     });
@@ -51,7 +51,6 @@ export class CalendarService {
 
     const calendar = await this.prisma.calendar.create({
       data: {
-        ...dto,
         members: {
           create: {
             role: CalendarRole.OWNER,
