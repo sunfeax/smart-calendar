@@ -1,0 +1,16 @@
+.edit__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-right: var(--space-2);
+}
+
+.edit__field {
+  width: 100%;
+}
+
+.edit__error {
+  margin: 0;
+  color: var(--color-danger);
+  font-size: var(--font-size-sm);
+}

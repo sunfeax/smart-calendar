@@ -1,0 +1,24 @@
+<div class="edit__header">
+  <h1 mat-dialog-title>{{ 'calendars.editTitle' | transloco }}</h1>
+  <button matIconButton [attr.aria-label]="'common.close' | transloco" (click)="cancel()">
+    <mat-icon>close</mat-icon>
+  </button>
+</div>
+
+<mat-dialog-content>
+  <mat-form-field class="edit__field">
+    <mat-label>{{ 'calendars.name' | transloco }}</mat-label>
+    <input matInput [formField]="calendarForm.name" (keydown.enter)="save()" />
+  </mat-form-field>
+
+  @if (calendarForm.name().touched() && calendarForm.name().errors()[0]; as error) {
+    <p class="edit__error" role="alert">
+      {{ 'calendars.errors.' + error.kind | transloco }}
+    </p>
+  }
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+  <button matButton (click)="cancel()">{{ 'common.cancel' | transloco }}</button>
+  <button matButton="filled" (click)="save()">{{ 'calendars.save' | transloco }}</button>
+</mat-dialog-actions>
