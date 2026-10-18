@@ -23,7 +23,6 @@ export class CalendarService {
     return memberships.map(membership => ({
       id: membership.calendar.id,
       name: membership.calendar.name,
-      color: membership.calendar.color,
       role: membership.role,
     }));
   }
@@ -37,7 +36,6 @@ export class CalendarService {
     return {
       id: calendar.id,
       name: calendar.name,
-      color: calendar.color,
       role: membership.role,
     };
   }
@@ -66,7 +64,6 @@ export class CalendarService {
     return {
       id: calendar.id,
       name: calendar.name,
-      color: calendar.color,
       role: CalendarRole.OWNER,
     };
   }
@@ -82,7 +79,6 @@ export class CalendarService {
     return {
       id: calendar.id,
       name: calendar.name,
-      color: calendar.color,
       role: membership.role,
     };
   }
