@@ -38,16 +38,7 @@
     "language": "Language"
   },
   "calendars": {
-    "personal": "Personal calendar",
-    "colors": {
-      "RED": "Red",
-      "ORANGE": "Orange",
-      "YELLOW": "Yellow",
-      "GREEN": "Green",
-      "TEAL": "Teal",
-      "BLUE": "Blue",
-      "VIOLET": "Violet",
-      "PINK": "Pink"
-    }
+    "unnamed": "Unnamed calendar",
+    "create": "Create calendar"
   }
 }

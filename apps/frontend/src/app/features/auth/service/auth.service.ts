@@ -26,7 +26,7 @@ export class AuthService {
       )
       .subscribe(event => {
         void this.router.navigateByUrl(
-          event.type === 'login' ? routePaths.calendar : routePaths.login,
+          event.type === 'login' ? routePaths.calendars : routePaths.login,
         );
       });
   }

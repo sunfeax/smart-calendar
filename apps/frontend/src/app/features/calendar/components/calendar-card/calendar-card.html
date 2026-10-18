@@ -1,0 +1,16 @@
+<article class="calendar-card">
+  <div class="calendar-card__bg" aria-hidden="true">
+    <div class="calendar-card__grid">
+      @for (weekday of weekdays(); track $index) {
+        <span class="calendar-card__weekday">{{ weekday }}</span>
+      }
+      @for (day of days; track day) {
+        <span class="calendar-card__day">{{ day }}</span>
+      }
+    </div>
+  </div>
+
+  <span class="calendar-card__name">
+    {{ calendar().name || ('calendars.unnamed' | transloco) }}
+  </span>
+</article>

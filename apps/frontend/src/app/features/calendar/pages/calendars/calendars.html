@@ -1,0 +1,6 @@
+<section>
+  @for (calendar of calendars.value() ?? []; track calendar.id) {
+    <app-calendar-card [calendar]="calendar"></app-calendar-card>
+  }
+  <app-calendar-add-card></app-calendar-add-card>
+</section>

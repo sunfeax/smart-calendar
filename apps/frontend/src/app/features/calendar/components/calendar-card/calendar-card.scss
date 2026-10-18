@@ -1,0 +1,63 @@
+:host {
+  display: block;
+}
+
+.calendar-card {
+  position: relative;
+  isolation: isolate;
+  display: flex;
+  align-items: flex-end;
+  min-height: 140px;
+  padding: var(--space-4);
+  overflow: hidden;
+  border: var(--border-width-sm) solid var(--color-border-soft);
+  border-radius: var(--radius-xl);
+  background: var(--color-surface);
+  box-shadow: var(--shadow-sm);
+  transition:
+    box-shadow var(--duration-normal) var(--ease-standard),
+    border-color var(--duration-normal) var(--ease-standard);
+
+  &:hover {
+    border-color: var(--color-primary);
+    box-shadow: var(--shadow-md);
+  }
+}
+
+// Tilted month grid, wider than the card so its edges never show
+.calendar-card__bg {
+  position: absolute;
+  top: -20%;
+  left: -25%;
+  z-index: -1;
+  width: 150%;
+  opacity: 0.25;
+  pointer-events: none;
+  transform: rotate(-12deg);
+  mask-image: linear-gradient(to bottom, transparent, #000 35%, #000 65%, transparent);
+}
+
+.calendar-card__grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  color: var(--color-text-soft);
+  font-size: var(--font-size-xs);
+  text-align: center;
+
+  > span {
+    padding: var(--space-2);
+    border: var(--border-width-sm) solid var(--color-border);
+  }
+}
+
+.calendar-card__weekday {
+  font-weight: var(--font-weight-semibold);
+  text-transform: uppercase;
+}
+
+.calendar-card__name {
+  color: var(--color-text);
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-semibold);
+  overflow-wrap: anywhere;
+}

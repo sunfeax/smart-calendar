@@ -1,5 +1,5 @@
 export const routePaths = {
   home: '/',
   login: '/login',
-  calendar: '/calendar',
+  calendars: '/calendars',
 } as const;

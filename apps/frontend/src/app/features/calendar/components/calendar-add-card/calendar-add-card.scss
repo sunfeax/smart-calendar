@@ -1,0 +1,39 @@
+:host {
+  display: block;
+}
+
+.add-card {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  min-height: 140px;
+  border: var(--border-width-md) dashed var(--color-border);
+  border-radius: var(--radius-xl);
+  background: transparent;
+  color: var(--color-text-muted);
+  cursor: pointer;
+  opacity: 0.6;
+  transition:
+    opacity var(--duration-normal) var(--ease-standard),
+    border-color var(--duration-normal) var(--ease-standard),
+    color var(--duration-normal) var(--ease-standard);
+
+  &:hover,
+  &:focus-visible {
+    opacity: 1;
+    border-color: var(--color-primary);
+    color: var(--color-primary-text);
+  }
+
+  &:focus-visible {
+    outline: var(--border-width-md) solid var(--color-focus-ring);
+    outline-offset: 2px;
+  }
+}
+
+.add-card__icon {
+  width: 48px;
+  height: 48px;
+  font-size: 48px;
+}

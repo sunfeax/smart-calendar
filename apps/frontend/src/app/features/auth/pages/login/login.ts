@@ -40,7 +40,7 @@ export class Login {
             client_id: environment.googleClientId,
             callback: response =>
               this.authService.login(response.credential).subscribe({
-                next: () => void this.router.navigateByUrl(routePaths.calendar),
+                next: () => void this.router.navigateByUrl(routePaths.calendars),
                 error: () =>
                   this.snackbar.error(this.transloco.translate('auth.loginError')),
               }),

@@ -38,16 +38,7 @@
     "language": "Idioma"
   },
   "calendars": {
-    "personal": "Calendario personal",
-    "colors": {
-      "RED": "Rojo",
-      "ORANGE": "Naranja",
-      "YELLOW": "Amarillo",
-      "GREEN": "Verde",
-      "TEAL": "Turquesa",
-      "BLUE": "Azul",
-      "VIOLET": "Violeta",
-      "PINK": "Rosa"
-    }
+    "unnamed": "Calendario sin nombre",
+    "create": "Crear calendario"
   }
 }
