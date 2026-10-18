@@ -58,5 +58,8 @@
       "required": "Introduce un nombre",
       "maxLength": "No más de 100 caracteres"
     }
+  },
+  "calendar": {
+    "back": "Volver a los calendarios"
   }
 }

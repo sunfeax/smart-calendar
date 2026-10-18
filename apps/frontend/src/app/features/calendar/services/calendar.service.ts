@@ -10,6 +10,10 @@ export class CalendarService {
     return this.http.get<CalendarDto[]>('/api/calendars');
   }
 
+  get(calendarId: string) {
+    return this.http.get<CalendarDto>(`/api/calendars/${calendarId}`);
+  }
+
   create() {
     return this.http.post<CalendarDto>('/api/calendars', null);
   }

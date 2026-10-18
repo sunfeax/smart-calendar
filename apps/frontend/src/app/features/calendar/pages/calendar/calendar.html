@@ -1,1 +1,18 @@
+<header class="calendar__header">
+  <a
+    class="calendar__back"
+    matIconButton
+    [routerLink]="routePaths.calendars"
+    [attr.aria-label]="'calendar.back' | transloco"
+  >
+    <mat-icon>arrow_back</mat-icon>
+  </a>
+
+  @if (calendar.value(); as calendar) {
+    <h1 class="calendar__title">
+      {{ calendar.name || ('calendars.unnamed' | transloco) }}
+    </h1>
+  }
+</header>
+
 <full-calendar [options]="options" />

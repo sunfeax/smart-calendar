@@ -1,0 +1,22 @@
+.calendar__header {
+  display: flex;
+  align-items: center;
+  gap: var(--gap-md);
+  margin-bottom: var(--space-4);
+}
+
+.calendar__back {
+  --mat-icon-button-icon-color: var(--color-text-soft);
+
+  &:hover {
+    --mat-icon-button-icon-color: var(--color-primary-text);
+  }
+}
+
+.calendar__title {
+  margin: 0;
+  color: var(--color-text);
+  font-size: var(--font-size-xl);
+  font-weight: var(--font-weight-semibold);
+  overflow-wrap: anywhere;
+}
