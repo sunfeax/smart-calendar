@@ -1,7 +1,8 @@
 {
   "common": {
     "cancel": "Cancel",
-    "confirm": "Confirm"
+    "confirm": "Confirm",
+    "close": "Close"
   },
   "auth": {
     "loginError": "Couldn't sign in with Google",
@@ -39,6 +40,23 @@
   },
   "calendars": {
     "unnamed": "Unnamed calendar",
-    "create": "Create calendar"
+    "create": "Create calendar",
+    "createSuccess": "Calendar created",
+    "createError": "Failed to create calendar",
+    "deleteTitle": "Delete calendar",
+    "deleteMessage": "The calendar and all its events will be permanently deleted.",
+    "delete": "Delete",
+    "deleteSuccess": "Calendar deleted",
+    "deleteError": "Failed to delete calendar",
+    "updateSuccess": "Calendar updated",
+    "updateError": "Failed to update calendar",
+    "edit": "Edit",
+    "editTitle": "Rename calendar",
+    "name": "Name",
+    "save": "Save",
+    "errors": {
+      "required": "Enter a name",
+      "maxLength": "No more than 100 characters"
+    }
   }
 }

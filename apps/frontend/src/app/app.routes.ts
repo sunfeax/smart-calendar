@@ -20,7 +20,7 @@ export const routes: Routes = [
     canActivate: [authGuard],
     children: [
       { path: 'calendars', component: Calendars, canActivate: [authGuard] },
-      // { path: 'calendars/:id', component: Calendars, canActivate: [authGuard] },
+      { path: 'calendars/:id', component: Calendars, canActivate: [authGuard] },
     ],
   },
 ];
