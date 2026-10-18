@@ -1,16 +1,25 @@
 <article class="calendar-card">
-  <div class="calendar-card__bg" aria-hidden="true">
-    <div class="calendar-card__grid">
-      @for (weekday of weekdays(); track $index) {
-        <span class="calendar-card__weekday">{{ weekday }}</span>
-      }
-      @for (day of days; track day) {
-        <span class="calendar-card__day">{{ day }}</span>
-      }
-    </div>
-  </div>
-
-  <span class="calendar-card__name">
+  <a class="calendar-card__link" [routerLink]="[routePaths.calendars, calendar().id]">
     {{ calendar().name || ('calendars.unnamed' | transloco) }}
-  </span>
+  </a>
+
+  <div class="calendar-card__actions">
+    <button
+      matIconButton
+      type="button"
+      [attr.aria-label]="'calendars.edit' | transloco"
+      (click)="edit.emit()"
+    >
+      <mat-icon>edit</mat-icon>
+    </button>
+
+    <button
+      matIconButton
+      type="button"
+      [attr.aria-label]="'calendars.delete' | transloco"
+      (click)="remove.emit()"
+    >
+      <mat-icon>delete</mat-icon>
+    </button>
+  </div>
 </article>

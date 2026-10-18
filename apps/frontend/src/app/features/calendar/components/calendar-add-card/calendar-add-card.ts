@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, output } from '@angular/core';
 import { MatIcon } from '@angular/material/icon';
 import { TranslocoPipe } from '@jsverse/transloco';
 
@@ -8,4 +8,6 @@ import { TranslocoPipe } from '@jsverse/transloco';
   styleUrl: './calendar-add-card.scss',
   templateUrl: './calendar-add-card.html',
 })
-export class CalendarAddCard {}
+export class CalendarAddCard {
+  readonly add = output();
+}
