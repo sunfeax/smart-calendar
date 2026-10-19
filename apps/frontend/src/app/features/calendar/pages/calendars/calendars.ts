@@ -1,4 +1,4 @@
-import { Component, inject } from '@angular/core';
+import { Component, effect, inject } from '@angular/core';
 import { rxResource, takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { TranslocoService } from '@jsverse/transloco';
 import { catchError, EMPTY, exhaustMap, filter, Subject, switchMap, tap } from 'rxjs';
@@ -51,6 +51,11 @@ export class Calendars {
 
   constructor() {
     this.createResponse$.subscribe();
+
+    effect(() => {
+      if (!this.calendars.error()) return;
+      this.snackbarService.error(this.transloco.translate('calendars.loadError'));
+    });
   }
 
   createRequest(): void {

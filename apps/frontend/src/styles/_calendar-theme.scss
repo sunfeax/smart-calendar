@@ -50,3 +50,16 @@ full-calendar .app-today,
 full-calendar .app-month-header {
   background: var(--app-highlight-bg);
 }
+
+full-calendar .app-day-editable:hover {
+  background: var(--app-highlight-bg);
+  cursor: pointer;
+}
+
+full-calendar .is-completed {
+  opacity: 0.6;
+}
+
+full-calendar .is-completed .calendar__event-title {
+  text-decoration: line-through;
+}

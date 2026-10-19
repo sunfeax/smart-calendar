@@ -1,5 +1,5 @@
 <section>
-  @for (calendar of calendars.value() ?? []; track calendar.id) {
+  @for (calendar of calendars.hasValue() ? calendars.value() : []; track calendar.id) {
     <app-calendar-card
       [calendar]="calendar"
       (edit)="edit(calendar)"

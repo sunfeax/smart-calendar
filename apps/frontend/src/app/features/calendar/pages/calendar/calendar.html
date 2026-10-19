@@ -8,11 +8,25 @@
     <mat-icon>arrow_back</mat-icon>
   </a>
 
-  @if (calendar.value(); as calendar) {
+  @if (calendar.hasValue()) {
     <h1 class="calendar__title">
-      {{ calendar.name || ('calendars.unnamed' | transloco) }}
+      {{ calendar.value().name || ('calendars.unnamed' | transloco) }}
     </h1>
   }
 </header>
 
-<full-calendar [options]="options()" />
+<full-calendar [options]="options()">
+  <ng-template #eventContent let-arg>
+    <span class="calendar__event">
+      <mat-checkbox
+        class="calendar__check"
+        [checked]="arg.event.extendedProps.completed"
+        [disabled]="!canEdit()"
+        [attr.aria-label]="'event.toggleCompleted' | transloco"
+        (click)="$event.stopPropagation()"
+        (change)="onToggleCompleted(arg.event.id, $event.checked)"
+      />
+      <span class="calendar__event-title">{{ arg.event.title }}</span>
+    </span>
+  </ng-template>
+</full-calendar>

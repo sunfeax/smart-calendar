@@ -2,6 +2,7 @@ import {
   afterRenderEffect,
   Component,
   computed,
+  effect,
   ElementRef,
   inject,
   input,
@@ -9,35 +10,49 @@ import {
 } from '@angular/core';
 import { rxResource } from '@angular/core/rxjs-interop';
 import { MatIconButton } from '@angular/material/button';
+import { MatCheckbox } from '@angular/material/checkbox';
 import { MatIcon } from '@angular/material/icon';
-import { RouterLink } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { CalendarOptions, FullCalendarModule } from '@fullcalendar/angular';
 import dayGridPlugin from '@fullcalendar/angular/daygrid';
 import interactionPlugin from '@fullcalendar/angular/interaction';
 import allLocales from '@fullcalendar/angular/locales-all';
 import multiMonthPlugin from '@fullcalendar/angular/multimonth';
 import themePlugin from '@fullcalendar/angular/themes/monarch';
-import { TranslocoPipe } from '@jsverse/transloco';
+import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
+import { catchError, EMPTY } from 'rxjs';
 import { routePaths } from '../../../../core/constants/routePaths';
+import { EventDialogData } from '../../models/event-dialog';
 import { EventRange } from '../../models/event-range';
 import { CalendarService } from '../../services/calendar.service';
 import { EventService } from '../../services/event.service';
 import { toCalendarEvent } from '../../utils/event.mapper';
+import { SnackbarService } from './../../../../shared/services/snackbar.service';
 
 @Component({
   selector: 'app-calendar',
-  imports: [FullCalendarModule, MatIcon, MatIconButton, RouterLink, TranslocoPipe],
+  imports: [
+    FullCalendarModule,
+    MatCheckbox,
+    MatIcon,
+    MatIconButton,
+    RouterLink,
+    TranslocoPipe,
+  ],
   templateUrl: './calendar.html',
   styleUrl: './calendar.scss',
 })
 export class Calendar {
   private readonly calendarService = inject(CalendarService);
   private readonly eventService = inject(EventService);
+  private readonly snackbarService = inject(SnackbarService);
+  private readonly transloco = inject(TranslocoService);
+  private readonly router = inject(Router);
 
   readonly id = input.required<string>();
   readonly routePaths = routePaths;
   readonly canEdit = computed(() => {
-    const role = this.calendar.value()?.role;
+    const role = this.calendar.hasValue() ? this.calendar.value().role : undefined;
     if (role === 'OWNER' || role === 'EDITOR') return true;
     return false;
   });
@@ -59,7 +74,7 @@ export class Calendar {
   });
 
   private readonly calendarEvents = computed(() =>
-    (this.events.value() ?? []).map(toCalendarEvent),
+    this.events.hasValue() ? this.events.value().map(toCalendarEvent) : [],
   );
 
   readonly options = computed<CalendarOptions>(() => ({
@@ -70,7 +85,10 @@ export class Calendar {
     height: '100%',
     aspectRatio: 2.5,
     headerToolbar: { start: 'title', end: 'today prev,next' },
-    dayCellClass: info => (info.isToday ? 'app-today' : ''),
+    dayCellClass: info =>
+      [info.isToday && 'app-today', this.canEdit() && 'app-day-editable']
+        .filter(Boolean)
+        .join(' '),
     singleMonthHeaderClass: 'app-month-header',
     plugins: [themePlugin, dayGridPlugin, multiMonthPlugin, interactionPlugin],
     views: {
@@ -81,17 +99,55 @@ export class Calendar {
       },
     },
     events: this.calendarEvents(),
+    dateClick: info => {
+      if (this.canEdit()) this.openEventDialog({ mode: 'create', date: info.dateStr });
+    },
+    eventClick: info => this.onEventClick(info.event.id),
     datesSet: info =>
       this.onVisibleRangeChange(info.start.toISOString(), info.end.toISOString()),
   }));
 
   constructor() {
+    effect(() => {
+      if (!this.events.error()) return;
+      this.snackbarService.error(this.transloco.translate('calendar.eventsError'));
+    });
+
+    effect(() => {
+      if (!this.calendar.error()) return;
+      this.snackbarService.error(this.transloco.translate('calendar.loadError'));
+      void this.router.navigateByUrl(routePaths.calendars);
+    });
+
     afterRenderEffect(() => {
-      if (!this.calendar.value() || !this.range()) return;
+      if (!this.calendar.hasValue() || !this.range()) return;
       this.host.nativeElement
         .querySelector('.app-today')
         ?.scrollIntoView({ block: 'center', inline: 'center', behavior: 'smooth' });
     });
+  }
+
+  onToggleCompleted(eventId: string, completed: boolean): void {
+    this.eventService
+      .update(eventId, { completed })
+      .pipe(
+        catchError(() => {
+          this.snackbarService.error(this.transloco.translate('event.updateError'));
+          return EMPTY;
+        }),
+      )
+      .subscribe();
+  }
+
+  private openEventDialog(data: EventDialogData): void {
+    // TODO: открыть диалог события (контракт в шаге 10.2 гайда) и по результату сделать запрос
+    //       (создание, правка или удаление), затем обновить events.
+  }
+
+  private onEventClick(eventId: string): void {
+    if (!this.events.hasValue()) return;
+    const event = this.events.value().find(item => item.id === eventId);
+    if (event) this.openEventDialog({ mode: 'edit', event });
   }
 
   private onVisibleRangeChange(from: string, to: string): void {

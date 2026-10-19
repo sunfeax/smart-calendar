@@ -57,9 +57,21 @@
     "errors": {
       "required": "Enter a name",
       "maxLength": "No more than 100 characters"
-    }
+    },
+    "loadError": "Failed to load calendars"
   },
   "calendar": {
-    "back": "Back to calendars"
+    "back": "Back to calendars",
+    "eventsError": "Failed to load events",
+    "loadError": "Failed to open the calendar"
+  },
+  "event": {
+    "toggleCompleted": "Mark as completed",
+    "createSuccess": "Event created",
+    "createError": "Failed to create event",
+    "updateSuccess": "Event updated",
+    "updateError": "Failed to update event",
+    "deleteSuccess": "Event deleted",
+    "deleteError": "Failed to delete event"
   }
 }

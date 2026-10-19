@@ -23,6 +23,6 @@ export class CalendarService {
   }
 
   delete(calendarId: string) {
-    return this.http.delete<CalendarDto>(`/api/calendars/${calendarId}`);
+    return this.http.delete<void>(`/api/calendars/${calendarId}`);
   }
 }

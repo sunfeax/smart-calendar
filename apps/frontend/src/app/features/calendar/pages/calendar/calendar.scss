@@ -33,3 +33,21 @@ full-calendar {
   font-weight: var(--font-weight-semibold);
   overflow-wrap: anywhere;
 }
+
+.calendar__event {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  min-width: 0;
+}
+
+.calendar__check {
+  --mat-checkbox-state-layer-size: 28px;
+  flex: none;
+}
+
+.calendar__event-title {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}

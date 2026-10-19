@@ -57,9 +57,21 @@
     "errors": {
       "required": "Introduce un nombre",
       "maxLength": "No más de 100 caracteres"
-    }
+    },
+    "loadError": "No se pudieron cargar los calendarios"
   },
   "calendar": {
-    "back": "Volver a los calendarios"
+    "back": "Volver a los calendarios",
+    "eventsError": "No se pudieron cargar los eventos",
+    "loadError": "No se pudo abrir el calendario"
+  },
+  "event": {
+    "toggleCompleted": "Marcar como completado",
+    "createSuccess": "Evento creado",
+    "createError": "No se pudo crear el evento",
+    "updateSuccess": "Evento actualizado",
+    "updateError": "No se pudo actualizar el evento",
+    "deleteSuccess": "Evento eliminado",
+    "deleteError": "No se pudo eliminar el evento"
   }
 }
