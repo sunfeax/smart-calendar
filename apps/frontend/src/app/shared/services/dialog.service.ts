@@ -1,7 +1,7 @@
 import { inject, Service, Type } from '@angular/core';
 import { MatDialog, MatDialogConfig } from '@angular/material/dialog';
 import { filter, Observable } from 'rxjs';
-import { ConfirmDialog } from '../dialogs/confirm-dialog/confirm-dialog';
+import { ConfirmDialog } from '../components/confirm-dialog/confirm-dialog';
 import { Dialog } from '../models/dialog';
 
 @Service()

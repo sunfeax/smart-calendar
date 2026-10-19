@@ -1,11 +1,15 @@
 :host {
   display: flex;
   flex-direction: column;
-  min-height: 100vh;
+  height: 100dvh;
 }
 
 .main-layout__content {
+  display: flex;
   flex: 1;
+  flex-direction: column;
+  min-height: 0;
+  overflow: auto;
   width: 100%;
   margin-inline: auto;
   padding: var(--space-4);

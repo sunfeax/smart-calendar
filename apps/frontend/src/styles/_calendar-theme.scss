@@ -41,3 +41,12 @@ full-calendar {
   --fc-monarch-border: var(--color-border-soft);
   --fc-monarch-strong-border: var(--color-border);
 }
+
+full-calendar {
+  --app-highlight-bg: color-mix(in srgb, var(--color-primary) 14%, transparent);
+}
+
+full-calendar .app-today,
+full-calendar .app-month-header {
+  background: var(--app-highlight-bg);
+}

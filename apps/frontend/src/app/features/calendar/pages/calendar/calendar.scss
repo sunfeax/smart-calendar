@@ -1,8 +1,21 @@
+:host {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-height: 0;
+}
+
+full-calendar {
+  display: block;
+  flex: 1;
+  min-height: 0;
+}
+
 .calendar__header {
   display: flex;
   align-items: center;
   gap: var(--gap-md);
-  margin-bottom: var(--space-4);
+  margin-bottom: var(--space-2);
 }
 
 .calendar__back {
@@ -16,7 +29,7 @@
 .calendar__title {
   margin: 0;
   color: var(--color-text);
-  font-size: var(--font-size-xl);
+  font-size: var(--font-size-lg);
   font-weight: var(--font-weight-semibold);
   overflow-wrap: anywhere;
 }
