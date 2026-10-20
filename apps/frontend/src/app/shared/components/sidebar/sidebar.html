@@ -1,23 +1,27 @@
-<header class="header">
-  <a class="header__brand" [routerLink]="routePaths.calendars">
+<nav class="sidebar">
+  <a
+    class="sidebar__brand"
+    [routerLink]="routePaths.calendars"
+    [attr.aria-label]="'app.name' | transloco"
+    [matTooltip]="'app.name' | transloco"
+    matTooltipPosition="right"
+  >
     <img
-      class="header__logo"
+      class="sidebar__logo"
       src="brand/smart-calendar.svg"
       alt=""
       width="40"
       height="40"
     />
-    <span class="header__title">{{ 'app.name' | transloco }}</span>
   </a>
 
-  <div class="header__actions">
+  <div class="sidebar__actions">
     <button
       matIconButton
       type="button"
-      [attr.aria-label]="
-        (themeService.theme() === 'dark' ? 'header.lightTheme' : 'header.darkTheme')
-          | transloco
-      "
+      [attr.aria-label]="themeLabel() | transloco"
+      [matTooltip]="themeLabel() | transloco"
+      matTooltipPosition="right"
       (click)="toggleTheme()"
     >
       <mat-icon>
@@ -29,20 +33,22 @@
       matIconButton
       type="button"
       [matMenuTriggerFor]="langMenu"
-      [attr.aria-label]="'header.language' | transloco"
+      [attr.aria-label]="'sidebar.language' | transloco"
+      [matTooltip]="'sidebar.language' | transloco"
+      matTooltipPosition="right"
     >
       <mat-icon>translate</mat-icon>
     </button>
 
     <button
       type="button"
-      class="header__avatar"
+      class="sidebar__avatar"
       [matMenuTriggerFor]="menu"
-      [attr.aria-label]="'header.userMenu' | transloco"
+      [attr.aria-label]="'sidebar.userMenu' | transloco"
     >
       @if (user()?.avatarUrl; as avatarUrl) {
         <img
-          class="header__avatar-img"
+          class="sidebar__avatar-img"
           [src]="avatarUrl"
           [alt]="user()?.name ?? ''"
           referrerpolicy="no-referrer"
@@ -53,7 +59,7 @@
     </button>
   </div>
 
-  <mat-menu #langMenu="matMenu">
+  <mat-menu #langMenu="matMenu" xPosition="after" yPosition="above">
     @for (lang of languages; track lang) {
       <button mat-menu-item type="button" (click)="setLanguage(lang)">
         @if (language.lang() === lang) {
@@ -64,9 +70,9 @@
     }
   </mat-menu>
 
-  <mat-menu #menu="matMenu">
+  <mat-menu #menu="matMenu" xPosition="after" yPosition="above">
     @if (user(); as currentUser) {
-      <div class="header__user">
+      <div class="sidebar__user">
         <span>{{ currentUser.name }}</span>
         <span>{{ currentUser.email }}</span>
       </div>
@@ -74,7 +80,7 @@
 
     <button mat-menu-item type="button" (click)="logout()">
       <mat-icon>logout</mat-icon>
-      <span>{{ 'header.logout' | transloco }}</span>
+      <span>{{ 'sidebar.logout' | transloco }}</span>
     </button>
   </mat-menu>
-</header>
+</nav>

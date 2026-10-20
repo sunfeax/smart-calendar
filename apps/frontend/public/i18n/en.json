@@ -29,7 +29,7 @@
   "app": {
     "name": "Smart Calendar"
   },
-  "header": {
+  "sidebar": {
     "userMenu": "User menu",
     "lightTheme": "Light theme",
     "darkTheme": "Dark theme",
