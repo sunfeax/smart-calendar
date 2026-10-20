@@ -1,14 +1,15 @@
 import { Component, effect, inject } from '@angular/core';
 import { rxResource, takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { MatDialog } from '@angular/material/dialog';
 import { TranslocoService } from '@jsverse/transloco';
 import { catchError, EMPTY, exhaustMap, filter, Subject, switchMap, tap } from 'rxjs';
 import { CalendarDto, CalendarUpdateDto } from '../../../../api/generated';
 import { routePaths } from '../../../../core/constants/routePaths';
+import { ConfirmDialog } from '../../../../shared/components/confirm-dialog/confirm-dialog';
 import { CalendarAddCard } from '../../components/calendar-add-card/calendar-add-card';
 import { CalendarCard } from '../../components/calendar-card/calendar-card';
 import { CalendarEditDialog } from '../../components/calendar-edit-dialog/calendar-edit-dialog';
 import { CalendarService } from '../../services/calendar.service';
-import { DialogService } from './../../../../shared/services/dialog.service';
 import { SnackbarService } from './../../../../shared/services/snackbar.service';
 
 @Component({
@@ -20,7 +21,7 @@ import { SnackbarService } from './../../../../shared/services/snackbar.service'
 export class Calendars {
   private readonly calendarService = inject(CalendarService);
   private readonly snackbarService = inject(SnackbarService);
-  private readonly dialogService = inject(DialogService);
+  private readonly dialog = inject(MatDialog);
   private readonly transloco = inject(TranslocoService);
 
   readonly routePaths = routePaths;
@@ -63,7 +64,7 @@ export class Calendars {
   }
 
   edit(calendar: CalendarDto): void {
-    this.dialogService
+    this.dialog
       .open<CalendarEditDialog, CalendarUpdateDto, CalendarUpdateDto>(
         CalendarEditDialog,
         {
@@ -71,6 +72,7 @@ export class Calendars {
           autoFocus: 'input',
         },
       )
+      .afterClosed()
       .pipe(
         filter(body => body !== undefined),
         switchMap(body => this.calendarService.update(calendar.id, body)),
@@ -79,14 +81,12 @@ export class Calendars {
   }
 
   delete(calendarId: string): void {
-    this.dialogService
-      .confirm({
-        title: this.transloco.translate('calendars.deleteTitle'),
-        message: this.transloco.translate('calendars.deleteMessage'),
-        confirmText: this.transloco.translate('calendars.delete'),
-        cancelText: this.transloco.translate('common.cancel'),
-        variant: 'danger',
-      })
+    ConfirmDialog.open(this.dialog, {
+      title: this.transloco.translate('calendars.deleteTitle'),
+      message: this.transloco.translate('calendars.deleteMessage'),
+      confirmText: this.transloco.translate('calendars.delete'),
+      variant: 'danger',
+    })
       .pipe(switchMap(() => this.calendarService.delete(calendarId)))
       .subscribe(this.handleResult('delete'));
   }

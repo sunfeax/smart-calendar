@@ -7,10 +7,15 @@
 }
 
 <mat-dialog-actions align="end">
-  <button matButton="text" type="button" (click)="onCancel()">
+  <button matButton="text" type="button" [mat-dialog-close]="false">
     {{ data.cancelText ?? ('common.cancel' | transloco) }}
   </button>
-  <button matButton="filled" type="button" [class]="confirmClass" (click)="onConfirm()">
+  <button
+    matButton="filled"
+    type="button"
+    [class]="confirmClass"
+    [mat-dialog-close]="true"
+  >
     {{ data.confirmText ?? ('common.confirm' | transloco) }}
   </button>
 </mat-dialog-actions>

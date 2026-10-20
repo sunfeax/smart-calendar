@@ -1,5 +1,6 @@
 import { Component, inject } from '@angular/core';
 import { MatIconButton } from '@angular/material/button';
+import { MatDialog } from '@angular/material/dialog';
 import { MatIcon } from '@angular/material/icon';
 import { MatMenu, MatMenuItem, MatMenuTrigger } from '@angular/material/menu';
 import { Router, RouterLink } from '@angular/router';
@@ -8,9 +9,9 @@ import { catchError, of, switchMap } from 'rxjs';
 import { routePaths } from '../../../core/constants/routePaths';
 import { LANGUAGE_NAMES, LANGUAGES, Language } from '../../../core/constants/languages';
 import { AuthService } from '../../../features/auth/service/auth.service';
-import { DialogService } from '../../services/dialog.service';
 import { LanguageService } from '../../services/language.service';
 import { ThemeService } from '../../services/theme.service';
+import { ConfirmDialog } from '../confirm-dialog/confirm-dialog';
 
 @Component({
   selector: 'app-header',
@@ -28,7 +29,7 @@ import { ThemeService } from '../../services/theme.service';
 })
 export class Header {
   private readonly authService = inject(AuthService);
-  private readonly dialogService = inject(DialogService);
+  private readonly dialog = inject(MatDialog);
   private readonly router = inject(Router);
   private readonly transloco = inject(TranslocoService);
   protected readonly themeService = inject(ThemeService);
@@ -47,14 +48,12 @@ export class Header {
   }
 
   protected logout(): void {
-    this.dialogService
-      .confirm({
-        title: this.transloco.translate('header.logoutTitle'),
-        message: this.transloco.translate('header.logoutMessage'),
-        confirmText: this.transloco.translate('header.logout'),
-        cancelText: this.transloco.translate('common.cancel'),
-        variant: 'danger',
-      })
+    ConfirmDialog.open(this.dialog, {
+      title: this.transloco.translate('header.logoutTitle'),
+      message: this.transloco.translate('header.logoutMessage'),
+      confirmText: this.transloco.translate('header.logout'),
+      variant: 'danger',
+    })
       .pipe(
         switchMap(() => this.authService.logout().pipe(catchError(() => of(undefined)))),
       )

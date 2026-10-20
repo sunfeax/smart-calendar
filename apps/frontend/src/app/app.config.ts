@@ -5,6 +5,7 @@ import {
   provideAppInitializer,
   provideBrowserGlobalErrorListeners,
 } from '@angular/core';
+import { MAT_DIALOG_DEFAULT_OPTIONS } from '@angular/material/dialog';
 import { MAT_FORM_FIELD_DEFAULT_OPTIONS } from '@angular/material/form-field';
 import { MAT_ICON_DEFAULT_OPTIONS } from '@angular/material/icon';
 import { provideRouter, withComponentInputBinding } from '@angular/router';
@@ -20,6 +21,10 @@ export const appConfig: ApplicationConfig = {
     provideHttpClient(),
     provideLanguage(),
     {
+      provide: MAT_DIALOG_DEFAULT_OPTIONS,
+      useValue: { width: 'min(28rem, calc(100vw - 2rem))' },
+    },
+    {
       provide: MAT_ICON_DEFAULT_OPTIONS,
       useValue: { fontSet: 'material-symbols-outlined' },
     },
@@ -27,9 +32,7 @@ export const appConfig: ApplicationConfig = {
       provide: MAT_FORM_FIELD_DEFAULT_OPTIONS,
       useValue: { appearance: 'outline', hideRequiredMarker: true },
     },
-    provideAppInitializer(() => {
-      inject(ThemeService);
-    }),
+    provideAppInitializer(() => void inject(ThemeService)),
     provideAppInitializer(() => inject(AuthService).me()),
   ],
 };
