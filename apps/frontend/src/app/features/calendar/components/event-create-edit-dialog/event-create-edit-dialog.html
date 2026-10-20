@@ -1,0 +1,73 @@
+<div class="edit__header">
+  <h1 mat-dialog-title>
+    {{ (data.mode === 'create' ? 'event.createTitle' : 'event.editTitle') | transloco }}
+  </h1>
+  <button matIconButton [attr.aria-label]="'common.close' | transloco" (click)="cancel()">
+    <mat-icon>close</mat-icon>
+  </button>
+</div>
+
+<mat-dialog-content class="edit__content">
+  <mat-form-field class="edit__field">
+    <mat-label>{{ 'event.title' | transloco }}</mat-label>
+    <input matInput [formField]="eventForm.title" (keydown.enter)="save()" />
+    @if (eventForm.title().errors()[0]; as error) {
+      <mat-error>{{ 'event.errors.' + error.kind | transloco }}</mat-error>
+    }
+  </mat-form-field>
+
+  <mat-form-field class="edit__field">
+    <mat-label>{{ 'event.description' | transloco }}</mat-label>
+    <textarea matInput rows="3" [formField]="eventForm.description"></textarea>
+    @if (eventForm.description().errors()[0]; as error) {
+      <mat-error>{{ 'event.errors.' + error.kind | transloco }}</mat-error>
+    }
+  </mat-form-field>
+
+  <mat-checkbox [formField]="eventForm.allDay">
+    {{ 'event.allDay' | transloco }}
+  </mat-checkbox>
+
+  <div class="edit__dates">
+    <mat-form-field class="edit__field">
+      <mat-label>{{ 'event.startAt' | transloco }}</mat-label>
+      <input
+        matInput
+        [type]="eventForm.allDay().value() ? 'date' : 'datetime-local'"
+        [formField]="eventForm.startAt"
+      />
+      @if (eventForm.startAt().errors()[0]; as error) {
+        <mat-error>{{ 'event.errors.' + error.kind | transloco }}</mat-error>
+      }
+    </mat-form-field>
+
+    <mat-form-field class="edit__field">
+      <mat-label>{{ 'event.endAt' | transloco }}</mat-label>
+      <input
+        matInput
+        [type]="eventForm.allDay().value() ? 'date' : 'datetime-local'"
+        [formField]="eventForm.endAt"
+      />
+      @if (eventForm.endAt().errors()[0]; as error) {
+        <mat-error>{{ 'event.errors.' + error.kind | transloco }}</mat-error>
+      }
+    </mat-form-field>
+  </div>
+
+  @if (data.mode === 'update') {
+    <mat-checkbox [formField]="eventForm.completed">
+      {{ 'event.completed' | transloco }}
+    </mat-checkbox>
+  }
+</mat-dialog-content>
+
+<mat-dialog-actions class="edit__actions">
+  @if (data.mode === 'update') {
+    <button matButton class="edit__delete" (click)="remove()">
+      {{ 'event.delete' | transloco }}
+    </button>
+  }
+  <span class="edit__spacer"></span>
+  <button matButton (click)="cancel()">{{ 'common.cancel' | transloco }}</button>
+  <button matButton="filled" (click)="save()">{{ 'event.save' | transloco }}</button>
+</mat-dialog-actions>

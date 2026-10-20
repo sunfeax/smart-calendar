@@ -9,6 +9,8 @@ full-calendar {
   display: block;
   flex: 1;
   min-height: 0;
+  overflow: hidden;
+  overscroll-behavior: none;
 }
 
 .calendar__header {

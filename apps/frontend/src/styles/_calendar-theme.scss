@@ -46,14 +46,36 @@ full-calendar {
   --app-highlight-bg: color-mix(in srgb, var(--color-primary) 14%, transparent);
 }
 
-full-calendar .app-today,
-full-calendar .app-month-header {
+full-calendar .app-today {
   background: var(--app-highlight-bg);
 }
 
 full-calendar .app-day-editable:hover {
   background: var(--app-highlight-bg);
   cursor: pointer;
+}
+
+full-calendar .app-day-top {
+  position: relative;
+}
+
+full-calendar .app-day-top::after {
+  content: 'add';
+  position: absolute;
+  top: 50%;
+  right: var(--space-1);
+  translate: 0 -50%;
+  font-family: 'Material Symbols Outlined';
+  font-size: var(--font-size-lg);
+  line-height: 1;
+  color: var(--color-primary-text);
+  opacity: 0;
+  transition: opacity 0.15s;
+  pointer-events: none;
+}
+
+full-calendar .app-day-editable:hover .app-day-top::after {
+  opacity: 1;
 }
 
 full-calendar .is-completed {

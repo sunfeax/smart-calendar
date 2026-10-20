@@ -15,7 +15,7 @@
   }
 </header>
 
-<full-calendar [options]="options()">
+<full-calendar [options]="options()" (wheel)="onWheel($event)">
   <ng-template #eventContent let-arg>
     <span class="calendar__event">
       <mat-checkbox

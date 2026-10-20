@@ -72,6 +72,21 @@
     "updateSuccess": "Event updated",
     "updateError": "Failed to update event",
     "deleteSuccess": "Event deleted",
-    "deleteError": "Failed to delete event"
+    "deleteError": "Failed to delete event",
+    "createTitle": "New event",
+    "editTitle": "Edit event",
+    "title": "Title",
+    "description": "Description",
+    "allDay": "All day",
+    "startAt": "Start",
+    "endAt": "End",
+    "completed": "Completed",
+    "delete": "Delete",
+    "save": "Save",
+    "errors": {
+      "required": "This field is required",
+      "maxLength": "The value is too long",
+      "endBeforeStart": "The end must be later than the start"
+    }
   }
 }

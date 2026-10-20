@@ -1,5 +1,4 @@
 import {
-  afterRenderEffect,
   Component,
   computed,
   effect,
@@ -7,22 +6,28 @@ import {
   inject,
   input,
   signal,
+  viewChild,
 } from '@angular/core';
 import { rxResource } from '@angular/core/rxjs-interop';
 import { MatIconButton } from '@angular/material/button';
 import { MatCheckbox } from '@angular/material/checkbox';
+import { MatDialog } from '@angular/material/dialog';
 import { MatIcon } from '@angular/material/icon';
 import { Router, RouterLink } from '@angular/router';
-import { CalendarOptions, FullCalendarModule } from '@fullcalendar/angular';
+import {
+  CalendarOptions,
+  FullCalendarComponent,
+  FullCalendarModule,
+} from '@fullcalendar/angular';
 import dayGridPlugin from '@fullcalendar/angular/daygrid';
 import interactionPlugin from '@fullcalendar/angular/interaction';
 import allLocales from '@fullcalendar/angular/locales-all';
-import multiMonthPlugin from '@fullcalendar/angular/multimonth';
 import themePlugin from '@fullcalendar/angular/themes/monarch';
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import { catchError, EMPTY } from 'rxjs';
 import { routePaths } from '../../../../core/constants/routePaths';
-import { EventDialogData } from '../../models/event-dialog';
+import { EventCreateEditDialog } from '../../components/event-create-edit-dialog/event-create-edit-dialog';
+import { EventDialogData, EventDialogResult } from '../../models/event-dialog';
 import { EventRange } from '../../models/event-range';
 import { CalendarService } from '../../services/calendar.service';
 import { EventService } from '../../services/event.service';
@@ -46,6 +51,7 @@ export class Calendar {
   private readonly calendarService = inject(CalendarService);
   private readonly eventService = inject(EventService);
   private readonly snackbarService = inject(SnackbarService);
+  private readonly dialog = inject(MatDialog);
   private readonly transloco = inject(TranslocoService);
   private readonly router = inject(Router);
 
@@ -57,7 +63,11 @@ export class Calendar {
     return false;
   });
   private readonly range = signal<EventRange | null>(null);
+  private readonly fullCalendar = viewChild.required(FullCalendarComponent);
   private readonly host = inject<ElementRef<HTMLElement>>(ElementRef);
+  private lastWheelAt = 0;
+  private wheelHandled = false;
+  private navAxis: 'x' | 'y' = 'x';
 
   readonly calendar = rxResource({
     params: () => this.id(),
@@ -78,33 +88,29 @@ export class Calendar {
   );
 
   readonly options = computed<CalendarOptions>(() => ({
-    initialView: 'multiMonthThree',
+    initialView: 'dayGridMonth',
     locales: allLocales,
     locale: 'ru',
     firstDay: 1,
     height: '100%',
-    aspectRatio: 2.5,
+    dayMaxEvents: true,
     headerToolbar: { start: 'title', end: 'today prev,next' },
     dayCellClass: info =>
       [info.isToday && 'app-today', this.canEdit() && 'app-day-editable']
         .filter(Boolean)
         .join(' '),
-    singleMonthHeaderClass: 'app-month-header',
-    plugins: [themePlugin, dayGridPlugin, multiMonthPlugin, interactionPlugin],
-    views: {
-      multiMonthThree: {
-        type: 'multiMonth',
-        duration: { months: 3 },
-        multiMonthMaxColumns: 1,
-      },
-    },
+    dayCellTopClass: () => (this.canEdit() ? 'app-day-top' : ''),
+    viewClass: 'app-view',
+    plugins: [themePlugin, dayGridPlugin, interactionPlugin],
     events: this.calendarEvents(),
     dateClick: info => {
       if (this.canEdit()) this.openEventDialog({ mode: 'create', date: info.dateStr });
     },
     eventClick: info => this.onEventClick(info.event.id),
-    datesSet: info =>
-      this.onVisibleRangeChange(info.start.toISOString(), info.end.toISOString()),
+    datesSet: info => {
+      this.animateNavigation(info.start.toISOString());
+      this.onVisibleRangeChange(info.start.toISOString(), info.end.toISOString());
+    },
   }));
 
   constructor() {
@@ -118,13 +124,23 @@ export class Calendar {
       this.snackbarService.error(this.transloco.translate('calendar.loadError'));
       void this.router.navigateByUrl(routePaths.calendars);
     });
+  }
 
-    afterRenderEffect(() => {
-      if (!this.calendar.hasValue() || !this.range()) return;
-      this.host.nativeElement
-        .querySelector('.app-today')
-        ?.scrollIntoView({ block: 'center', inline: 'center', behavior: 'smooth' });
-    });
+  onWheel(event: WheelEvent): void {
+    if (event.ctrlKey) return;
+    const now = event.timeStamp;
+    if (now - this.lastWheelAt > 200) this.wheelHandled = false;
+    this.lastWheelAt = now;
+
+    const delta =
+      Math.abs(event.deltaX) > Math.abs(event.deltaY) ? event.deltaX : event.deltaY;
+    if (this.wheelHandled || Math.abs(delta) < 10) return;
+
+    this.wheelHandled = true;
+    this.navAxis = Math.abs(event.deltaX) > Math.abs(event.deltaY) ? 'x' : 'y';
+    const api = this.fullCalendar().getApi();
+    if (delta > 0) api.next();
+    else api.prev();
   }
 
   onToggleCompleted(eventId: string, completed: boolean): void {
@@ -140,14 +156,39 @@ export class Calendar {
   }
 
   private openEventDialog(data: EventDialogData): void {
-    // TODO: открыть диалог события (контракт в шаге 10.2 гайда) и по результату сделать запрос
-    //       (создание, правка или удаление), затем обновить events.
+    this.dialog.open<EventCreateEditDialog, EventDialogData, EventDialogResult>(
+      EventCreateEditDialog,
+      { data, width: 'min(40rem, calc(100vw - 2rem))' },
+    );
   }
 
   private onEventClick(eventId: string): void {
     if (!this.events.hasValue()) return;
     const event = this.events.value().find(item => item.id === eventId);
-    if (event) this.openEventDialog({ mode: 'edit', event });
+    if (event) this.openEventDialog({ mode: 'update', event });
+  }
+
+  private animateNavigation(from: string): void {
+    const previous = this.range()?.from;
+    const axis = this.navAxis;
+    this.navAxis = 'x';
+
+    const view = this.host.nativeElement.querySelector<HTMLElement>('.app-view');
+    if (!view || !previous || previous === from) return;
+    if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+
+    const offset = from > previous ? '2rem' : '-2rem';
+    const styles = getComputedStyle(view);
+    view.animate(
+      [
+        { opacity: 0, translate: axis === 'x' ? `${offset} 0` : `0 ${offset}` },
+        { opacity: 1, translate: '0 0' },
+      ],
+      {
+        duration: parseFloat(styles.getPropertyValue('--duration-slow')),
+        easing: styles.getPropertyValue('--ease-standard'),
+      },
+    );
   }
 
   private onVisibleRangeChange(from: string, to: string): void {

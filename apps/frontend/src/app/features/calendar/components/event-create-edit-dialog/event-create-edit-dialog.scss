@@ -1,0 +1,33 @@
+.edit__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-right: var(--space-2);
+}
+
+.edit__content {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.edit__dates {
+  display: flex;
+  gap: var(--space-3);
+}
+
+.edit__field {
+  width: 100%;
+}
+
+.edit__actions {
+  display: flex;
+}
+
+.edit__spacer {
+  flex: 1;
+}
+
+.edit__delete {
+  color: var(--color-danger);
+}

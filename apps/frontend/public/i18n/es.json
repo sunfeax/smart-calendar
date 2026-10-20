@@ -72,6 +72,21 @@
     "updateSuccess": "Evento actualizado",
     "updateError": "No se pudo actualizar el evento",
     "deleteSuccess": "Evento eliminado",
-    "deleteError": "No se pudo eliminar el evento"
+    "deleteError": "No se pudo eliminar el evento",
+    "createTitle": "Nuevo evento",
+    "editTitle": "Editar evento",
+    "title": "Título",
+    "description": "Descripción",
+    "allDay": "Todo el día",
+    "startAt": "Inicio",
+    "endAt": "Fin",
+    "completed": "Completado",
+    "delete": "Eliminar",
+    "save": "Guardar",
+    "errors": {
+      "required": "Campo obligatorio",
+      "maxLength": "El valor es demasiado largo",
+      "endBeforeStart": "El final debe ser posterior al inicio"
+    }
   }
 }
