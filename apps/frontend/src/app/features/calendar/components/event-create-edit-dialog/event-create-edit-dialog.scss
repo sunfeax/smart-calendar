@@ -11,9 +11,13 @@
   gap: var(--space-2);
 }
 
-.edit__dates {
+.edit__row {
   display: flex;
   gap: var(--space-3);
+}
+
+.edit__time-toggle {
+  align-self: flex-start;
 }
 
 .edit__field {

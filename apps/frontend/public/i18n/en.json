@@ -77,15 +77,19 @@
     "editTitle": "Edit event",
     "title": "Title",
     "description": "Description",
-    "allDay": "All day",
     "startAt": "Start",
     "endAt": "End",
+    "addTime": "Add time",
+    "removeTime": "Remove time",
+    "startTime": "Start time",
+    "endTime": "End time",
     "completed": "Completed",
     "delete": "Delete",
     "save": "Save",
     "errors": {
       "required": "This field is required",
       "maxLength": "The value is too long",
+      "matDatepickerParse": "Invalid date",
       "endBeforeStart": "The end must be later than the start"
     }
   }

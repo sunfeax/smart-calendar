@@ -77,15 +77,19 @@
     "editTitle": "Редактировать событие",
     "title": "Название",
     "description": "Описание",
-    "allDay": "Весь день",
     "startAt": "Начало",
     "endAt": "Окончание",
+    "addTime": "Добавить время",
+    "removeTime": "Убрать время",
+    "startTime": "Время начала",
+    "endTime": "Время окончания",
     "completed": "Выполнено",
     "delete": "Удалить",
     "save": "Сохранить",
     "errors": {
       "required": "Обязательное поле",
       "maxLength": "Слишком длинное значение",
+      "matDatepickerParse": "Некорректная дата",
       "endBeforeStart": "Окончание должно быть позже начала"
     }
   }

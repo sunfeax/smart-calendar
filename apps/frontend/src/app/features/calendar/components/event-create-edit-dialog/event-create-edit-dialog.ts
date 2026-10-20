@@ -3,6 +3,11 @@ import { form, FormField, maxLength, required, validate } from '@angular/forms/s
 import { MatButton, MatIconButton } from '@angular/material/button';
 import { MatCheckbox } from '@angular/material/checkbox';
 import {
+  MatDatepicker,
+  MatDatepickerInput,
+  MatDatepickerToggle,
+} from '@angular/material/datepicker';
+import {
   MAT_DIALOG_DATA,
   MatDialogActions,
   MatDialogContent,
@@ -10,16 +15,39 @@ import {
   MatDialogTitle,
 } from '@angular/material/dialog';
 import { MatIcon } from '@angular/material/icon';
-import { MatError, MatFormField, MatInput, MatLabel } from '@angular/material/input';
+import {
+  MatError,
+  MatFormField,
+  MatInput,
+  MatLabel,
+  MatSuffix,
+} from '@angular/material/input';
+import {
+  MatTimepicker,
+  MatTimepickerInput,
+  MatTimepickerToggle,
+} from '@angular/material/timepicker';
 import { TranslocoPipe } from '@jsverse/transloco';
 import { DESCRIPTION_MAX, TITLE_MAX } from '../../constants/event.constants';
 import { EventDialogData, EventDialogResult } from '../../models/event-dialog';
+
+interface EventFormModel {
+  title: string;
+  description: string;
+  allDay: boolean;
+  startAt: Date | null;
+  endAt: Date | null;
+  completed: boolean;
+}
 
 @Component({
   imports: [
     FormField,
     MatButton,
     MatCheckbox,
+    MatDatepicker,
+    MatDatepickerInput,
+    MatDatepickerToggle,
     MatIcon,
     MatIconButton,
     MatDialogActions,
@@ -29,6 +57,10 @@ import { EventDialogData, EventDialogResult } from '../../models/event-dialog';
     MatFormField,
     MatInput,
     MatLabel,
+    MatSuffix,
+    MatTimepicker,
+    MatTimepickerInput,
+    MatTimepickerToggle,
     TranslocoPipe,
   ],
   selector: 'app-event-create-edit-dialog',
@@ -59,36 +91,45 @@ export class EventCreateEditDialog {
   });
 
   save(): void {
-    const value = this.eventForm().value();
-    if (this.eventForm().invalid()) return;
-    this.dialogRef.close({ action: this.data.mode, value });
+    console.log(this.eventForm().value());
+    // const value = this.eventForm().value();
+    // if (this.eventForm().invalid()) return;
+    // this.dialogRef.close({ action: this.data.mode, value });
   }
 
   remove(): void {
     this.dialogRef.close({ action: 'delete' });
   }
 
+  addTime(): void {
+    this.model.update(form => ({ ...form, allDay: false }));
+  }
+
+  removeTime(): void {
+    this.model.update(form => ({ ...form, allDay: true }));
+  }
+
   cancel() {
     this.dialogRef.close();
   }
 
-  private initialForm() {
+  private initialForm(): EventFormModel {
     if (this.data.mode === 'update') {
       return {
         title: this.data.event.title,
         description: this.data.event.description ?? '',
         allDay: this.data.event.allDay ?? false,
-        startAt: this.data.event.startAt,
-        endAt: this.data.event.endAt ?? '',
+        startAt: new Date(this.data.event.startAt),
+        endAt: new Date(this.data.event.endAt),
         completed: this.data.event.completedAt !== null,
       };
     } else {
       return {
         title: '',
         description: '',
-        allDay: false,
-        startAt: '',
-        endAt: '',
+        allDay: true,
+        startAt: new Date(`${this.data.date}T00:00:00`),
+        endAt: null,
         completed: false,
       };
     }
