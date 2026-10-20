@@ -1,8 +1,11 @@
 import { DOCUMENT } from '@angular/common';
 import { inject, Service, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { DateAdapter } from '@angular/material/core';
 import { TranslocoService } from '@jsverse/transloco';
+import { type Locale } from 'date-fns';
 import { filter } from 'rxjs';
+import { DATE_LOCALES } from '../../core/constants/date-locales';
 import {
   DEFAULT_LANGUAGE,
   isLanguage,
@@ -16,6 +19,7 @@ export class LanguageService {
   private readonly document = inject(DOCUMENT);
   private readonly transloco = inject(TranslocoService);
   private readonly tabSyncService = inject(TabSyncService);
+  private readonly dateAdapter = inject<DateAdapter<Date, Locale>>(DateAdapter);
   private readonly _lang = signal<Language>(this.getInitialLanguage());
   readonly lang = this._lang.asReadonly();
 
@@ -44,6 +48,7 @@ export class LanguageService {
   private apply(lang: Language): void {
     this.transloco.setActiveLang(lang);
     this.document.documentElement.lang = lang;
+    this.dateAdapter.setLocale(DATE_LOCALES[lang]);
     try {
       localStorage.setItem(LANGUAGE_STORAGE_KEY, lang);
     } catch {
