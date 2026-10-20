@@ -52,7 +52,7 @@ model Event {
   title       String
   description String?
   startAt     DateTime  @db.Timestamptz(3)
-  endAt       DateTime? @db.Timestamptz(3)
+  endAt       DateTime  @db.Timestamptz(3)
   allDay      Boolean   @default(false)
   createdAt   DateTime  @default(now()) @db.Timestamptz(3)
   completedAt DateTime? @db.Timestamptz(3)

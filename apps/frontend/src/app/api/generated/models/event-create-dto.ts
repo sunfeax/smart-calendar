@@ -11,6 +11,6 @@ export interface EventCreateDto {
     title: string;
     description?: string | null;
     startAt: string;
-    endAt?: string | null;
+    endAt: string;
     allDay?: boolean;
 }

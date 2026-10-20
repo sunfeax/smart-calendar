@@ -15,16 +15,17 @@ export class EventCreateDto {
   @IsISO8601({ strict: true })
   startAt!: string;
 
-  @IsOptional()
   @IsISO8601({ strict: true })
-  endAt?: string | null;
+  endAt!: string;
 
   @IsOptional()
   @IsBoolean()
   allDay?: boolean;
 }
 
-export class EventUpdateDto extends PartialType(EventCreateDto) {
+export class EventUpdateDto extends PartialType(EventCreateDto, {
+  skipNullProperties: false,
+}) {
   @IsOptional()
   @IsBoolean()
   completed?: boolean;
@@ -44,7 +45,7 @@ export class EventDto {
   title!: string;
   description!: string | null;
   startAt!: string;
-  endAt!: string | null;
+  endAt!: string;
   allDay!: boolean;
   completedAt!: string | null;
   updatedAt!: string;

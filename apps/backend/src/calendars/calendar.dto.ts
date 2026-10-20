@@ -9,7 +9,9 @@ export class CalendarCreateDto {
   name!: string;
 }
 
-export class CalendarUpdateDto extends PartialType(CalendarCreateDto) {}
+export class CalendarUpdateDto extends PartialType(CalendarCreateDto, {
+  skipNullProperties: false,
+}) {}
 
 export class CalendarDto {
   id!: string;

@@ -13,7 +13,7 @@ export interface EventDto {
     title: string;
     description: string | null;
     startAt: string;
-    endAt: string | null;
+    endAt: string;
     allDay: boolean;
     completedAt: string | null;
     updatedAt: string;

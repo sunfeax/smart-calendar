@@ -35,7 +35,9 @@ export class EventService {
         startAt: {
           lt: to,
         },
-        OR: [{ endAt: { gt: from } }, { endAt: null, startAt: { gte: from } }],
+        endAt: {
+          gt: from,
+        },
       },
       orderBy: {
         startAt: 'asc',
@@ -54,7 +56,7 @@ export class EventService {
     await this.access.requireRole(userId, calendarId, CalendarRole.EDITOR);
 
     const startAt = new Date(dto.startAt);
-    const endAt = dto.endAt ? new Date(dto.endAt) : null;
+    const endAt = new Date(dto.endAt);
     const allDay = dto.allDay ?? false;
 
     this.assertDates(startAt, endAt, allDay);
@@ -77,14 +79,8 @@ export class EventService {
     const event = await this.access.requireEventRole(userId, id, CalendarRole.EDITOR);
 
     const startAt = dto.startAt ? new Date(dto.startAt) : event.startAt;
-    let endAt = event.endAt;
+    const endAt = dto.endAt !== undefined ? new Date(dto.endAt) : event.endAt;
     const allDay = dto.allDay ?? event.allDay;
-
-    if (dto.endAt === null) {
-      endAt = null;
-    } else if (dto.endAt) {
-      endAt = new Date(dto.endAt);
-    }
 
     this.assertDates(startAt, endAt, allDay);
 
@@ -116,15 +112,15 @@ export class EventService {
     await this.prisma.event.deleteMany({ where: { id } });
   }
 
-  private assertDates(startAt: Date, endAt: Date | null, allDay: boolean): void {
-    if (endAt && endAt <= startAt) {
+  private assertDates(startAt: Date, endAt: Date, allDay: boolean): void {
+    if (endAt <= startAt) {
       throw new BadRequestException('endAt must be later than startAt');
     }
 
     if (allDay) {
       const isUtcMidnight = (date: Date) => date.getTime() % ONE_DAY_MS === 0;
 
-      if (!isUtcMidnight(startAt) || (endAt && !isUtcMidnight(endAt))) {
+      if (!isUtcMidnight(startAt) || !isUtcMidnight(endAt)) {
         throw new BadRequestException(
           'All-day events must start and end at 00:00:00 UTC',
         );
@@ -136,7 +132,7 @@ export class EventService {
     return {
       ...event,
       startAt: event.startAt.toISOString(),
-      endAt: event.endAt ? event.endAt.toISOString() : null,
+      endAt: event.endAt.toISOString(),
       completedAt: event.completedAt ? event.completedAt.toISOString() : null,
       createdAt: event.createdAt.toISOString(),
       updatedAt: event.updatedAt.toISOString(),
