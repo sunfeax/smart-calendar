@@ -158,7 +158,12 @@ export class Calendar {
   private openEventDialog(data: EventDialogData): void {
     this.dialog.open<EventCreateEditDialog, EventDialogData, EventDialogResult>(
       EventCreateEditDialog,
-      { data, width: 'min(40rem, calc(100vw - 2rem))' },
+      {
+        data,
+        width: 'min(40rem, calc(100vw - 2rem))',
+        height: 'min(32rem, calc(100dvh - 2rem))',
+        maxHeight: 'calc(100dvh - 2rem)',
+      },
     );
   }
 

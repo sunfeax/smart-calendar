@@ -8,7 +8,7 @@
 </div>
 
 <mat-dialog-content class="edit__content">
-  <mat-form-field class="edit__field">
+  <mat-form-field class="edit__field" subscriptSizing="dynamic">
     <mat-label>{{ 'event.title' | transloco }}</mat-label>
     <input matInput [formField]="eventForm.title" (keydown.enter)="save()" />
     @if (eventForm.title().errors()[0]; as error) {
@@ -16,7 +16,7 @@
     }
   </mat-form-field>
 
-  <mat-form-field class="edit__field">
+  <mat-form-field class="edit__field" subscriptSizing="dynamic">
     <mat-label>{{ 'event.description' | transloco }}</mat-label>
     <textarea matInput rows="3" [formField]="eventForm.description"></textarea>
     @if (eventForm.description().errors()[0]; as error) {
@@ -25,7 +25,7 @@
   </mat-form-field>
 
   <div class="edit__row">
-    <mat-form-field class="edit__field">
+    <mat-form-field class="edit__field" subscriptSizing="dynamic">
       <mat-label>{{ 'event.startAt' | transloco }}</mat-label>
       <input matInput [matDatepicker]="startAtDate" [formField]="eventForm.startAt" />
       <mat-datepicker-toggle matIconSuffix [for]="startAtDate" />
@@ -35,7 +35,7 @@
       }
     </mat-form-field>
 
-    <mat-form-field class="edit__field">
+    <mat-form-field class="edit__field" subscriptSizing="dynamic">
       <mat-label>{{ 'event.endAt' | transloco }}</mat-label>
       <input matInput [matDatepicker]="endAtDate" [formField]="eventForm.endAt" />
       <mat-datepicker-toggle matIconSuffix [for]="endAtDate" />
@@ -53,7 +53,7 @@
     </button>
   } @else {
     <div class="edit__row">
-      <mat-form-field class="edit__field">
+      <mat-form-field class="edit__field" subscriptSizing="dynamic">
         <mat-label>{{ 'event.startTime' | transloco }}</mat-label>
         <input
           matInput
@@ -65,7 +65,7 @@
         <mat-timepicker #startAtTime />
       </mat-form-field>
 
-      <mat-form-field class="edit__field">
+      <mat-form-field class="edit__field" subscriptSizing="dynamic">
         <mat-label>{{ 'event.endTime' | transloco }}</mat-label>
         <input
           matInput

@@ -28,7 +28,8 @@ import {
   MatTimepickerToggle,
 } from '@angular/material/timepicker';
 import { TranslocoPipe } from '@jsverse/transloco';
-import { DESCRIPTION_MAX, TITLE_MAX } from '../../constants/event.constants';
+import { startOfDay } from 'date-fns';
+import { DESCRIPTION_MAX, HOUR_MS, TITLE_MAX } from '../../constants/event.constants';
 import { EventDialogData, EventDialogResult } from '../../models/event-dialog';
 
 interface EventFormModel {
@@ -85,16 +86,40 @@ export class EventCreateEditDialog {
     validate(schema.endAt, context => {
       const end = context.value();
       const start = context.valueOf(schema.startAt);
-      if (!end || !start) return null;
-      return new Date(end) > new Date(start) ? null : { kind: 'endBeforeStart' };
+      const allDay = context.valueOf(schema.allDay);
+
+      if (!start) return null;
+      if (!end) return null;
+
+      const isValid = allDay ? end >= start : end > start;
+      return isValid ? null : { kind: 'endBeforeStart' };
     });
   });
 
   save(): void {
-    console.log(this.eventForm().value());
-    // const value = this.eventForm().value();
-    // if (this.eventForm().invalid()) return;
-    // this.dialogRef.close({ action: this.data.mode, value });
+    const form = this.eventForm().value();
+
+    if (this.eventForm().invalid() || !form.startAt) {
+      this.eventForm().markAsTouched();
+      return;
+    }
+
+    const end =
+      form.endAt ??
+      (form.allDay ? form.startAt : new Date(form.startAt.getTime() + HOUR_MS));
+
+    const payload = {
+      ...form,
+      startAt: form.allDay ? this.toAllDayIso(form.startAt) : form.startAt.toISOString(),
+      endAt: form.allDay ? this.toAllDayIso(end, 1) : end.toISOString(),
+    };
+
+    if (this.data.mode === 'update') {
+      this.dialogRef.close({ action: 'update', payload });
+    } else {
+      this.dialogRef.close({ action: 'create', payload });
+    }
+    console.log(payload);
   }
 
   remove(): void {
@@ -102,11 +127,21 @@ export class EventCreateEditDialog {
   }
 
   addTime(): void {
-    this.model.update(form => ({ ...form, allDay: false }));
+    this.model.update(form => ({
+      ...form,
+      allDay: false,
+      endAt:
+        form.endAt ?? (form.startAt ? new Date(form.startAt.getTime() + HOUR_MS) : null),
+    }));
   }
 
   removeTime(): void {
-    this.model.update(form => ({ ...form, allDay: true }));
+    this.model.update(form => ({
+      ...form,
+      allDay: true,
+      startAt: form.startAt ? startOfDay(form.startAt) : null,
+      endAt: null,
+    }));
   }
 
   cancel() {
@@ -133,5 +168,11 @@ export class EventCreateEditDialog {
         completed: false,
       };
     }
+  }
+
+  private toAllDayIso(date: Date, addDays = 0): string {
+    return new Date(
+      Date.UTC(date.getFullYear(), date.getMonth(), date.getDate() + addDays),
+    ).toISOString();
   }
 }
