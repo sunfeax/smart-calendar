@@ -1,21 +1,50 @@
 <header class="calendar__header">
-  <a
-    class="calendar__back"
-    matIconButton
-    [routerLink]="routePaths.calendars"
-    [attr.aria-label]="'calendar.back' | transloco"
-  >
-    <mat-icon>arrow_back</mat-icon>
-  </a>
+  <div class="calendar__identity">
+    <a
+      class="calendar__back"
+      matIconButton
+      [routerLink]="routePaths.calendars"
+      [attr.aria-label]="'calendar.back' | transloco"
+    >
+      <mat-icon>arrow_back</mat-icon>
+    </a>
 
-  @if (calendar.hasValue()) {
-    <h1 class="calendar__title">
-      {{ calendar.value().name || ('calendars.unnamed' | transloco) }}
-    </h1>
-  }
+    @if (calendar.hasValue()) {
+      <h1
+        class="calendar__title"
+        [title]="calendar.value().name || ('calendars.unnamed' | transloco)"
+      >
+        {{ calendar.value().name || ('calendars.unnamed' | transloco) }}
+      </h1>
+    }
+  </div>
+
+  <h2 class="calendar__year" aria-live="polite" aria-atomic="true">{{ year() }}</h2>
+
+  <div class="calendar__controls">
+    <button matButton="filled" type="button" (click)="navigate('today')">
+      {{ 'calendar.today' | transloco }}
+    </button>
+    <button
+      matIconButton
+      type="button"
+      [attr.aria-label]="'calendar.previousYear' | transloco"
+      (click)="navigate('prev')"
+    >
+      <mat-icon>chevron_left</mat-icon>
+    </button>
+    <button
+      matIconButton
+      type="button"
+      [attr.aria-label]="'calendar.nextYear' | transloco"
+      (click)="navigate('next')"
+    >
+      <mat-icon>chevron_right</mat-icon>
+    </button>
+  </div>
 </header>
 
-<full-calendar [options]="options()" (wheel)="onWheel($event)">
+<full-calendar [options]="options()">
   <ng-template #eventContent let-arg>
     <span class="calendar__event">
       <span class="calendar__event-title">{{ arg.event.title }}</span>

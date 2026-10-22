@@ -5,9 +5,13 @@
   min-height: 0;
   min-width: 0;
   overflow: hidden;
+  container-type: inline-size;
 }
 
 full-calendar {
+  --calendar-event-height: calc(var(--space-6) * 1.1);
+  --calendar-week-min-height: calc(var(--space-10) * 2);
+
   display: block;
   flex: 1 1 0;
   min-height: 0;
@@ -17,15 +21,31 @@ full-calendar {
 }
 
 .calendar__header {
-  display: flex;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  grid-template-areas: 'identity year controls';
   flex-shrink: 0;
   align-items: center;
   gap: var(--gap-md);
-  margin-bottom: var(--space-2);
+  padding: var(--space-2) var(--space-4);
+  border: var(--border-width-sm) solid var(--color-border-soft);
+  border-bottom: 0;
+  border-radius: var(--radius-xl) var(--radius-xl) 0 0;
+  background: var(--color-surface);
+}
+
+.calendar__identity {
+  grid-area: identity;
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  min-width: 0;
 }
 
 .calendar__back {
   --mat-icon-button-icon-color: var(--color-text-soft);
+
+  flex-shrink: 0;
 
   &:hover {
     --mat-icon-button-icon-color: var(--color-primary-text);
@@ -37,7 +57,37 @@ full-calendar {
   color: var(--color-text);
   font-size: var(--font-size-lg);
   font-weight: var(--font-weight-semibold);
-  overflow-wrap: anywhere;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.calendar__year {
+  grid-area: year;
+  margin: 0;
+  color: var(--color-text);
+  font-size: var(--font-size-2xl);
+  font-weight: var(--font-weight-semibold);
+  text-align: center;
+}
+
+.calendar__controls {
+  grid-area: controls;
+  display: flex;
+  align-items: center;
+  justify-self: end;
+  gap: var(--space-1);
+}
+
+@container (max-width: 540px) {
+  .calendar__header {
+    grid-template-areas:
+      'identity year .'
+      'controls controls controls';
+    gap: var(--space-1);
+    padding-inline: var(--space-2);
+  }
 }
 
 .calendar__event {
@@ -46,7 +96,7 @@ full-calendar {
   gap: var(--space-1);
   width: 100%;
   min-width: 0;
-  height: calc(var(--space-6) * 1.1);
+  height: var(--calendar-event-height);
   padding-inline: var(--space-1) var(--space-2);
 }
 

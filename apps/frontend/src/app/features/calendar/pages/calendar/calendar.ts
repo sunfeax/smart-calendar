@@ -1,4 +1,5 @@
 import {
+  afterRenderEffect,
   Component,
   computed,
   effect,
@@ -9,7 +10,7 @@ import {
   viewChild,
 } from '@angular/core';
 import { rxResource } from '@angular/core/rxjs-interop';
-import { MatIconButton } from '@angular/material/button';
+import { MatButton, MatIconButton } from '@angular/material/button';
 import { MatCheckbox } from '@angular/material/checkbox';
 import { MatDialog } from '@angular/material/dialog';
 import { MatIcon } from '@angular/material/icon';
@@ -21,6 +22,7 @@ import {
 } from '@fullcalendar/angular';
 import dayGridPlugin from '@fullcalendar/angular/daygrid';
 import interactionPlugin from '@fullcalendar/angular/interaction';
+import multiMonthPlugin from '@fullcalendar/angular/multimonth';
 import allLocales from '@fullcalendar/angular/locales-all';
 import themePlugin from '@fullcalendar/angular/themes/monarch';
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
@@ -32,13 +34,16 @@ import { EventDialogData, EventDialogResult } from '../../models/event-dialog';
 import { EventRange } from '../../models/event-range';
 import { CalendarService } from '../../services/calendar.service';
 import { EventService } from '../../services/event.service';
+import { countEventsByDay, fitWeekRow } from '../../utils/calendar-layout';
 import { toCalendarEvent } from '../../utils/event.mapper';
+import { LanguageService } from '../../../../shared/services/language.service';
 import { SnackbarService } from './../../../../shared/services/snackbar.service';
 
 @Component({
   selector: 'app-calendar',
   imports: [
     FullCalendarModule,
+    MatButton,
     MatCheckbox,
     MatIcon,
     MatIconButton,
@@ -54,17 +59,16 @@ export class Calendar {
   private readonly snackbarService = inject(SnackbarService);
   private readonly dialog = inject(MatDialog);
   private readonly transloco = inject(TranslocoService);
+  private readonly languageService = inject(LanguageService);
   private readonly router = inject(Router);
   private readonly host = inject<ElementRef<HTMLElement>>(ElementRef);
 
   readonly id = input.required<string>();
   readonly routePaths = routePaths;
+  readonly year = signal(new Date().getFullYear());
 
-  private readonly range = signal<EventRange | null>(null);
   private readonly fullCalendar = viewChild.required(FullCalendarComponent);
-  private lastWheelAt = 0;
-  private wheelHandled = false;
-  private navAxis: 'x' | 'y' = 'x';
+  private readonly range = signal<EventRange | null>(null);
 
   readonly calendar = rxResource({
     params: () => this.id(),
@@ -90,34 +94,51 @@ export class Calendar {
     this.events.hasValue() ? this.events.value().map(toCalendarEvent) : [],
   );
 
+  private readonly eventsByDay = computed(() =>
+    countEventsByDay(this.events.hasValue() ? this.events.value() : []),
+  );
+
   readonly options = computed<CalendarOptions>(() => ({
-    initialView: 'dayGridMonth',
+    initialView: 'multiMonthYear',
+    multiMonthMaxColumns: 1,
     locales: allLocales,
-    locale: 'ru',
+    locale: this.languageService.lang(),
     firstDay: 1,
     height: '100%',
     fixedWeekCount: false,
-    dayMaxEvents: true,
+    headerToolbar: false,
+    borderlessTop: true,
+    viewClass: 'app-year-view',
     dayHeaderInnerClass: 'app-weekday',
     dayCellTopInnerClass: 'app-day-number',
     eventInnerClass: 'app-event-content',
-    headerToolbar: { start: 'title', end: 'today prev,next' },
+    dayRowClass: 'app-week-row',
+    tableBodyClass: 'app-month-body',
+    dayCellDidMount: info =>
+      fitWeekRow(info.el.closest<HTMLElement>('.app-week-row'), this.eventsByDay()),
     dayCellClass: () => (this.canEdit() ? 'app-day-editable' : ''),
     dayCellTopClass: () => (this.canEdit() ? 'app-day-top' : ''),
-    viewClass: 'app-view',
-    plugins: [themePlugin, dayGridPlugin, interactionPlugin],
+    plugins: [themePlugin, dayGridPlugin, multiMonthPlugin, interactionPlugin],
     events: this.calendarEvents(),
     dateClick: info => {
       if (this.canEdit()) this.openEventDialog({ mode: 'create', date: info.dateStr });
     },
     eventClick: info => this.onEventClick(info.event.id),
     datesSet: info => {
-      this.animateNavigation(info.start.toISOString());
+      this.year.set(info.view.currentStart.getFullYear());
       this.onVisibleRangeChange(info.start.toISOString(), info.end.toISOString());
     },
   }));
 
   constructor() {
+    afterRenderEffect(() => {
+      for (const row of this.host.nativeElement.querySelectorAll<HTMLElement>(
+        '.app-week-row',
+      )) {
+        fitWeekRow(row, this.eventsByDay());
+      }
+    });
+
     effect(() => {
       if (!this.events.error()) return;
       this.snackbarService.error(this.transloco.translate('calendar.eventsError'));
@@ -128,23 +149,6 @@ export class Calendar {
       this.snackbarService.error(this.transloco.translate('calendar.loadError'));
       void this.router.navigateByUrl(routePaths.calendars);
     });
-  }
-
-  onWheel(event: WheelEvent): void {
-    if (event.ctrlKey) return;
-    const now = event.timeStamp;
-    if (now - this.lastWheelAt > 200) this.wheelHandled = false;
-    this.lastWheelAt = now;
-
-    const delta =
-      Math.abs(event.deltaX) > Math.abs(event.deltaY) ? event.deltaX : event.deltaY;
-    if (this.wheelHandled || Math.abs(delta) < 10) return;
-
-    this.wheelHandled = true;
-    this.navAxis = Math.abs(event.deltaX) > Math.abs(event.deltaY) ? 'x' : 'y';
-    const api = this.fullCalendar().getApi();
-    if (delta > 0) api.next();
-    else api.prev();
   }
 
   onToggleCompleted(eventId: string, completed: boolean): void {
@@ -160,6 +164,10 @@ export class Calendar {
       .subscribe();
   }
 
+  navigate(action: 'prev' | 'next' | 'today'): void {
+    this.fullCalendar().getApi()[action]();
+  }
+
   private onEventClick(eventId: string): void {
     if (!this.events.hasValue()) return;
     const event = this.events.value().find(item => item.id === eventId);
@@ -170,29 +178,6 @@ export class Calendar {
     const current = this.range();
     if (current?.from === from && current.to === to) return;
     this.range.set({ from, to });
-  }
-
-  private animateNavigation(from: string): void {
-    const previous = this.range()?.from;
-    const axis = this.navAxis;
-    this.navAxis = 'x';
-
-    const view = this.host.nativeElement.querySelector<HTMLElement>('.app-view');
-    if (!view || !previous || previous === from) return;
-    if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
-
-    const offset = from > previous ? '2rem' : '-2rem';
-    const styles = getComputedStyle(view);
-    view.animate(
-      [
-        { opacity: 0, translate: axis === 'x' ? `${offset} 0` : `0 ${offset}` },
-        { opacity: 1, translate: '0 0' },
-      ],
-      {
-        duration: parseFloat(styles.getPropertyValue('--duration-slow')),
-        easing: styles.getPropertyValue('--ease-standard'),
-      },
-    );
   }
 
   private openEventDialog(data: EventDialogData): void {

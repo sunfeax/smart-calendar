@@ -62,6 +62,9 @@
   },
   "calendar": {
     "back": "Volver a los calendarios",
+    "today": "Hoy",
+    "previousYear": "Año anterior",
+    "nextYear": "Año siguiente",
     "eventsError": "No se pudieron cargar los eventos",
     "loadError": "No se pudo abrir el calendario"
   },
