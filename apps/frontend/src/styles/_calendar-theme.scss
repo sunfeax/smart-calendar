@@ -42,21 +42,26 @@ full-calendar {
   --fc-monarch-strong-border: var(--color-border);
 }
 
-full-calendar {
-  --app-highlight-bg: color-mix(in srgb, var(--color-primary) 14%, transparent);
-}
-
-full-calendar .app-today {
-  background: var(--app-highlight-bg);
-}
-
-full-calendar .app-day-editable:hover {
-  background: var(--app-highlight-bg);
+full-calendar .app-day-editable {
   cursor: pointer;
 }
 
 full-calendar .app-day-top {
   position: relative;
+}
+
+full-calendar .app-day-number {
+  font-size: calc(var(--font-size-sm) * 0.9);
+  translate: 0 -6px;
+}
+
+full-calendar .app-weekday > div {
+  font-size: calc(var(--font-size-xs) * 0.9);
+}
+
+full-calendar .app-event-content {
+  min-width: 0;
+  padding-block: 0;
 }
 
 full-calendar .app-day-top::after {
@@ -66,7 +71,7 @@ full-calendar .app-day-top::after {
   right: var(--space-1);
   translate: 0 -50%;
   font-family: 'Material Symbols Outlined';
-  font-size: var(--font-size-lg);
+  font-size: var(--font-size-2xl);
   line-height: 1;
   color: var(--color-primary-text);
   opacity: 0;
@@ -78,10 +83,16 @@ full-calendar .app-day-editable:hover .app-day-top::after {
   opacity: 1;
 }
 
+full-calendar .fc-event:hover {
+  background: color-mix(in srgb, var(--color-accent) 28%, var(--color-surface-alt));
+}
+
 full-calendar .is-completed {
-  opacity: 0.6;
+  opacity: 0.7;
 }
 
 full-calendar .is-completed .calendar__event-title {
   text-decoration: line-through;
+  text-decoration-thickness: 1px;
+  text-decoration-color: color-mix(in srgb, currentColor 50%, transparent);
 }
