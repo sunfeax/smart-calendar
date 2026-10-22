@@ -85,6 +85,8 @@
     "endTime": "Hora de fin",
     "completed": "Completado",
     "delete": "Eliminar",
+    "deleteTitle": "Eliminar evento",
+    "deleteMessage": "El evento se eliminará de forma permanente.",
     "save": "Guardar",
     "errors": {
       "required": "Campo obligatorio",

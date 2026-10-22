@@ -31,6 +31,7 @@ import { TranslocoPipe } from '@jsverse/transloco';
 import { startOfDay } from 'date-fns';
 import { DESCRIPTION_MAX, HOUR_MS, TITLE_MAX } from '../../constants/event.constants';
 import { EventDialogData, EventDialogResult } from '../../models/event-dialog';
+import { toEventApiDates, toEventFormDates } from '../../utils/event.mapper';
 
 interface EventFormModel {
   title: string;
@@ -104,26 +105,21 @@ export class EventCreateEditDialog {
       return;
     }
 
-    const end =
-      form.endAt ??
-      (form.allDay ? form.startAt : new Date(form.startAt.getTime() + HOUR_MS));
-
     const payload = {
       ...form,
-      startAt: form.allDay ? this.toAllDayIso(form.startAt) : form.startAt.toISOString(),
-      endAt: form.allDay ? this.toAllDayIso(end, 1) : end.toISOString(),
+      ...toEventApiDates({ ...form, startAt: form.startAt }),
     };
 
     if (this.data.mode === 'update') {
-      this.dialogRef.close({ action: 'update', payload });
+      this.dialogRef.close({ action: 'update', eventId: this.data.event.id, payload });
     } else {
       this.dialogRef.close({ action: 'create', payload });
     }
-    console.log(payload);
   }
 
   remove(): void {
-    this.dialogRef.close({ action: 'delete' });
+    if (this.data.mode !== 'update') return;
+    this.dialogRef.close({ action: 'delete', eventId: this.data.event.id });
   }
 
   addTime(): void {
@@ -131,7 +127,9 @@ export class EventCreateEditDialog {
       ...form,
       allDay: false,
       endAt:
-        form.endAt ?? (form.startAt ? new Date(form.startAt.getTime() + HOUR_MS) : null),
+        form.startAt && (!form.endAt || form.endAt <= form.startAt)
+          ? new Date(form.startAt.getTime() + HOUR_MS)
+          : form.endAt,
     }));
   }
 
@@ -154,8 +152,7 @@ export class EventCreateEditDialog {
         title: this.data.event.title,
         description: this.data.event.description ?? '',
         allDay: this.data.event.allDay ?? false,
-        startAt: new Date(this.data.event.startAt),
-        endAt: new Date(this.data.event.endAt),
+        ...toEventFormDates(this.data.event),
         completed: this.data.event.completedAt !== null,
       };
     } else {
@@ -168,11 +165,5 @@ export class EventCreateEditDialog {
         completed: false,
       };
     }
-  }
-
-  private toAllDayIso(date: Date, addDays = 0): string {
-    return new Date(
-      Date.UTC(date.getFullYear(), date.getMonth(), date.getDate() + addDays),
-    ).toISOString();
   }
 }

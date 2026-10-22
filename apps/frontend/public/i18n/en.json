@@ -85,6 +85,8 @@
     "endTime": "End time",
     "completed": "Completed",
     "delete": "Delete",
+    "deleteTitle": "Delete event",
+    "deleteMessage": "The event will be permanently deleted.",
     "save": "Save",
     "errors": {
       "required": "This field is required",

@@ -5,6 +5,6 @@ export type EventDialogData =
 
 export type EventDialogResult =
   | { action: 'create'; payload: EventCreateDto }
-  | { action: 'update'; payload: EventUpdateDto }
-  | { action: 'delete' }
+  | { action: 'update'; eventId: string; payload: EventUpdateDto }
+  | { action: 'delete'; eventId: string }
   | undefined;
