@@ -96,7 +96,21 @@ mat-form-field {
   --mat-form-field-container-vertical-padding: 12px;
   --mat-form-field-outlined-container-shape: var(--radius-xl);
   --mat-form-field-outlined-outline-color: var(--color-border);
-  --mat-form-field-outlined-hover-outline-color: var(--color-primary-text);
+  --mat-form-field-outlined-hover-outline-color: var(
+    --mat-form-field-outlined-outline-color
+  );
+  --mat-form-field-outlined-hover-label-text-color: var(
+    --mat-form-field-outlined-label-text-color
+  );
+  --mat-form-field-outlined-error-hover-outline-color: var(
+    --mat-form-field-outlined-error-outline-color
+  );
+  --mat-form-field-outlined-error-hover-label-text-color: var(
+    --mat-form-field-outlined-error-label-text-color
+  );
+  --mat-form-field-error-hover-trailing-icon-color: var(
+    --mat-form-field-error-trailing-icon-color
+  );
   --mat-form-field-outlined-focus-outline-color: var(--color-primary-text);
 }
 

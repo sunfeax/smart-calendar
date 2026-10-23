@@ -90,6 +90,9 @@
     "delete": "Delete",
     "deleteTitle": "Delete event",
     "deleteMessage": "The event will be permanently deleted.",
+    "discardTitle": "Discard changes?",
+    "discardMessage": "Your changes will be lost.",
+    "discard": "Discard",
     "save": "Save",
     "errors": {
       "required": "This field is required",

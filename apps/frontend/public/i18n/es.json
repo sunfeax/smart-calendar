@@ -90,6 +90,9 @@
     "delete": "Eliminar",
     "deleteTitle": "Eliminar evento",
     "deleteMessage": "El evento se eliminará de forma permanente.",
+    "discardTitle": "¿Descartar los cambios?",
+    "discardMessage": "Se perderán todos los cambios sin guardar.",
+    "discard": "Descartar",
     "save": "Guardar",
     "errors": {
       "required": "Campo obligatorio",

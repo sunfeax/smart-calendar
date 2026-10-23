@@ -1,4 +1,5 @@
 import { Component, inject, signal } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { form, FormField, maxLength, required, validate } from '@angular/forms/signals';
 import { MatButton, MatIconButton } from '@angular/material/button';
 import { MatCheckbox } from '@angular/material/checkbox';
@@ -9,6 +10,7 @@ import {
 } from '@angular/material/datepicker';
 import {
   MAT_DIALOG_DATA,
+  MatDialog,
   MatDialogActions,
   MatDialogContent,
   MatDialogRef,
@@ -27,8 +29,10 @@ import {
   MatTimepickerInput,
   MatTimepickerToggle,
 } from '@angular/material/timepicker';
-import { TranslocoPipe } from '@jsverse/transloco';
+import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import { startOfDay } from 'date-fns';
+import { filter, merge } from 'rxjs';
+import { ConfirmDialog } from '../../../../shared/components/confirm-dialog/confirm-dialog';
 import { DESCRIPTION_MAX, HOUR_MS, TITLE_MAX } from '../../constants/event.constants';
 import { EventDialogData, EventDialogResult } from '../../models/event-dialog';
 import { toEventApiDates, toEventFormDates } from '../../utils/event.mapper';
@@ -70,10 +74,13 @@ interface EventFormModel {
   templateUrl: './event-create-edit-dialog.html',
 })
 export class EventCreateEditDialog {
+  private readonly dialog = inject(MatDialog);
   private readonly dialogRef =
     inject<MatDialogRef<EventCreateEditDialog, EventDialogResult>>(MatDialogRef);
+  private readonly transloco = inject(TranslocoService);
 
   readonly data = inject<EventDialogData>(MAT_DIALOG_DATA);
+  private readonly initialFormSnapshot: EventFormModel = this.initialForm();
   private readonly model = signal(this.initialForm());
 
   eventForm = form(this.model, schema => {
@@ -96,6 +103,17 @@ export class EventCreateEditDialog {
       return isValid ? null : { kind: 'endBeforeStart' };
     });
   });
+
+  constructor() {
+    this.dialogRef.disableClose = true;
+
+    merge(
+      this.dialogRef.backdropClick(),
+      this.dialogRef.keydownEvents().pipe(filter(event => event.key === 'Escape')),
+    )
+      .pipe(takeUntilDestroyed())
+      .subscribe(() => this.cancel());
+  }
 
   save(): void {
     const form = this.eventForm().value();
@@ -143,6 +161,16 @@ export class EventCreateEditDialog {
   }
 
   cancel() {
+    if (JSON.stringify(this.model()) !== JSON.stringify(this.initialFormSnapshot)) {
+      ConfirmDialog.open(this.dialog, {
+        title: this.transloco.translate('event.discardTitle'),
+        message: this.transloco.translate('event.discardMessage'),
+        confirmText: this.transloco.translate('event.discard'),
+      })
+        .pipe()
+        .subscribe(() => this.dialogRef.close());
+      return;
+    }
     this.dialogRef.close();
   }
 
