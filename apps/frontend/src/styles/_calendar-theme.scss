@@ -68,6 +68,12 @@ full-calendar .app-event-content {
   padding-block: 0;
 }
 
+full-calendar .app-calendar-event {
+  height: var(--calendar-event-outer-height);
+  margin-inline: calc(var(--calendar-event-gap) / 2);
+  margin-bottom: var(--calendar-event-gap);
+}
+
 full-calendar .app-month-body {
   aspect-ratio: auto !important;
 }
@@ -81,7 +87,7 @@ full-calendar .app-week-row {
     var(--calendar-week-min-height),
     calc(
       var(--space-12) + var(--app-week-event-count, 0) *
-        (var(--calendar-event-height) + var(--space-1))
+        (var(--calendar-event-outer-height) + var(--calendar-event-gap))
     )
   );
 }

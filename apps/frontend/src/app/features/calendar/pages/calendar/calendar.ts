@@ -17,26 +17,28 @@ import { MatIcon } from '@angular/material/icon';
 import { Router, RouterLink } from '@angular/router';
 import {
   CalendarOptions,
+  EventChangeInfo,
   FullCalendarComponent,
   FullCalendarModule,
 } from '@fullcalendar/angular';
 import dayGridPlugin from '@fullcalendar/angular/daygrid';
 import interactionPlugin from '@fullcalendar/angular/interaction';
-import multiMonthPlugin from '@fullcalendar/angular/multimonth';
 import allLocales from '@fullcalendar/angular/locales-all';
+import multiMonthPlugin from '@fullcalendar/angular/multimonth';
 import themePlugin from '@fullcalendar/angular/themes/monarch';
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
+import { addDays } from 'date-fns';
 import { catchError, EMPTY, filter, Observable, switchMap, tap } from 'rxjs';
 import { routePaths } from '../../../../core/constants/routePaths';
 import { ConfirmDialog } from '../../../../shared/components/confirm-dialog/confirm-dialog';
+import { LanguageService } from '../../../../shared/services/language.service';
 import { EventCreateEditDialog } from '../../components/event-create-edit-dialog/event-create-edit-dialog';
 import { EventDialogData, EventDialogResult } from '../../models/event-dialog';
 import { EventRange } from '../../models/event-range';
 import { CalendarService } from '../../services/calendar.service';
 import { EventService } from '../../services/event.service';
 import { countEventsByDay, fitWeekRow } from '../../utils/calendar-layout';
-import { toCalendarEvent } from '../../utils/event.mapper';
-import { LanguageService } from '../../../../shared/services/language.service';
+import { toCalendarEvent, toEventApiDates } from '../../utils/event.mapper';
 import { SnackbarService } from './../../../../shared/services/snackbar.service';
 
 @Component({
@@ -112,6 +114,9 @@ export class Calendar {
     dayHeaderInnerClass: 'app-weekday',
     dayCellTopInnerClass: 'app-day-number',
     eventInnerClass: 'app-event-content',
+    eventClass: 'app-calendar-event',
+    rowEventBeforeContent: '',
+    rowEventAfterContent: '',
     dayRowClass: 'app-week-row',
     tableBodyClass: 'app-month-body',
     dayCellDidMount: info =>
@@ -120,17 +125,26 @@ export class Calendar {
     dayCellTopClass: () => (this.canEdit() ? 'app-day-top' : ''),
     plugins: [themePlugin, dayGridPlugin, multiMonthPlugin, interactionPlugin],
     events: this.calendarEvents(),
+    editable: this.canEdit(),
+    eventDrop: info => this.saveEventDates(info),
+    eventResize: info => this.saveEventDates(info),
     dateClick: info => {
       if (this.canEdit()) this.openEventDialog({ mode: 'create', date: info.dateStr });
     },
-    eventClick: info => this.onEventClick(info.event.id),
+    eventClick: info => this.openEvent(info.event.id),
     datesSet: info => {
       this.year.set(info.view.currentStart.getFullYear());
-      this.onVisibleRangeChange(info.start.toISOString(), info.end.toISOString());
+      this.setRange(info.start.toISOString(), info.end.toISOString());
     },
   }));
 
   constructor() {
+    this.fitWeekRows();
+    this.showEventsError();
+    this.leaveOnCalendarError();
+  }
+
+  private fitWeekRows(): void {
     afterRenderEffect(() => {
       for (const row of this.host.nativeElement.querySelectorAll<HTMLElement>(
         '.app-week-row',
@@ -138,12 +152,16 @@ export class Calendar {
         fitWeekRow(row, this.eventsByDay());
       }
     });
+  }
 
+  private showEventsError(): void {
     effect(() => {
       if (!this.events.error()) return;
       this.snackbarService.error(this.transloco.translate('calendar.eventsError'));
     });
+  }
 
+  private leaveOnCalendarError(): void {
     effect(() => {
       if (!this.calendar.error()) return;
       this.snackbarService.error(this.transloco.translate('calendar.loadError'));
@@ -151,30 +169,37 @@ export class Calendar {
     });
   }
 
-  onToggleCompleted(eventId: string, completed: boolean): void {
-    this.eventService
-      .update(eventId, { completed })
-      .pipe(
-        tap(() => this.events.reload()),
-        catchError(() => {
-          this.snackbarService.error(this.transloco.translate('event.updateError'));
-          return EMPTY;
-        }),
-      )
-      .subscribe();
+  toggleCompleted(eventId: string, completed: boolean): void {
+    this.submitEvent({ action: 'update', eventId, payload: { completed } }).subscribe();
   }
 
   navigate(action: 'prev' | 'next' | 'today'): void {
     this.fullCalendar().getApi()[action]();
   }
 
-  private onEventClick(eventId: string): void {
+  private saveEventDates({ event, revert }: EventChangeInfo): void {
+    const { allDay, start, end } = event;
+    if (!start) {
+      revert();
+      return;
+    }
+
+    const payload = toEventApiDates({
+      allDay,
+      startAt: start,
+      endAt: end && allDay ? addDays(end, -1) : end,
+    });
+
+    this.submitEvent({ action: 'update', eventId: event.id, payload }).subscribe();
+  }
+
+  private openEvent(eventId: string): void {
     if (!this.events.hasValue()) return;
     const event = this.events.value().find(item => item.id === eventId);
     if (event) this.openEventDialog({ mode: 'update', event });
   }
 
-  private onVisibleRangeChange(from: string, to: string): void {
+  private setRange(from: string, to: string): void {
     const current = this.range();
     if (current?.from === from && current.to === to) return;
     this.range.set({ from, to });
@@ -194,35 +219,51 @@ export class Calendar {
       .afterClosed()
       .pipe(
         filter(result => result !== undefined),
-        switchMap(result => this.runEventAction(result)),
+        switchMap(result => this.submitEvent(result)),
       )
       .subscribe();
-  }
-
-  private runEventAction(result: NonNullable<EventDialogResult>): Observable<unknown> {
-    return this.submitEvent(result).pipe(
-      tap(() => this.events.reload()),
-      catchError(() => {
-        this.snackbarService.error(
-          this.transloco.translate(`event.${result.action}Error`),
-        );
-        return EMPTY;
-      }),
-    );
   }
 
   private submitEvent(result: NonNullable<EventDialogResult>): Observable<unknown> {
     switch (result.action) {
       case 'create':
-        return this.eventService.create(this.id(), result.payload);
+        return this.eventService.create(this.id(), result.payload).pipe(
+          tap(created =>
+            this.events.update(list =>
+              list?.map(item => (item.id === created.id ? created : item)),
+            ),
+          ),
+          catchError(() => {
+            this.snackbarService.error(this.transloco.translate('event.updateError'));
+            return EMPTY;
+          }),
+        );
       case 'update':
-        return this.eventService.update(result.eventId, result.payload);
+        return this.eventService.update(result.eventId, result.payload).pipe(
+          tap(updated =>
+            this.events.update(list =>
+              list?.map(item => (item.id === updated.id ? updated : item)),
+            ),
+          ),
+          catchError(() => {
+            this.snackbarService.error(this.transloco.translate('event.updateError'));
+            return EMPTY;
+          }),
+        );
       case 'delete':
-        return this.onDeleteEvent(result.eventId);
+        return this.confirmDelete(result.eventId).pipe(
+          tap(() =>
+            this.events.update(list => list?.filter(item => item.id !== result.eventId)),
+          ),
+          catchError(() => {
+            this.snackbarService.error(this.transloco.translate('event.updateError'));
+            return EMPTY;
+          }),
+        );
     }
   }
 
-  private onDeleteEvent(eventId: string): Observable<void> {
+  private confirmDelete(eventId: string): Observable<void> {
     return ConfirmDialog.open(this.dialog, {
       title: this.transloco.translate('event.deleteTitle'),
       message: this.transloco.translate('event.deleteMessage'),

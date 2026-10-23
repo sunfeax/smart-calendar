@@ -54,7 +54,7 @@
         [disabled]="!canEdit()"
         [attr.aria-label]="'event.toggleCompleted' | transloco"
         (click)="$event.stopPropagation()"
-        (change)="onToggleCompleted(arg.event.id, $event.checked)"
+        (change)="toggleCompleted(arg.event.id, $event.checked)"
       />
     </span>
   </ng-template>
