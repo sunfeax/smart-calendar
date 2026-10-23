@@ -30,20 +30,26 @@ import { ConfirmDialog } from '../confirm-dialog/confirm-dialog';
   styleUrl: './sidebar.scss',
 })
 export class Sidebar {
+  // DEPENDENCIES
   private readonly authService = inject(AuthService);
   private readonly dialog = inject(MatDialog);
   private readonly router = inject(Router);
   private readonly transloco = inject(TranslocoService);
   protected readonly themeService = inject(ThemeService);
   protected readonly language = inject(LanguageService);
+
+  // STATE
   protected readonly languages = LANGUAGES;
   protected readonly languageNames = LANGUAGE_NAMES;
   protected readonly user = this.authService.user;
   protected readonly routePaths = routePaths;
+
+  // COMPUTED
   protected readonly themeLabel = computed(() =>
     this.themeService.theme() === 'dark' ? 'sidebar.lightTheme' : 'sidebar.darkTheme',
   );
 
+  // ACTIONS
   protected toggleTheme(): void {
     this.themeService.toggle();
   }

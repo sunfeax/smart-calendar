@@ -16,13 +16,17 @@ import { TabSyncService } from './tab-sync.service';
 
 @Service()
 export class LanguageService {
+  // DEPENDENCIES
   private readonly document = inject(DOCUMENT);
   private readonly transloco = inject(TranslocoService);
   private readonly tabSyncService = inject(TabSyncService);
   private readonly dateAdapter = inject<DateAdapter<Date, Locale>>(DateAdapter);
+
+  // STATE
   private readonly _lang = signal<Language>(this.getInitialLanguage());
   readonly lang = this._lang.asReadonly();
 
+  // LIFECYCLE
   constructor() {
     this.apply(this._lang());
 
@@ -39,6 +43,7 @@ export class LanguageService {
       });
   }
 
+  // ACTIONS
   setLang(lang: Language): void {
     this._lang.set(lang);
     this.apply(lang);
@@ -56,6 +61,7 @@ export class LanguageService {
     }
   }
 
+  // HELPERS
   private getInitialLanguage(): Language {
     let savedLang: string | null = null;
     try {

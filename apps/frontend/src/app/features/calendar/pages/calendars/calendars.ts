@@ -19,16 +19,14 @@ import { SnackbarService } from './../../../../shared/services/snackbar.service'
   templateUrl: './calendars.html',
 })
 export class Calendars {
+  // DEPENDENCIES
   private readonly calendarService = inject(CalendarService);
   private readonly snackbarService = inject(SnackbarService);
   private readonly dialog = inject(MatDialog);
   private readonly transloco = inject(TranslocoService);
 
+  // STATE
   readonly routePaths = routePaths;
-
-  readonly calendars = rxResource({
-    stream: () => this.calendarService.getList(),
-  });
 
   private readonly createClick$ = new Subject<void>();
 
@@ -50,6 +48,12 @@ export class Calendars {
     takeUntilDestroyed(),
   );
 
+  // DATA
+  readonly calendars = rxResource({
+    stream: () => this.calendarService.getList(),
+  });
+
+  // LIFECYCLE
   constructor() {
     this.createResponse$.subscribe();
 
@@ -59,6 +63,7 @@ export class Calendars {
     });
   }
 
+  // ACTIONS
   createRequest(): void {
     this.createClick$.next();
   }
@@ -91,6 +96,7 @@ export class Calendars {
       .subscribe(this.handleResult('delete'));
   }
 
+  // HELPERS
   private handleResult(action: 'update' | 'delete') {
     return {
       next: () => {

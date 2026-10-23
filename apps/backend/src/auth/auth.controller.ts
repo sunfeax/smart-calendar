@@ -22,11 +22,13 @@ import { GoogleLoginDto } from './google-login.dto.js';
 
 @Controller('auth')
 export class AuthController {
+  // DEPENDENCIES
   constructor(
     private readonly authService: AuthService,
     private readonly sessionService: SessionService,
   ) {}
 
+  // ACTIONS
   @Public()
   @Post('google')
   @HttpCode(HttpStatus.OK)
@@ -58,6 +60,7 @@ export class AuthController {
     response.clearCookie(SESSION_COOKIE, SESSION_COOKIE_OPTIONS);
   }
 
+  // HELPERS
   private toProfile(user: User): UserProfileDto {
     return {
       id: user.id,

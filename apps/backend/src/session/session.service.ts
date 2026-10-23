@@ -7,8 +7,10 @@ import { SessionWithUser } from './session.model.js';
 
 @Injectable()
 export class SessionService {
+  // DEPENDENCIES
   constructor(private readonly prisma: PrismaService) {}
 
+  // ACTIONS
   async create(userId: string, userAgent: string | undefined): Promise<string> {
     const token = generateToken();
 

@@ -5,8 +5,10 @@ import { EventRange } from '../models/event-range';
 
 @Service()
 export class EventService {
+  // DEPENDENCIES
   private readonly http = inject(HttpClient);
 
+  // ACTIONS
   getListRange(calendarId: string, range: EventRange) {
     return this.http.get<EventDto[]>(`/api/calendars/${calendarId}/events`, {
       params: { from: range.from, to: range.to },

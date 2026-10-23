@@ -6,8 +6,10 @@ type Snackbar = 'success' | 'error' | 'info' | 'warning';
 
 @Service()
 export class SnackbarService {
+  // DEPENDENCIES
   private readonly snackBarService = inject(MatSnackBar);
 
+  // ACTIONS
   success(message: string): void {
     this.show(message, 'success');
   }

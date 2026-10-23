@@ -78,12 +78,15 @@ interface EventFormModel {
   templateUrl: './event-create-edit-dialog.html',
 })
 export class EventCreateEditDialog {
+  // DEPENDENCIES
   private readonly dialog = inject(MatDialog);
   private readonly dialogRef =
     inject<MatDialogRef<EventCreateEditDialog, EventDialogResult>>(MatDialogRef);
   private readonly transloco = inject(TranslocoService);
 
   readonly data = inject<EventDialogData>(MAT_DIALOG_DATA);
+
+  // STATE
   private readonly initialFormSnapshot: EventFormModel = this.initialForm();
   private readonly model = signal(this.initialForm());
 
@@ -108,6 +111,7 @@ export class EventCreateEditDialog {
     });
   });
 
+  // LIFECYCLE
   constructor() {
     this.dialogRef.disableClose = true;
 
@@ -119,6 +123,7 @@ export class EventCreateEditDialog {
       .subscribe(() => this.cancel());
   }
 
+  // ACTIONS
   save(): void {
     const form = this.eventForm().value();
 
@@ -178,6 +183,7 @@ export class EventCreateEditDialog {
     this.dialogRef.close();
   }
 
+  // HELPERS
   private initialForm(): EventFormModel {
     if (this.data.mode === 'update') {
       return {

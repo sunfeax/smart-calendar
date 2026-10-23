@@ -17,8 +17,10 @@ import { CalendarService } from './calendar.service.js';
 
 @Controller('calendars')
 export class CalendarController {
+  // DEPENDENCIES
   constructor(private readonly calendarService: CalendarService) {}
 
+  // ACTIONS
   @Get()
   list(@CurrentUser() user: User): Promise<CalendarDto[]> {
     return this.calendarService.list(user.id);

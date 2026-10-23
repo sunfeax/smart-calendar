@@ -56,6 +56,7 @@ import { SnackbarService } from './../../../../shared/services/snackbar.service'
   styleUrl: './calendar.scss',
 })
 export class Calendar {
+  // DEPENDENCIES
   private readonly calendarService = inject(CalendarService);
   private readonly eventService = inject(EventService);
   private readonly snackbarService = inject(SnackbarService);
@@ -65,13 +66,16 @@ export class Calendar {
   private readonly router = inject(Router);
   private readonly host = inject<ElementRef<HTMLElement>>(ElementRef);
 
+  // INPUTS
   readonly id = input.required<string>();
+
+  // STATE
   readonly routePaths = routePaths;
   readonly year = signal(new Date().getFullYear());
-
   private readonly fullCalendar = viewChild.required(FullCalendarComponent);
   private readonly range = signal<EventRange | null>(null);
 
+  // DATA
   readonly calendar = rxResource({
     params: () => this.id(),
     stream: ({ params }) => this.calendarService.get(params),
@@ -86,19 +90,12 @@ export class Calendar {
     stream: ({ params }) => this.eventService.getListRange(params.id, params.range),
   });
 
+  // COMPUTED
   readonly canEdit = computed(() => {
     const role = this.calendar.hasValue() ? this.calendar.value().role : undefined;
     if (role === 'OWNER' || role === 'EDITOR') return true;
     return false;
   });
-
-  private readonly calendarEvents = computed(() =>
-    this.events.hasValue() ? this.events.value().map(toCalendarEvent) : [],
-  );
-
-  private readonly eventsByDay = computed(() =>
-    countEventsByDay(this.events.hasValue() ? this.events.value() : []),
-  );
 
   readonly options = computed<CalendarOptions>(() => ({
     initialView: 'multiMonthYear',
@@ -138,12 +135,22 @@ export class Calendar {
     },
   }));
 
+  private readonly calendarEvents = computed(() =>
+    this.events.hasValue() ? this.events.value().map(toCalendarEvent) : [],
+  );
+
+  private readonly eventsByDay = computed(() =>
+    countEventsByDay(this.events.hasValue() ? this.events.value() : []),
+  );
+
+  // LIFECYCLE
   constructor() {
     this.fitWeekRows();
     this.showEventsError();
     this.leaveOnCalendarError();
   }
 
+  // EFFECTS
   private fitWeekRows(): void {
     afterRenderEffect(() => {
       for (const row of this.host.nativeElement.querySelectorAll<HTMLElement>(
@@ -169,40 +176,13 @@ export class Calendar {
     });
   }
 
+  // ACTIONS
   toggleCompleted(eventId: string, completed: boolean): void {
     this.submitEvent({ action: 'update', eventId, payload: { completed } }).subscribe();
   }
 
   navigate(action: 'prev' | 'next' | 'today'): void {
     this.fullCalendar().getApi()[action]();
-  }
-
-  private saveEventDates({ event, revert }: EventChangeInfo): void {
-    const { allDay, start, end } = event;
-    if (!start) {
-      revert();
-      return;
-    }
-
-    const payload = toEventApiDates({
-      allDay,
-      startAt: start,
-      endAt: end && allDay ? addDays(end, -1) : end,
-    });
-
-    this.submitEvent({ action: 'update', eventId: event.id, payload }).subscribe();
-  }
-
-  private openEvent(eventId: string): void {
-    if (!this.events.hasValue()) return;
-    const event = this.events.value().find(item => item.id === eventId);
-    if (event) this.openEventDialog({ mode: 'update', event });
-  }
-
-  private setRange(from: string, to: string): void {
-    const current = this.range();
-    if (current?.from === from && current.to === to) return;
-    this.range.set({ from, to });
   }
 
   private openEventDialog(data: EventDialogData): void {
@@ -270,5 +250,34 @@ export class Calendar {
       confirmText: this.transloco.translate('event.delete'),
       variant: 'danger',
     }).pipe(switchMap(() => this.eventService.delete(eventId)));
+  }
+
+  // HANDLERS
+  private saveEventDates({ event, revert }: EventChangeInfo): void {
+    const { allDay, start, end } = event;
+    if (!start) {
+      revert();
+      return;
+    }
+
+    const payload = toEventApiDates({
+      allDay,
+      startAt: start,
+      endAt: end && allDay ? addDays(end, -1) : end,
+    });
+
+    this.submitEvent({ action: 'update', eventId: event.id, payload }).subscribe();
+  }
+
+  private openEvent(eventId: string): void {
+    if (!this.events.hasValue()) return;
+    const event = this.events.value().find(item => item.id === eventId);
+    if (event) this.openEventDialog({ mode: 'update', event });
+  }
+
+  private setRange(from: string, to: string): void {
+    const current = this.range();
+    if (current?.from === from && current.to === to) return;
+    this.range.set({ from, to });
   }
 }

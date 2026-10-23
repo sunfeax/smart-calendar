@@ -6,8 +6,10 @@ import { ROLE_RANK } from './calendar.constants.js';
 
 @Injectable()
 export class CalendarAccessService {
+  // DEPENDENCIES
   constructor(private readonly prisma: PrismaService) {}
 
+  // ACTIONS
   async requireRole(
     userId: string,
     calendarId: string,

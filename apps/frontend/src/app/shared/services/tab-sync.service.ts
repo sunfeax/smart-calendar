@@ -19,10 +19,12 @@ export class TabSyncService {
     return () => this.channel.removeEventListener('message', handler);
   });
 
+  // LIFECYCLE
   constructor() {
     inject(DestroyRef).onDestroy(() => this.channel.close());
   }
 
+  // ACTIONS
   send(event: TabEvent): void {
     this.channel.postMessage(event);
   }

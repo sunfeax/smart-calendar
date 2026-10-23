@@ -6,8 +6,10 @@ import { GoogleProfile } from './user.model.js';
 
 @Injectable()
 export class UserService {
+  // DEPENDENCIES
   constructor(private readonly prisma: PrismaService) {}
 
+  // ACTIONS
   async upsertFromGoogle(profile: GoogleProfile): Promise<User> {
     return await this.prisma.user.upsert({
       where: { googleId: profile.googleId },

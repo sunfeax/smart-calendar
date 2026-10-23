@@ -33,6 +33,7 @@ export interface ConfirmDialogData {
   styleUrl: './confirm-dialog.scss',
 })
 export class ConfirmDialog {
+  // STATIC
   static open(dialog: MatDialog, data: ConfirmDialogData): Observable<true> {
     return dialog
       .open<ConfirmDialog, ConfirmDialogData, boolean>(ConfirmDialog, {
@@ -43,8 +44,10 @@ export class ConfirmDialog {
       .pipe(filter(confirmed => confirmed === true));
   }
 
+  // DEPENDENCIES
   readonly data = inject<ConfirmDialogData>(MAT_DIALOG_DATA);
 
+  // COMPUTED
   get confirmClass(): string {
     switch (this.data.variant) {
       case 'danger':

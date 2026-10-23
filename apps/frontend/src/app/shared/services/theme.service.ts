@@ -8,11 +8,15 @@ export type Theme = 'dark' | 'light';
 
 @Service()
 export class ThemeService {
+  // DEPENDENCIES
   private readonly document = inject(DOCUMENT);
   private readonly tabSyncService = inject(TabSyncService);
+
+  // STATE
   private readonly _theme = signal<Theme>(this.getInitialTheme());
   readonly theme = this._theme.asReadonly();
 
+  // LIFECYCLE
   constructor() {
     this.tabSyncService.incoming
       .pipe(
@@ -38,11 +42,13 @@ export class ThemeService {
     });
   }
 
+  // ACTIONS
   toggle(): void {
     this._theme.update(currentTheme => (currentTheme === 'dark' ? 'light' : 'dark'));
     this.tabSyncService.send({ type: 'theme', value: this._theme() });
   }
 
+  // HELPERS
   private getInitialTheme(): Theme {
     let savedTheme: string | null = null;
     try {

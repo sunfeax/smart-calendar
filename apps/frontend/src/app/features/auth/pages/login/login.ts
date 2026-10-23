@@ -24,14 +24,18 @@ const GOOGLE_FRAME_TIMEOUT_MS = 3000;
   templateUrl: './login.html',
 })
 export class Login {
+  // DEPENDENCIES
   private readonly authService = inject(AuthService);
   private readonly router = inject(Router);
   private readonly snackbar = inject(SnackbarService);
   private readonly transloco = inject(TranslocoService);
   private readonly language = inject(LanguageService);
+
+  // STATE
   private readonly button = viewChild.required<ElementRef<HTMLElement>>('googleButton');
   protected readonly googleButtonState = signal<'loading' | 'ready' | 'error'>('loading');
 
+  // LIFECYCLE
   constructor() {
     afterNextRender(() => {
       loadGoogleScript()
@@ -61,6 +65,7 @@ export class Login {
     });
   }
 
+  // HELPERS
   private waitForGoogleFrame(host: HTMLElement): Promise<void> {
     return new Promise(resolve => {
       const done = (): void => {

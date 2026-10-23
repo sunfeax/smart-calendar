@@ -13,9 +13,11 @@ import { routePaths } from '../../../../core/constants/routePaths';
   templateUrl: './calendar-card.html',
 })
 export class CalendarCard {
+  // INPUTS
   readonly calendar = input.required<CalendarDto>();
   readonly edit = output();
   readonly remove = output();
 
+  // STATE
   protected readonly routePaths = routePaths;
 }

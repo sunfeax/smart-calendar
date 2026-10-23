@@ -9,15 +9,20 @@ import { TabSyncService } from '../../../shared/services/tab-sync.service';
 
 @Service()
 export class AuthService {
-  private readonly authPath = '/api/auth';
+  // DEPENDENCIES
   private readonly http = inject(HttpClient);
   private readonly tabSyncService = inject(TabSyncService);
   private readonly router = inject(Router);
 
+  // STATE
+  private readonly authPath = '/api/auth';
   private readonly _user = signal<UserProfileDto | null>(null);
   readonly user = this._user.asReadonly();
+
+  // COMPUTED
   readonly isAuthenticated = computed(() => !!this._user());
 
+  // LIFECYCLE
   constructor() {
     this.tabSyncService.incoming
       .pipe(
@@ -31,6 +36,7 @@ export class AuthService {
       });
   }
 
+  // ACTIONS
   login(credential: string): Observable<UserProfileDto> {
     return this.http
       .post<UserProfileDto>(`${this.authPath}/google`, {

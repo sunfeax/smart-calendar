@@ -32,11 +32,13 @@ import { CalendarUpdateDto } from '../../../../api/generated';
   templateUrl: './calendar-edit-dialog.html',
 })
 export class CalendarEditDialog {
+  // DEPENDENCIES
   private readonly dialogRef =
     inject<MatDialogRef<CalendarEditDialog, CalendarUpdateDto>>(MatDialogRef);
 
   readonly data = inject<CalendarUpdateDto>(MAT_DIALOG_DATA);
 
+  // STATE
   private model = signal({ name: this.data.name ?? '' });
 
   calendarForm = form(this.model, schema => {
@@ -44,6 +46,7 @@ export class CalendarEditDialog {
     maxLength(schema.name, 100);
   });
 
+  // ACTIONS
   save(): void {
     const value = this.calendarForm().value();
     const name = value.name.trim();

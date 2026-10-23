@@ -18,8 +18,10 @@ import { EventService } from './event.service.js';
 
 @Controller()
 export class EventController {
+  // DEPENDENCIES
   constructor(private readonly eventService: EventService) {}
 
+  // ACTIONS
   @Get('calendars/:calendarId/events')
   listRange(
     @CurrentUser() user: User,

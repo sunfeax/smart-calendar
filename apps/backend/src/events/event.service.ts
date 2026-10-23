@@ -9,11 +9,13 @@ import { EventCreateDto, EventDto, EventsRangeDto, EventUpdateDto } from './even
 
 @Injectable()
 export class EventService {
+  // DEPENDENCIES
   constructor(
     private readonly prisma: PrismaService,
     private readonly access: CalendarAccessService,
   ) {}
 
+  // ACTIONS
   async listRange(
     userId: string,
     calendarId: string,
@@ -112,6 +114,7 @@ export class EventService {
     await this.prisma.event.deleteMany({ where: { id } });
   }
 
+  // HELPERS
   private assertDates(startAt: Date, endAt: Date, allDay: boolean): void {
     if (endAt <= startAt) {
       throw new BadRequestException('endAt must be later than startAt');

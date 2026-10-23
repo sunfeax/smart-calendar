@@ -8,14 +8,17 @@ import { UserService } from '../users/user.service.js';
 
 @Injectable()
 export class AuthService {
-  private readonly googleClient = new OAuth2Client();
-
+  // DEPENDENCIES
   constructor(
     private readonly config: ConfigService,
     private readonly userService: UserService,
     private readonly sessionService: SessionService,
   ) {}
 
+  // STATE
+  private readonly googleClient = new OAuth2Client();
+
+  // ACTIONS
   async loginWithGoogle(
     credential: string,
     userAgent: string | undefined,
@@ -38,6 +41,7 @@ export class AuthService {
     return { user, token };
   }
 
+  // HELPERS
   private async verifyGoogleToken(credential: string): Promise<TokenPayload | undefined> {
     try {
       const ticket = await this.googleClient.verifyIdToken({

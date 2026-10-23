@@ -7,11 +7,13 @@ import { CalendarDto, CalendarUpdateDto } from './calendar.dto.js';
 
 @Injectable()
 export class CalendarService {
+  // DEPENDENCIES
   constructor(
     private readonly prisma: PrismaService,
     private readonly access: CalendarAccessService,
   ) {}
 
+  // ACTIONS
   async list(userId: string): Promise<CalendarDto[]> {
     const memberships = await this.prisma.calendarMember.findMany({
       where: { userId },

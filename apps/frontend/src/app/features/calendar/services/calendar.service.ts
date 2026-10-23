@@ -4,8 +4,10 @@ import { CalendarDto, CalendarUpdateDto } from '../../../api/generated';
 
 @Service()
 export class CalendarService {
+  // DEPENDENCIES
   private readonly http = inject(HttpClient);
 
+  // ACTIONS
   getList() {
     return this.http.get<CalendarDto[]>('/api/calendars');
   }
