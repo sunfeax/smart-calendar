@@ -128,7 +128,7 @@ export class Calendar {
     dateClick: info => {
       if (this.canEdit()) this.openEventDialog({ mode: 'create', date: info.dateStr });
     },
-    eventClick: info => this.openEvent(info.event.id),
+    eventClick: info => this.editEvent(info.event.id),
     datesSet: info => {
       this.year.set(info.view.currentStart.getFullYear());
       this.setRange(info.start.toISOString(), info.end.toISOString());
@@ -204,41 +204,42 @@ export class Calendar {
       .subscribe();
   }
 
-  private submitEvent(result: NonNullable<EventDialogResult>): Observable<unknown> {
+  private submitEvent(
+    result: NonNullable<EventDialogResult>,
+    rollback?: () => void,
+  ): Observable<unknown> {
+    return this.sendEvent(result).pipe(
+      catchError(() => {
+        rollback?.();
+        this.snackbarService.error(
+          this.transloco.translate(`event.${result.action}Error`),
+        );
+        return EMPTY;
+      }),
+    );
+  }
+
+  private sendEvent(result: NonNullable<EventDialogResult>): Observable<unknown> {
     switch (result.action) {
       case 'create':
-        return this.eventService.create(this.id(), result.payload).pipe(
-          tap(created =>
-            this.events.update(list =>
-              list?.map(item => (item.id === created.id ? created : item)),
-            ),
-          ),
-          catchError(() => {
-            this.snackbarService.error(this.transloco.translate('event.updateError'));
-            return EMPTY;
-          }),
-        );
+        return this.eventService
+          .create(this.id(), result.payload)
+          .pipe(tap(created => this.events.update(list => list && [...list, created])));
       case 'update':
-        return this.eventService.update(result.eventId, result.payload).pipe(
-          tap(updated =>
-            this.events.update(list =>
-              list?.map(item => (item.id === updated.id ? updated : item)),
+        return this.eventService
+          .update(result.eventId, result.payload)
+          .pipe(
+            tap(updated =>
+              this.events.update(list =>
+                list?.map(item => (item.id === updated.id ? updated : item)),
+              ),
             ),
-          ),
-          catchError(() => {
-            this.snackbarService.error(this.transloco.translate('event.updateError'));
-            return EMPTY;
-          }),
-        );
+          );
       case 'delete':
         return this.confirmDelete(result.eventId).pipe(
           tap(() =>
             this.events.update(list => list?.filter(item => item.id !== result.eventId)),
           ),
-          catchError(() => {
-            this.snackbarService.error(this.transloco.translate('event.updateError'));
-            return EMPTY;
-          }),
         );
     }
   }
@@ -266,10 +267,13 @@ export class Calendar {
       endAt: end && allDay ? addDays(end, -1) : end,
     });
 
-    this.submitEvent({ action: 'update', eventId: event.id, payload }).subscribe();
+    this.submitEvent(
+      { action: 'update', eventId: event.id, payload },
+      revert,
+    ).subscribe();
   }
 
-  private openEvent(eventId: string): void {
+  private editEvent(eventId: string): void {
     if (!this.events.hasValue()) return;
     const event = this.events.value().find(item => item.id === eventId);
     if (event) this.openEventDialog({ mode: 'update', event });
