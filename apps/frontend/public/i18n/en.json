@@ -82,6 +82,7 @@
     "description": "Description",
     "startAt": "Start",
     "endAt": "End",
+    "dates": "Dates",
     "addTime": "Add time",
     "removeTime": "Remove time",
     "startTime": "Start time",
@@ -98,7 +99,9 @@
       "required": "This field is required",
       "maxLength": "The value is too long",
       "matDatepickerParse": "Invalid date",
-      "endBeforeStart": "The end must be later than the start"
+      "endBeforeStart": "The end must be later than the start",
+      "matStartDateInvalid": "The start date can't be after the end date",
+      "matEndDateInvalid": "The end date can't be before the start date"
     }
   }
 }

@@ -82,6 +82,7 @@
     "description": "Descripción",
     "startAt": "Inicio",
     "endAt": "Fin",
+    "dates": "Fechas",
     "addTime": "Añadir hora",
     "removeTime": "Quitar hora",
     "startTime": "Hora de inicio",
@@ -98,7 +99,9 @@
       "required": "Campo obligatorio",
       "maxLength": "El valor es demasiado largo",
       "matDatepickerParse": "Fecha no válida",
-      "endBeforeStart": "El final debe ser posterior al inicio"
+      "endBeforeStart": "El final debe ser posterior al inicio",
+      "matStartDateInvalid": "La fecha de inicio no puede ser posterior a la de fin",
+      "matEndDateInvalid": "La fecha de fin no puede ser anterior a la de inicio"
     }
   }
 }

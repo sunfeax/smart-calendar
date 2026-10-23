@@ -114,6 +114,19 @@ mat-form-field {
   --mat-form-field-outlined-focus-outline-color: var(--color-primary-text);
 }
 
+.event-date-picker {
+  $scale: 1.15;
+
+  zoom: $scale;
+  max-width: calc((100vw - var(--space-8)) / $scale);
+  max-height: calc((100dvh - var(--space-8)) / $scale);
+  overflow-y: auto;
+
+  .mat-calendar-body {
+    min-width: 0;
+  }
+}
+
 button.mat-mdc-outlined-button,
 button.mat-mdc-button {
   --mat-button-outlined-label-text-color: var(--color-primary-text);

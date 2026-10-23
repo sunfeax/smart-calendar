@@ -24,27 +24,31 @@
     }
   </mat-form-field>
 
-  <div class="edit__row">
-    <mat-form-field class="edit__field" subscriptSizing="dynamic">
-      <mat-label>{{ 'event.startAt' | transloco }}</mat-label>
-      <input matInput [matDatepicker]="startAtDate" [formField]="eventForm.startAt" />
-      <mat-datepicker-toggle matIconSuffix [for]="startAtDate" />
-      <mat-datepicker #startAtDate />
-      @if (eventForm.startAt().errors()[0]; as error) {
-        <mat-error>{{ 'event.errors.' + error.kind | transloco }}</mat-error>
-      }
-    </mat-form-field>
-
-    <mat-form-field class="edit__field" subscriptSizing="dynamic">
-      <mat-label>{{ 'event.endAt' | transloco }}</mat-label>
-      <input matInput [matDatepicker]="endAtDate" [formField]="eventForm.endAt" />
-      <mat-datepicker-toggle matIconSuffix [for]="endAtDate" />
-      <mat-datepicker #endAtDate />
-      @if (eventForm.endAt().errors()[0]; as error) {
-        <mat-error>{{ 'event.errors.' + error.kind | transloco }}</mat-error>
-      }
-    </mat-form-field>
-  </div>
+  <mat-form-field
+    class="edit__field"
+    subscriptSizing="dynamic"
+    (click)="datesPicker.open()"
+    (keydown.enter)="datesPicker.open()"
+  >
+    <mat-label>{{ 'event.dates' | transloco }}</mat-label>
+    <mat-date-range-input [rangePicker]="datesPicker">
+      <input
+        matStartDate
+        [formField]="eventForm.startAt"
+        [placeholder]="'event.startAt' | transloco"
+      />
+      <input
+        matEndDate
+        [formField]="eventForm.endAt"
+        [placeholder]="'event.endAt' | transloco"
+      />
+    </mat-date-range-input>
+    <mat-datepicker-toggle matIconSuffix [for]="datesPicker" />
+    <mat-date-range-picker #datesPicker panelClass="event-date-picker" />
+    @if (eventForm.startAt().errors()[0] ?? eventForm.endAt().errors()[0]; as error) {
+      <mat-error>{{ 'event.errors.' + error.kind | transloco }}</mat-error>
+    }
+  </mat-form-field>
 
   @if (eventForm.allDay().value()) {
     <button matButton type="button" class="edit__time-toggle" (click)="addTime()">

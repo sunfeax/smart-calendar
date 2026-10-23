@@ -4,9 +4,11 @@ import { form, FormField, maxLength, required, validate } from '@angular/forms/s
 import { MatButton, MatIconButton } from '@angular/material/button';
 import { MatCheckbox } from '@angular/material/checkbox';
 import {
-  MatDatepicker,
-  MatDatepickerInput,
   MatDatepickerToggle,
+  MatDateRangeInput,
+  MatDateRangePicker,
+  MatEndDate,
+  MatStartDate,
 } from '@angular/material/datepicker';
 import {
   MAT_DIALOG_DATA,
@@ -51,9 +53,10 @@ interface EventFormModel {
     FormField,
     MatButton,
     MatCheckbox,
-    MatDatepicker,
-    MatDatepickerInput,
     MatDatepickerToggle,
+    MatDateRangeInput,
+    MatDateRangePicker,
+    MatEndDate,
     MatIcon,
     MatIconButton,
     MatDialogActions,
@@ -63,6 +66,7 @@ interface EventFormModel {
     MatFormField,
     MatInput,
     MatLabel,
+    MatStartDate,
     MatSuffix,
     MatTimepicker,
     MatTimepickerInput,
