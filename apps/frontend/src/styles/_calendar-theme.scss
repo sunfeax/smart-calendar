@@ -89,6 +89,13 @@ full-calendar .app-week-row {
         (var(--calendar-event-outer-height) + var(--calendar-event-gap))
     )
   );
+  transition: min-height var(--duration-slow) var(--ease-standard);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  full-calendar .app-week-row {
+    transition: none;
+  }
 }
 
 full-calendar .app-day-top::after {
