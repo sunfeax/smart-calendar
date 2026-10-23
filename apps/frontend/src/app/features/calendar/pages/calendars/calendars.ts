@@ -1,6 +1,7 @@
 import { Component, effect, inject } from '@angular/core';
 import { rxResource, takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { MatDialog } from '@angular/material/dialog';
+import { Router } from '@angular/router';
 import { TranslocoService } from '@jsverse/transloco';
 import { catchError, EMPTY, exhaustMap, filter, Subject, switchMap, tap } from 'rxjs';
 import { CalendarDto, CalendarUpdateDto } from '../../../../api/generated';
@@ -24,6 +25,7 @@ export class Calendars {
   private readonly snackbarService = inject(SnackbarService);
   private readonly dialog = inject(MatDialog);
   private readonly transloco = inject(TranslocoService);
+  private readonly router = inject(Router);
 
   // STATE
   readonly routePaths = routePaths;
@@ -33,11 +35,11 @@ export class Calendars {
   private readonly createResponse$ = this.createClick$.pipe(
     exhaustMap(() =>
       this.calendarService.create().pipe(
-        tap(() => {
+        tap(calendar => {
           this.snackbarService.success(
             this.transloco.translate('calendars.createSuccess'),
           );
-          this.calendars.reload();
+          void this.router.navigate([routePaths.calendars, calendar.id]);
         }),
         catchError(() => {
           this.snackbarService.error(this.transloco.translate('calendars.createError'));

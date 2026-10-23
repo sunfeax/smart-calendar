@@ -3,23 +3,25 @@
     {{ calendar().name || ('calendars.unnamed' | transloco) }}
   </a>
 
-  <div class="calendar-card__actions">
-    <button
-      matIconButton
-      type="button"
-      [attr.aria-label]="'calendars.edit' | transloco"
-      (click)="edit.emit()"
-    >
-      <mat-icon>edit</mat-icon>
-    </button>
+  @if (isOwner()) {
+    <div class="calendar-card__actions">
+      <button
+        matIconButton
+        type="button"
+        [attr.aria-label]="'calendars.edit' | transloco"
+        (click)="edit.emit()"
+      >
+        <mat-icon>edit</mat-icon>
+      </button>
 
-    <button
-      matIconButton
-      type="button"
-      [attr.aria-label]="'calendars.delete' | transloco"
-      (click)="remove.emit()"
-    >
-      <mat-icon>delete</mat-icon>
-    </button>
-  </div>
+      <button
+        matIconButton
+        type="button"
+        [attr.aria-label]="'calendars.delete' | transloco"
+        (click)="remove.emit()"
+      >
+        <mat-icon>delete</mat-icon>
+      </button>
+    </div>
+  }
 </article>
