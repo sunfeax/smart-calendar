@@ -37,6 +37,11 @@ export class Login {
 
   // LIFECYCLE
   constructor() {
+    this.renderGoogleButton();
+  }
+
+  // EFFECTS
+  private renderGoogleButton(): void {
     afterNextRender(() => {
       loadGoogleScript()
         .then(() => {

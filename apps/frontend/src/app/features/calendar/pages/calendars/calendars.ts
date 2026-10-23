@@ -55,8 +55,16 @@ export class Calendars {
 
   // LIFECYCLE
   constructor() {
-    this.createResponse$.subscribe();
+    this.listenCreateRequests();
+    this.showLoadError();
+  }
 
+  // EFFECTS
+  private listenCreateRequests(): void {
+    this.createResponse$.subscribe();
+  }
+
+  private showLoadError(): void {
     effect(() => {
       if (!this.calendars.error()) return;
       this.snackbarService.error(this.transloco.translate('calendars.loadError'));

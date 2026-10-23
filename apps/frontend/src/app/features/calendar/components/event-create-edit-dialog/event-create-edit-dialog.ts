@@ -113,6 +113,11 @@ export class EventCreateEditDialog {
 
   // LIFECYCLE
   constructor() {
+    this.confirmBeforeClose();
+  }
+
+  // EFFECTS
+  private confirmBeforeClose(): void {
     this.dialogRef.disableClose = true;
 
     merge(

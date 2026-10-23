@@ -9,6 +9,10 @@ export type TabEvent =
 
 @Service()
 export class TabSyncService {
+  // DEPENDENCIES
+  private readonly destroyRef = inject(DestroyRef);
+
+  // STATE
   private readonly channel = new BroadcastChannel('app');
 
   incoming = new Observable<TabEvent>(subscriber => {
@@ -21,7 +25,12 @@ export class TabSyncService {
 
   // LIFECYCLE
   constructor() {
-    inject(DestroyRef).onDestroy(() => this.channel.close());
+    this.closeOnDestroy();
+  }
+
+  // EFFECTS
+  private closeOnDestroy(): void {
+    this.destroyRef.onDestroy(() => this.channel.close());
   }
 
   // ACTIONS

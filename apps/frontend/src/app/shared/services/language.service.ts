@@ -29,7 +29,11 @@ export class LanguageService {
   // LIFECYCLE
   constructor() {
     this.apply(this._lang());
+    this.syncLangFromTabs();
+  }
 
+  // EFFECTS
+  private syncLangFromTabs(): void {
     this.tabSyncService.incoming
       .pipe(
         filter(event => event.type === 'lang'),

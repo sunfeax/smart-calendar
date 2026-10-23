@@ -24,6 +24,11 @@ export class AuthService {
 
   // LIFECYCLE
   constructor() {
+    this.syncAuthFromTabs();
+  }
+
+  // EFFECTS
+  private syncAuthFromTabs(): void {
     this.tabSyncService.incoming
       .pipe(
         switchMap(event => this.me().pipe(switchMap(() => of(event)))),

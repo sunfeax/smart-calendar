@@ -18,6 +18,12 @@ export class ThemeService {
 
   // LIFECYCLE
   constructor() {
+    this.syncThemeFromTabs();
+    this.applyTheme();
+  }
+
+  // EFFECTS
+  private syncThemeFromTabs(): void {
     this.tabSyncService.incoming
       .pipe(
         filter(event => event.type === 'theme'),
@@ -28,7 +34,9 @@ export class ThemeService {
           this._theme.set(event.value);
         }
       });
+  }
 
+  private applyTheme(): void {
     effect(() => {
       const theme = this.theme();
       const root = this.document.documentElement;
