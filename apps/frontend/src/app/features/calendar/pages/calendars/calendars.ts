@@ -3,13 +3,23 @@ import { rxResource, takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { MatDialog } from '@angular/material/dialog';
 import { Router } from '@angular/router';
 import { TranslocoService } from '@jsverse/transloco';
-import { catchError, EMPTY, exhaustMap, filter, Subject, switchMap, tap } from 'rxjs';
+import {
+  catchError,
+  EMPTY,
+  exhaustMap,
+  filter,
+  Observable,
+  Subject,
+  switchMap,
+  tap,
+} from 'rxjs';
 import { CalendarDto, CalendarUpdateDto } from '../../../../api/generated';
 import { routePaths } from '../../../../core/constants/routePaths';
 import { ConfirmDialog } from '../../../../shared/components/confirm-dialog/confirm-dialog';
 import { CalendarAddCard } from '../../components/calendar-add-card/calendar-add-card';
 import { CalendarCard } from '../../components/calendar-card/calendar-card';
 import { CalendarEditDialog } from '../../components/calendar-edit-dialog/calendar-edit-dialog';
+import { CalendarAction } from '../../models/calendar-action';
 import { CalendarService } from '../../services/calendar.service';
 import { SnackbarService } from './../../../../shared/services/snackbar.service';
 
@@ -33,20 +43,7 @@ export class Calendars {
   private readonly createClick$ = new Subject<void>();
 
   private readonly createResponse$ = this.createClick$.pipe(
-    exhaustMap(() =>
-      this.calendarService.create().pipe(
-        tap(calendar => {
-          this.snackbarService.success(
-            this.transloco.translate('calendars.createSuccess'),
-          );
-          void this.router.navigate([routePaths.calendars, calendar.id]);
-        }),
-        catchError(() => {
-          this.snackbarService.error(this.transloco.translate('calendars.createError'));
-          return EMPTY;
-        }),
-      ),
-    ),
+    exhaustMap(() => this.submitCalendar({ action: 'create' })),
     takeUntilDestroyed(),
   );
 
@@ -74,11 +71,11 @@ export class Calendars {
   }
 
   // ACTIONS
-  createRequest(): void {
+  createCalendar(): void {
     this.createClick$.next();
   }
 
-  edit(calendar: CalendarDto): void {
+  editCalendar(calendar: CalendarDto): void {
     this.dialog
       .open<CalendarEditDialog, CalendarUpdateDto, CalendarUpdateDto>(
         CalendarEditDialog,
@@ -89,34 +86,69 @@ export class Calendars {
       )
       .afterClosed()
       .pipe(
-        filter(body => body !== undefined),
-        switchMap(body => this.calendarService.update(calendar.id, body)),
+        filter(payload => payload !== undefined),
+        switchMap(payload =>
+          this.submitCalendar({ action: 'update', calendarId: calendar.id, payload }),
+        ),
       )
-      .subscribe(this.handleResult('update'));
+      .subscribe();
   }
 
-  delete(calendarId: string): void {
-    ConfirmDialog.open(this.dialog, {
+  deleteCalendar(calendarId: string): void {
+    this.submitCalendar({ action: 'delete', calendarId }).subscribe();
+  }
+
+  private submitCalendar(result: CalendarAction): Observable<unknown> {
+    return this.sendCalendar(result).pipe(
+      tap(() =>
+        this.snackbarService.success(
+          this.transloco.translate(`calendars.${result.action}Success`),
+        ),
+      ),
+      catchError(() => {
+        this.snackbarService.error(
+          this.transloco.translate(`calendars.${result.action}Error`),
+        );
+        return EMPTY;
+      }),
+    );
+  }
+
+  private sendCalendar(result: CalendarAction): Observable<unknown> {
+    switch (result.action) {
+      case 'create':
+        return this.calendarService
+          .create()
+          .pipe(
+            tap(created => void this.router.navigate([routePaths.calendars, created.id])),
+          );
+      case 'update':
+        return this.calendarService
+          .update(result.calendarId, result.payload)
+          .pipe(
+            tap(updated =>
+              this.calendars.update(list =>
+                list?.map(item => (item.id === updated.id ? updated : item)),
+              ),
+            ),
+          );
+      case 'delete':
+        return this.confirmDeleteCalendar(result.calendarId).pipe(
+          tap(() =>
+            this.calendars.update(list =>
+              list?.filter(item => item.id !== result.calendarId),
+            ),
+          ),
+        );
+    }
+  }
+
+  private confirmDeleteCalendar(calendarId: string): Observable<void> {
+    return ConfirmDialog.open(this.dialog, {
       title: this.transloco.translate('calendars.deleteTitle'),
       message: this.transloco.translate('calendars.deleteMessage'),
       confirmText: this.transloco.translate('calendars.delete'),
       variant: 'danger',
-    })
-      .pipe(switchMap(() => this.calendarService.delete(calendarId)))
-      .subscribe(this.handleResult('delete'));
-  }
-
-  // HELPERS
-  private handleResult(action: 'update' | 'delete') {
-    return {
-      next: () => {
-        this.snackbarService.success(
-          this.transloco.translate(`calendars.${action}Success`),
-        );
-        this.calendars.reload();
-      },
-      error: () =>
-        this.snackbarService.error(this.transloco.translate(`calendars.${action}Error`)),
-    };
+    }).pipe(switchMap(() => this.calendarService.delete(calendarId)));
   }
 }

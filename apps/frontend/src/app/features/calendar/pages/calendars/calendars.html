@@ -2,9 +2,9 @@
   @for (calendar of calendars.hasValue() ? calendars.value() : []; track calendar.id) {
     <app-calendar-card
       [calendar]="calendar"
-      (edit)="edit(calendar)"
-      (remove)="delete(calendar.id)"
+      (edit)="editCalendar(calendar)"
+      (remove)="deleteCalendar(calendar.id)"
     ></app-calendar-card>
   }
-  <app-calendar-add-card (add)="createRequest()"></app-calendar-add-card>
+  <app-calendar-add-card (add)="createCalendar()"></app-calendar-add-card>
 </section>

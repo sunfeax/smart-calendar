@@ -236,7 +236,7 @@ export class Calendar {
             ),
           );
       case 'delete':
-        return this.confirmDelete(result.eventId).pipe(
+        return this.confirmDeleteEvent(result.eventId).pipe(
           tap(() =>
             this.events.update(list => list?.filter(item => item.id !== result.eventId)),
           ),
@@ -244,7 +244,7 @@ export class Calendar {
     }
   }
 
-  private confirmDelete(eventId: string): Observable<void> {
+  private confirmDeleteEvent(eventId: string): Observable<void> {
     return ConfirmDialog.open(this.dialog, {
       title: this.transloco.translate('event.deleteTitle'),
       message: this.transloco.translate('event.deleteMessage'),
