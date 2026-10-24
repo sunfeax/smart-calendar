@@ -107,11 +107,17 @@ full-calendar {
 .calendar__check {
   --mat-checkbox-state-layer-size: 24px;
   --mat-checkbox-touch-target-size: 24px;
+  --mat-checkbox-unselected-hover-state-layer-opacity: 0;
+  --mat-checkbox-selected-hover-state-layer-opacity: 0;
+  --mat-checkbox-unselected-focus-state-layer-opacity: 0;
+  --mat-checkbox-selected-focus-state-layer-opacity: 0;
+  --mat-checkbox-unselected-pressed-state-layer-opacity: 0;
+  --mat-checkbox-selected-pressed-state-layer-opacity: 0;
 
   display: flex;
   flex: none;
   margin-inline-start: auto;
-  translate: 0 -4px;
+  translate: 0 -3px;
   opacity: 0;
   pointer-events: none;
   transition: opacity var(--duration-fast) var(--ease-standard);
@@ -128,6 +134,13 @@ full-calendar {
     opacity: 1;
     pointer-events: auto;
   }
+}
+
+.calendar__time-icon {
+  flex: none;
+  width: var(--font-size-sm);
+  height: var(--font-size-sm);
+  font-size: var(--font-size-sm);
 }
 
 .calendar__event-title {

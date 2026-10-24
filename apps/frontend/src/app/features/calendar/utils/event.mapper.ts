@@ -10,6 +10,11 @@ export function toCalendarEvent(event: EventDto): EventInput {
     extendedProps: { completed: event.completedAt !== null },
   };
 
+  if (event.completedAt) {
+    input.color = 'var(--color-primary-soft)';
+    input.contrastColor = 'var(--color-primary-text)';
+  }
+
   if (event.allDay) {
     input.start = event.startAt.slice(0, 10);
     if (event.endAt) input.end = event.endAt.slice(0, 10);

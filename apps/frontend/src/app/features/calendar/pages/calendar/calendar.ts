@@ -112,6 +112,8 @@ export class Calendar {
     dayCellTopInnerClass: 'app-day-number',
     eventInnerClass: 'app-event-content',
     eventClass: 'app-calendar-event',
+    eventDisplay: 'block',
+    rowEventClass: 'app-row-event',
     rowEventBeforeContent: '',
     rowEventAfterContent: '',
     dayRowClass: 'app-week-row',
