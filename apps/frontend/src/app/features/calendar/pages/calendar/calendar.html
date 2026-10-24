@@ -10,12 +10,22 @@
     </a>
 
     @if (calendar.hasValue()) {
-      <h1
-        class="calendar__title"
-        [title]="calendar.value().name || ('calendars.unnamed' | transloco)"
-      >
-        {{ calendar.value().name || ('calendars.unnamed' | transloco) }}
-      </h1>
+      @let calendarName = calendar.value().name || ('calendars.unnamed' | transloco);
+      @if (isOwner()) {
+        <input
+          #nameInput
+          class="calendar__title calendar__title--editable"
+          [value]="calendar.value().name"
+          [placeholder]="'calendars.unnamed' | transloco"
+          [title]="calendarName"
+          [attr.aria-label]="'calendars.edit' | transloco"
+          (blur)="updateTitle(nameInput.value)"
+          (keydown.enter)="nameInput.blur()"
+          (keydown.escape)="nameInput.value = calendar.value().name; nameInput.blur()"
+        />
+      } @else {
+        <h1 class="calendar__title" [title]="calendarName">{{ calendarName }}</h1>
+      }
     }
   </div>
 

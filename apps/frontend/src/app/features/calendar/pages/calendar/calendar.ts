@@ -91,6 +91,10 @@ export class Calendar {
   });
 
   // COMPUTED
+  readonly isOwner = computed(
+    () => this.calendar.hasValue() && this.calendar.value().role === 'OWNER',
+  );
+
   readonly canEdit = computed(() => {
     const role = this.calendar.hasValue() ? this.calendar.value().role : undefined;
     if (role === 'OWNER' || role === 'EDITOR') return true;
@@ -190,6 +194,22 @@ export class Calendar {
 
   navigate(action: 'prev' | 'next' | 'today'): void {
     this.fullCalendar().getApi()[action]();
+  }
+
+  updateTitle(title: string): void {
+    const name = title.trim();
+    if (name === this.calendar.value()?.name) return;
+
+    this.calendarService
+      .update(this.id(), { name })
+      .pipe(
+        tap(updated => this.calendar.set(updated)),
+        catchError(() => {
+          this.snackbarService.error(this.transloco.translate('calendars.updateError'));
+          return EMPTY;
+        }),
+      )
+      .subscribe();
   }
 
   private openEventDialog(data: EventDialogData): void {

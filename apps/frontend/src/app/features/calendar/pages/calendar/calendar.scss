@@ -67,6 +67,35 @@ full-calendar {
   white-space: nowrap;
 }
 
+.calendar__title--editable {
+  field-sizing: content;
+  min-width: 4ch;
+  max-width: 100%;
+  padding: var(--space-1) var(--space-2);
+  border: 1px solid transparent;
+  border-radius: var(--radius-md);
+  background-color: transparent;
+  font-family: inherit;
+  line-height: inherit;
+  outline: none;
+  transition:
+    background-color var(--duration-fast) var(--ease-standard),
+    border-color var(--duration-fast) var(--ease-standard);
+
+  &::placeholder {
+    color: var(--color-text-muted);
+  }
+
+  &:hover {
+    background-color: var(--color-surface-alt);
+  }
+
+  &:focus {
+    border-color: var(--color-focus-ring);
+    background-color: var(--color-surface);
+  }
+}
+
 .calendar__year {
   grid-area: year;
   margin: 0;
