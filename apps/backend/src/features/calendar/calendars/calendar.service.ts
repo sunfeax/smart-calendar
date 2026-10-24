@@ -1,6 +1,6 @@
 import { ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
-import { CalendarRole } from '../generated/prisma/enums.js';
-import { PrismaService } from '../prisma/prisma.service.js';
+import { CalendarRole } from '../../../generated/prisma/enums.js';
+import { PrismaService } from '../../../prisma/prisma.service.js';
 import { CalendarAccessService } from './calendar-access.service.js';
 import { MAX_CALENDARS, MAX_CALENDARS_PER_USER } from './calendar.constants.js';
 import { CalendarDto, CalendarUpdateDto } from './calendar.dto.js';

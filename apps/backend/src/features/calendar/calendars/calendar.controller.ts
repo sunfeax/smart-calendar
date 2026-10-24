@@ -10,8 +10,8 @@ import {
   Patch,
   Post,
 } from '@nestjs/common';
-import { CurrentUser } from '../auth/decorators/current-user.decorator.js';
-import type { User } from '../generated/prisma/client.js';
+import { CurrentUser } from '../../auth/decorators/current-user.decorator.js';
+import type { User } from '../../../generated/prisma/client.js';
 import { CalendarDto, CalendarUpdateDto } from './calendar.dto.js';
 import { CalendarService } from './calendar.service.js';
 

@@ -10,7 +10,7 @@ import {
   Res,
 } from '@nestjs/common';
 import type { Response } from 'express';
-import type { User } from '../generated/prisma/client.js';
+import type { User } from '../../generated/prisma/client.js';
 import { SESSION_COOKIE, SESSION_COOKIE_OPTIONS } from '../session/session.constants.js';
 import { SessionService } from '../session/session.service.js';
 import { UserProfileDto } from '../users/user-profile.dto.js';

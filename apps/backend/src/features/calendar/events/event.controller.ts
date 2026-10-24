@@ -11,8 +11,8 @@ import {
   Post,
   Query,
 } from '@nestjs/common';
-import { CurrentUser } from '../auth/decorators/current-user.decorator.js';
-import { type User } from '../generated/prisma/client.js';
+import { type User } from '../../../generated/prisma/client.js';
+import { CurrentUser } from '../../auth/decorators/current-user.decorator.js';
 import { EventCreateDto, EventDto, EventsRangeDto, EventUpdateDto } from './event.dto.js';
 import { EventService } from './event.service.js';
 

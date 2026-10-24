@@ -1,7 +1,7 @@
 import { ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
-import { CalendarMember, Event } from '../generated/prisma/client.js';
-import { CalendarRole } from '../generated/prisma/enums.js';
-import { PrismaService } from '../prisma/prisma.service.js';
+import { CalendarMember, Event } from '../../../generated/prisma/client.js';
+import { CalendarRole } from '../../../generated/prisma/enums.js';
+import { PrismaService } from '../../../prisma/prisma.service.js';
 import { ROLE_RANK } from './calendar.constants.js';
 
 @Injectable()

@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
-import { ONE_DAY_MS } from '../common/constants.js';
-import { PrismaService } from '../prisma/prisma.service.js';
+import { PrismaService } from '../../prisma/prisma.service.js';
+import { ONE_DAY_MS } from '../../common/constants.js';
 import { generateToken, hashToken } from './session-token.js';
 import { SESSION_TTL_MS } from './session.constants.js';
 import { SessionWithUser } from './session.model.js';

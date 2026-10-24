@@ -1,4 +1,4 @@
-import { CalendarRole } from '../generated/prisma/enums.js';
+import { CalendarRole } from '../../../generated/prisma/enums.js';
 
 export const ROLE_RANK: Record<CalendarRole, number> = {
   OWNER: 3,

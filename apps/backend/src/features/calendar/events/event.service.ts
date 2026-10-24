@@ -1,9 +1,9 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { CalendarAccessService } from '../calendars/calendar-access.service.js';
-import { ONE_DAY_MS } from '../common/constants.js';
-import { Event } from '../generated/prisma/client.js';
-import { CalendarRole } from '../generated/prisma/enums.js';
-import { PrismaService } from '../prisma/prisma.service.js';
+import { ONE_DAY_MS } from '../../../common/constants.js';
+import { Event } from '../../../generated/prisma/client.js';
+import { CalendarRole } from '../../../generated/prisma/enums.js';
+import { PrismaService } from '../../../prisma/prisma.service.js';
 import { RANGE_MAX_DAYS, RANGE_MAX_ITEMS } from './event.constants.js';
 import { EventCreateDto, EventDto, EventsRangeDto, EventUpdateDto } from './event.dto.js';
 

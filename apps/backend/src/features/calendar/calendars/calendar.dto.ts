@@ -1,7 +1,7 @@
 import { PartialType } from '@nestjs/swagger';
 import { IsString, MaxLength } from 'class-validator';
-import { Trim } from '../common/trim.decorator.js';
-import { type CalendarRole } from '../generated/prisma/enums.js';
+import { Trim } from '../../../common/trim.decorator.js';
+import { type CalendarRole } from '../../../generated/prisma/enums.js';
 
 export class CalendarCreateDto {
   @Trim()
