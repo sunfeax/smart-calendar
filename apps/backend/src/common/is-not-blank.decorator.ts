@@ -1,12 +1,5 @@
 import { applyDecorators } from '@nestjs/common';
-import { Transform } from 'class-transformer';
 import { IsNotEmpty, IsString } from 'class-validator';
+import { Trim } from './trim.decorator.js';
 
-export const IsNotBlank = () =>
-  applyDecorators(
-    Transform(({ value }: { value: unknown }) =>
-      typeof value === 'string' ? value.trim() : value,
-    ),
-    IsString(),
-    IsNotEmpty(),
-  );
+export const IsNotBlank = () => applyDecorators(Trim(), IsString(), IsNotEmpty());
