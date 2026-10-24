@@ -55,7 +55,6 @@
     "name": "Nombre",
     "save": "Guardar",
     "errors": {
-      "required": "Introduce un nombre",
       "maxLength": "No más de 100 caracteres"
     },
     "loadError": "No se pudieron cargar los calendarios"

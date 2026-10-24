@@ -1,5 +1,5 @@
 import { Component, inject, signal } from '@angular/core';
-import { form, FormField, maxLength, required } from '@angular/forms/signals';
+import { form, FormField, maxLength } from '@angular/forms/signals';
 import { MatButton, MatIconButton } from '@angular/material/button';
 import {
   MAT_DIALOG_DATA,
@@ -42,7 +42,6 @@ export class CalendarEditDialog {
   private model = signal({ name: this.data.name ?? '' });
 
   calendarForm = form(this.model, schema => {
-    required(schema.name);
     maxLength(schema.name, 100);
   });
 
@@ -50,7 +49,7 @@ export class CalendarEditDialog {
   save(): void {
     const value = this.calendarForm().value();
     const name = value.name.trim();
-    if (this.calendarForm().invalid() || !name) return;
+    if (this.calendarForm().invalid()) return;
     this.dialogRef.close({ ...value, name });
   }
 

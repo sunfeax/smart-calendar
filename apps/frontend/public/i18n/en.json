@@ -55,7 +55,6 @@
     "name": "Name",
     "save": "Save",
     "errors": {
-      "required": "Enter a name",
       "maxLength": "No more than 100 characters"
     },
     "loadError": "Failed to load calendars"
