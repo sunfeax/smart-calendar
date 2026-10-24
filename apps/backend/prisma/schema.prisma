@@ -22,16 +22,17 @@ model User {
   createdAt   DateTime         @default(now()) @db.Timestamptz(3)
   updatedAt   DateTime         @updatedAt @db.Timestamptz(3)
   memberships CalendarMember[]
-  sessions     Session[]
+  sessions    Session[]
 }
 
 model Calendar {
-  id        String           @id @default(uuid())
-  name      String           @default("")
-  createdAt DateTime         @default(now()) @db.Timestamptz(3)
-  updatedAt DateTime         @updatedAt @db.Timestamptz(3)
-  members   CalendarMember[]
-  events    Event[]
+  id            String           @id @default(uuid())
+  name          String           @default("")
+  createdAt     DateTime         @default(now()) @db.Timestamptz(3)
+  updatedAt     DateTime         @updatedAt @db.Timestamptz(3)
+  members       CalendarMember[]
+  events        Event[]
+  tagCategories TagCategory[]
 }
 
 model CalendarMember {
@@ -47,30 +48,65 @@ model CalendarMember {
 }
 
 model Event {
-  id          String    @id @default(uuid())
+  id          String     @id @default(uuid())
   calendarId  String
   title       String
   description String?
-  startAt     DateTime  @db.Timestamptz(3)
-  endAt       DateTime  @db.Timestamptz(3)
-  allDay      Boolean   @default(false)
-  createdAt   DateTime  @default(now()) @db.Timestamptz(3)
-  completedAt DateTime? @db.Timestamptz(3)
-  updatedAt   DateTime  @updatedAt @db.Timestamptz(3)
-  calendar    Calendar  @relation(fields: [calendarId], references: [id], onDelete: Cascade)
+  startAt     DateTime   @db.Timestamptz(3)
+  endAt       DateTime   @db.Timestamptz(3)
+  allDay      Boolean    @default(false)
+  createdAt   DateTime   @default(now()) @db.Timestamptz(3)
+  completedAt DateTime?  @db.Timestamptz(3)
+  updatedAt   DateTime   @updatedAt @db.Timestamptz(3)
+  calendar    Calendar   @relation(fields: [calendarId], references: [id], onDelete: Cascade)
+  tags        EventTag[]
 
   @@index([calendarId, startAt])
 }
 
+model TagCategory {
+  id         String   @id @default(uuid())
+  calendarId String
+  name       String
+  multiple   Boolean  @default(true)
+  sortOrder  Int      @default(0)
+  calendar   Calendar @relation(fields: [calendarId], references: [id], onDelete: Cascade)
+  tags       Tag[]
+
+  @@index([calendarId])
+}
+
+model Tag {
+  id         String      @id @default(uuid())
+  categoryId String
+  name       String
+  color      String
+  sortOrder  Int         @default(0)
+  category   TagCategory @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  events     EventTag[]
+
+  @@index([categoryId])
+}
+
+model EventTag {
+  eventId String
+  tagId   String
+  event   Event  @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  tag     Tag    @relation(fields: [tagId], references: [id], onDelete: Cascade)
+
+  @@id([eventId, tagId])
+  @@index([tagId])
+}
+
 model Session {
-  id        String   @id @default(uuid())
-  tokenHash String   @unique
-  userId    String
+  id         String   @id @default(uuid())
+  tokenHash  String   @unique
+  userId     String
   userAgent  String?
   lastUsedAt DateTime @default(now()) @db.Timestamptz(3)
-  expiresAt DateTime @db.Timestamptz(3)
-  createdAt DateTime @default(now()) @db.Timestamptz(3)
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  expiresAt  DateTime @db.Timestamptz(3)
+  createdAt  DateTime @default(now()) @db.Timestamptz(3)
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
   @@index([expiresAt])
