@@ -5,7 +5,6 @@ import { RouterLink } from '@angular/router';
 import { TranslocoPipe } from '@jsverse/transloco';
 import { CalendarDto } from '../../../../api/generated';
 import { routePaths } from '../../../../core/constants/routePaths';
-import { CalendarRole } from './../../../../../../../backend/src/generated/prisma/enums';
 
 @Component({
   imports: [MatIcon, MatIconButton, RouterLink, TranslocoPipe],
@@ -23,5 +22,5 @@ export class CalendarCard {
   protected readonly routePaths = routePaths;
 
   // COMPUTED
-  readonly isOwner = computed(() => this.calendar().role === CalendarRole.OWNER);
+  readonly isOwner = computed(() => this.calendar().role === 'OWNER');
 }
