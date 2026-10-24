@@ -1,13 +1,22 @@
 <div class="edit__header">
   <h1 mat-dialog-title>
-    {{ (data.mode === 'create' ? 'event.createTitle' : 'event.editTitle') | transloco }}
+    @if (!data.editable) {
+      {{ 'event.viewTitle' | transloco }}
+    } @else if (data.mode === 'create') {
+      {{ 'event.createTitle' | transloco }}
+    } @else {
+      {{ 'event.editTitle' | transloco }}
+    }
   </h1>
   <button matIconButton [attr.aria-label]="'common.close' | transloco" (click)="cancel()">
     <mat-icon>close</mat-icon>
   </button>
 </div>
 
-<mat-dialog-content class="edit__content">
+<mat-dialog-content
+  class="edit__content"
+  [class.edit__content--readonly]="!data.editable"
+>
   <mat-form-field class="edit__field" subscriptSizing="dynamic">
     <mat-label>{{ 'event.title' | transloco }}</mat-label>
     <input matInput [formField]="eventForm.title" (keydown.enter)="save()" />
@@ -50,12 +59,7 @@
     }
   </mat-form-field>
 
-  @if (eventForm.allDay().value()) {
-    <button matButton type="button" class="edit__time-toggle" (click)="addTime()">
-      <mat-icon>schedule</mat-icon>
-      {{ 'event.addTime' | transloco }}
-    </button>
-  } @else {
+  @if (!eventForm.allDay().value()) {
     <div class="edit__row">
       <mat-form-field class="edit__field" subscriptSizing="dynamic">
         <mat-label>{{ 'event.startTime' | transloco }}</mat-label>
@@ -81,27 +85,40 @@
         <mat-timepicker #endAtTime />
       </mat-form-field>
     </div>
-
-    <button matButton type="button" class="edit__time-toggle" (click)="removeTime()">
-      <mat-icon>timer_off</mat-icon>
-      {{ 'event.removeTime' | transloco }}
-    </button>
   }
 
-  @if (data.mode === 'update') {
-    <mat-checkbox [formField]="eventForm.completed">
-      {{ 'event.completed' | transloco }}
-    </mat-checkbox>
+  @if (data.editable) {
+    <div class="edit__options">
+      @if (eventForm.allDay().value()) {
+        <button matButton type="button" (click)="addTime()">
+          <mat-icon>schedule</mat-icon>
+          {{ 'event.addTime' | transloco }}
+        </button>
+      } @else {
+        <button matButton type="button" (click)="removeTime()">
+          <mat-icon>timer_off</mat-icon>
+          {{ 'event.removeTime' | transloco }}
+        </button>
+      }
+
+      @if (data.mode === 'update') {
+        <mat-checkbox class="edit__completed" [formField]="eventForm.completed">
+          {{ 'event.completed' | transloco }}
+        </mat-checkbox>
+      }
+    </div>
   }
 </mat-dialog-content>
 
 <mat-dialog-actions class="edit__actions">
-  @if (data.mode === 'update') {
+  @if (data.mode === 'update' && data.editable) {
     <button matButton class="edit__delete" (click)="remove()">
       {{ 'event.delete' | transloco }}
     </button>
   }
   <span class="edit__spacer"></span>
   <button matButton (click)="cancel()">{{ 'common.cancel' | transloco }}</button>
-  <button matButton="filled" (click)="save()">{{ 'event.save' | transloco }}</button>
+  @if (data.editable) {
+    <button matButton="filled" (click)="save()">{{ 'event.save' | transloco }}</button>
+  }
 </mat-dialog-actions>

@@ -78,6 +78,7 @@
     "deleteError": "Failed to delete event",
     "createTitle": "New event",
     "editTitle": "Edit event",
+    "viewTitle": "View event",
     "title": "Title",
     "description": "Description",
     "startAt": "Start",

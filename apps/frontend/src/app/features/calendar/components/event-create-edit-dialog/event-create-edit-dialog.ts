@@ -1,6 +1,13 @@
 import { Component, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { form, FormField, maxLength, required, validate } from '@angular/forms/signals';
+import {
+  disabled,
+  form,
+  FormField,
+  maxLength,
+  required,
+  validate,
+} from '@angular/forms/signals';
 import { MatButton, MatIconButton } from '@angular/material/button';
 import { MatCheckbox } from '@angular/material/checkbox';
 import {
@@ -91,6 +98,7 @@ export class EventCreateEditDialog {
   private readonly model = signal(this.initialForm());
 
   eventForm = form(this.model, schema => {
+    disabled(schema, { when: () => !this.data.editable });
     required(schema.title);
     required(schema.startAt);
     maxLength(schema.title, TITLE_MAX);
@@ -130,6 +138,8 @@ export class EventCreateEditDialog {
 
   // ACTIONS
   save(): void {
+    if (!this.data.editable) return;
+
     const form = this.eventForm().value();
 
     if (this.eventForm().invalid() || !form.startAt) {

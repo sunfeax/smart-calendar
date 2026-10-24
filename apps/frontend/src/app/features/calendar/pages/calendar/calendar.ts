@@ -126,7 +126,12 @@ export class Calendar {
     eventDrop: info => this.saveEventDates(info),
     eventResize: info => this.saveEventDates(info),
     dateClick: info => {
-      if (this.canEdit()) this.openEventDialog({ mode: 'create', date: info.dateStr });
+      if (this.canEdit())
+        this.openEventDialog({
+          mode: 'create',
+          date: info.dateStr,
+          editable: this.canEdit(),
+        });
     },
     eventClick: info => this.editEvent(info.event.id),
     datesSet: info => {
@@ -276,7 +281,7 @@ export class Calendar {
   private editEvent(eventId: string): void {
     if (!this.events.hasValue()) return;
     const event = this.events.value().find(item => item.id === eventId);
-    if (event) this.openEventDialog({ mode: 'update', event });
+    if (event) this.openEventDialog({ mode: 'update', event, editable: this.canEdit() });
   }
 
   private setRange(from: string, to: string): void {

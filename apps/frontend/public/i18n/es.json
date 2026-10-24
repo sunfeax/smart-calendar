@@ -78,6 +78,7 @@
     "deleteError": "No se pudo eliminar el evento",
     "createTitle": "Nuevo evento",
     "editTitle": "Editar evento",
+    "viewTitle": "Ver evento",
     "title": "Título",
     "description": "Descripción",
     "startAt": "Inicio",

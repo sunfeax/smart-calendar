@@ -13,14 +13,32 @@
   overflow-y: visible;
 }
 
+.edit__content--readonly {
+  --mat-form-field-outlined-disabled-input-text-color: var(--color-text);
+  --mat-form-field-outlined-disabled-label-text-color: var(--color-text-soft);
+  --mat-form-field-outlined-disabled-outline-color: var(--color-border);
+  --mat-form-field-disabled-input-text-placeholder-color: var(--color-text-muted);
+  --mat-form-field-disabled-trailing-icon-color: var(--color-text-soft);
+  --mat-icon-button-disabled-icon-color: var(--color-text-soft);
+  --mat-datepicker-range-input-disabled-state-text-color: var(--color-text);
+  --mat-datepicker-range-input-disabled-state-separator-color: var(--color-text-soft);
+}
+
 .edit__row {
   display: flex;
   align-items: flex-start;
   gap: var(--space-3);
 }
 
-.edit__time-toggle {
-  align-self: flex-start;
+.edit__options {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+
+.edit__completed {
+  margin-inline-start: auto;
 }
 
 .edit__field {
