@@ -55,8 +55,8 @@ model Event {
   startAt     DateTime   @db.Timestamptz(3)
   endAt       DateTime   @db.Timestamptz(3)
   allDay      Boolean    @default(false)
-  createdAt   DateTime   @default(now()) @db.Timestamptz(3)
   completedAt DateTime?  @db.Timestamptz(3)
+  createdAt   DateTime   @default(now()) @db.Timestamptz(3)
   updatedAt   DateTime   @updatedAt @db.Timestamptz(3)
   calendar    Calendar   @relation(fields: [calendarId], references: [id], onDelete: Cascade)
   tags        EventTag[]
@@ -70,6 +70,8 @@ model TagCategory {
   name       String
   multiple   Boolean  @default(true)
   sortOrder  Int      @default(0)
+  createdAt   DateTime   @default(now()) @db.Timestamptz(3)
+  updatedAt   DateTime   @updatedAt @db.Timestamptz(3)
   calendar   Calendar @relation(fields: [calendarId], references: [id], onDelete: Cascade)
   tags       Tag[]
 
@@ -80,8 +82,10 @@ model Tag {
   id         String      @id @default(uuid())
   categoryId String
   name       String
-  color      String
+  color      String      @default("gray")
   sortOrder  Int         @default(0)
+  createdAt   DateTime   @default(now()) @db.Timestamptz(3)
+  updatedAt   DateTime   @updatedAt @db.Timestamptz(3)
   category   TagCategory @relation(fields: [categoryId], references: [id], onDelete: Cascade)
   events     EventTag[]
 
