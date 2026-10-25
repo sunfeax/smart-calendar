@@ -1,9 +1,9 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
-import { CalendarAccessService } from '../calendars/calendar-access.service.js';
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { ONE_DAY_MS } from '../../../common/constants.js';
 import { Event } from '../../../generated/prisma/client.js';
 import { CalendarRole } from '../../../generated/prisma/enums.js';
 import { PrismaService } from '../../../prisma/prisma.service.js';
+import { CalendarAccessService } from '../calendars/calendar-access.service.js';
 import { RANGE_MAX_DAYS, RANGE_MAX_ITEMS } from './event.constants.js';
 import { EventCreateDto, EventDto, EventsRangeDto, EventUpdateDto } from './event.dto.js';
 
@@ -21,7 +21,7 @@ export class EventService {
     calendarId: string,
     query: EventsRangeDto,
   ): Promise<EventDto[]> {
-    await this.access.requireRole(userId, calendarId, CalendarRole.VIEWER);
+    await this.access.assertRole(userId, calendarId, CalendarRole.VIEWER);
 
     const from = new Date(query.from);
     const to = new Date(query.to);
@@ -55,7 +55,7 @@ export class EventService {
     calendarId: string,
     dto: EventCreateDto,
   ): Promise<EventDto> {
-    await this.access.requireRole(userId, calendarId, CalendarRole.EDITOR);
+    await this.access.assertRole(userId, calendarId, CalendarRole.EDITOR);
 
     const startAt = new Date(dto.startAt);
     const endAt = new Date(dto.endAt);
@@ -78,7 +78,7 @@ export class EventService {
   }
 
   async update(userId: string, id: string, dto: EventUpdateDto): Promise<EventDto> {
-    const event = await this.access.requireEventRole(userId, id, CalendarRole.EDITOR);
+    const event = await this.getAuthorizedEvent(userId, id, CalendarRole.EDITOR);
 
     const startAt = dto.startAt ? new Date(dto.startAt) : event.startAt;
     const endAt = dto.endAt !== undefined ? new Date(dto.endAt) : event.endAt;
@@ -110,8 +110,24 @@ export class EventService {
   }
 
   async remove(userId: string, id: string): Promise<void> {
-    await this.access.requireEventRole(userId, id, CalendarRole.EDITOR);
+    await this.getAuthorizedEvent(userId, id, CalendarRole.EDITOR);
     await this.prisma.event.deleteMany({ where: { id } });
+  }
+
+  private async getAuthorizedEvent(
+    userId: string,
+    eventId: string,
+    minRole: CalendarRole,
+  ): Promise<Event> {
+    const event = await this.prisma.event.findUnique({
+      where: { id: eventId },
+    });
+
+    if (!event) throw new NotFoundException();
+
+    await this.access.assertRole(userId, event.calendarId, minRole);
+
+    return event;
   }
 
   // HELPERS

@@ -30,7 +30,7 @@ export class CalendarService {
   }
 
   async get(userId: string, id: string): Promise<CalendarDto> {
-    const membership = await this.access.requireRole(userId, id, CalendarRole.VIEWER);
+    const membership = await this.access.assertRole(userId, id, CalendarRole.VIEWER);
     const calendar = await this.prisma.calendar.findUnique({ where: { id } });
 
     if (!calendar) throw new NotFoundException();
@@ -70,7 +70,7 @@ export class CalendarService {
   }
 
   async update(userId: string, id: string, dto: CalendarUpdateDto): Promise<CalendarDto> {
-    const membership = await this.access.requireRole(userId, id, CalendarRole.OWNER);
+    const membership = await this.access.assertRole(userId, id, CalendarRole.OWNER);
 
     const calendar = await this.prisma.calendar.update({
       where: { id },
@@ -85,7 +85,7 @@ export class CalendarService {
   }
 
   async remove(userId: string, id: string): Promise<void> {
-    await this.access.requireRole(userId, id, CalendarRole.OWNER);
+    await this.access.assertRole(userId, id, CalendarRole.OWNER);
     await this.prisma.calendar.delete({ where: { id } });
   }
 }
