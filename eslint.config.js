@@ -5,7 +5,15 @@ import globals from 'globals';
 import tseslint from 'typescript-eslint';
 
 export default defineConfig(
-  { ignores: ['**/dist/', '**/coverage/', '**/.angular/', '**/api/generated/', '**/openapi.config.ts'] },
+  {
+    ignores: [
+      '**/dist/',
+      '**/coverage/',
+      '**/.angular/',
+      '**/api/generated/',
+      '**/openapi.config.ts',
+    ],
+  },
   {
     files: ['**/*.ts'],
     extends: [js.configs.recommended, tseslint.configs.recommendedTypeChecked],

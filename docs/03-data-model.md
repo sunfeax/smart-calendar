@@ -86,7 +86,9 @@ model TagCategory {
   calendarId String
   name       String
   multiple   Boolean  @default(true) // можно ли выбрать несколько тегов категории
-  sortOrder  Int      @default(0)
+  sortOrder  Int      @default(0) // ручной порядок внутри календаря, ставит сервер
+  createdAt  DateTime @default(now()) @db.Timestamptz(3)
+  updatedAt  DateTime @updatedAt @db.Timestamptz(3)
   calendar   Calendar @relation(fields: [calendarId], references: [id], onDelete: Cascade)
   tags       Tag[]
 
@@ -97,8 +99,10 @@ model Tag {
   id         String      @id @default(uuid())
   categoryId String
   name       String
-  color      String // ключ палитры, например "red", "blue"
-  sortOrder  Int         @default(0)
+  color      String      @default("gray") // ключ палитры из TAG_COLORS
+  sortOrder  Int         @default(0) // ручной порядок внутри категории, ставит сервер
+  createdAt  DateTime    @default(now()) @db.Timestamptz(3)
+  updatedAt  DateTime    @updatedAt @db.Timestamptz(3)
   category   TagCategory @relation(fields: [categoryId], references: [id], onDelete: Cascade)
   events     EventTag[]
 
@@ -166,7 +170,7 @@ model EventException {
 | 4      | `recurrenceRule` и `EventException` (повторы)                                                                                                                           |
 | 5      | `createdById` у события, если понадобится                                                                                                                               |
 
-Применены порции 1 и 1а, из порции 3 поле `completedAt`.
+Применены порции 1, 1а и 2, из порции 3 поле `completedAt`.
 
 В каждой порции в схему входят только перечисленные модели и поля. Обратные связи, которые указывают на ещё не добавленные модели (например, `tagCategories` в `Calendar` или `exceptions` в `Event`), добавляются вместе с этими моделями.
 
@@ -193,6 +197,14 @@ model EventException {
 - Теги и категории принадлежат календарю. Событие может использовать теги только своего календаря (проверка в сервисе).
 - Для категории с `multiple = false` сервис не даёт выбрать больше одного тега.
 - При первом входе создаём личный календарь и запись `CalendarMember` с ролью OWNER.
+
+### Теги и категории
+
+- Цвет тега хранится ключом палитры. Список ключей `TAG_COLORS` лежит в `tag.constants.ts` на бэкенде, сами цвета для обеих тем лежат в токенах `--color-tag-<key>` и `--color-on-tag-<key>` в `_tokens.scss`. Новый ключ добавляется в оба места.
+- Лимиты: `MAX_TAG_CATEGORIES_PER_CALENDAR` категорий в календаре, `MAX_TAGS_PER_CATEGORY` тегов в категории (`tag.constants.ts`).
+- Родитель передаётся в URL, а не в теле: `calendars/:calendarId/tag-categories`, `tag-categories/:categoryId/tags`. Перенос тега в другую категорию не поддерживается.
+- Список категорий отдаётся вместе с тегами одним запросом: категории с вложенным `tags`. Сортировка по `sortOrder`, затем по `createdAt`.
+- `sortOrder` клиент не присылает и не получает. При создании сервер ставит запись в конец (максимум + 1). Порядок меняется отдельным эндпоинтом, который принимает весь список `ids` и переписывает номера по порядку.
 
 ### Даты
 

@@ -11,7 +11,7 @@ export class TagCategoryCreateDto {
 
   @IsOptional()
   @IsBoolean()
-  multiple!: boolean;
+  multiple?: boolean;
 }
 
 export class TagCategoryUpdateDto extends PartialType(TagCategoryCreateDto, {
