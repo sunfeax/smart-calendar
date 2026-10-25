@@ -32,6 +32,18 @@ enum CalendarRole {
   VIEWER
 }
 
+enum TagColor {
+  GRAY
+  RED
+  ORANGE
+  YELLOW
+  GREEN
+  TEAL
+  BLUE
+  VIOLET
+  PINK
+}
+
 model User {
   id          String           @id @default(uuid())
   googleId    String           @unique // поле sub из Google ID token
@@ -99,7 +111,7 @@ model Tag {
   id         String      @id @default(uuid())
   categoryId String
   name       String
-  color      String      @default("gray") // ключ палитры из TAG_COLORS
+  color      TagColor    @default(GRAY) // ключ палитры
   sortOrder  Int         @default(0) // ручной порядок внутри категории, ставит сервер
   createdAt  DateTime    @default(now()) @db.Timestamptz(3)
   updatedAt  DateTime    @updatedAt @db.Timestamptz(3)

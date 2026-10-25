@@ -13,6 +13,18 @@ enum CalendarRole {
   VIEWER
 }
 
+enum TagColor {
+  GRAY
+  RED
+  ORANGE
+  YELLOW
+  GREEN
+  TEAL
+  BLUE
+  VIOLET
+  PINK
+}
+
 model User {
   id          String           @id @default(uuid())
   googleId    String           @unique
@@ -82,7 +94,7 @@ model Tag {
   id         String      @id @default(uuid())
   categoryId String
   name       String
-  color      String      @default("gray")
+  color      TagColor    @default(GRAY)
   sortOrder  Int         @default(0)
   createdAt  DateTime    @default(now()) @db.Timestamptz(3)
   updatedAt  DateTime    @updatedAt @db.Timestamptz(3)
