@@ -1,10 +1,11 @@
 import { PartialType } from '@nestjs/swagger';
-import { IsBoolean, IsISO8601, IsOptional, MaxLength } from 'class-validator';
-import { IsNotBlank } from '../../../common/is-not-blank.decorator.js';
+import { IsBoolean, IsISO8601, IsOptional, IsString, MaxLength } from 'class-validator';
+import { Trim } from '../../../common/trim.decorator.js';
 import { DESCRIPTION_MAX, TITLE_MAX } from './event.constants.js';
 
 export class EventCreateDto {
-  @IsNotBlank()
+  @IsString()
+  @Trim()
   @MaxLength(TITLE_MAX)
   title!: string;
 
