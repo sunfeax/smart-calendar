@@ -30,11 +30,14 @@
 - `GET /calendars/:id/events?from=&to=`
 - `POST /calendars/:id/events`
 - `PATCH /events/:id`, `DELETE /events/:id`
+- Ответ события содержит `tagIds: string[]`. Имена и цвета клиент берёт из списка категорий календаря.
+- Теги события по одному: `POST /events/:id/tags/:tagId`, `DELETE /events/:id/tags/:tagId`, оба возвращают событие целиком.
 - Повторы: `PATCH` и `DELETE` для повторяющегося события принимают область `scope=this|following|all` и дату повторения (`occurrence`). `this` пишет `EventException`, `following` делит серию, `all` меняет исходную запись.
 
-**Теги** (позже, этап 3)
+**Теги**
 
-- Категории и теги календаря: стандартный CRUD под `/calendars/:id/tag-categories` и `/tag-categories/:id/tags`.
+- Категории: `GET` и `POST /calendars/:calendarId/tag-categories` (список с вложенными тегами), `PATCH` и `DELETE /tag-categories/:id`.
+- Теги: `POST /tag-categories/:categoryId/tags`, `PATCH` и `DELETE /tags/:id`. Отдельного списка тегов нет, они приходят в списке категорий.
 
 **Прочее**
 

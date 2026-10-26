@@ -51,4 +51,5 @@ export class EventDto {
   completedAt!: string | null;
   updatedAt!: string;
   createdAt!: string;
+  tagIds!: string[];
 }

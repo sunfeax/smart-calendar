@@ -57,4 +57,22 @@ export class EventController {
   ): Promise<void> {
     return this.eventService.remove(user.id, id);
   }
+
+  @Post('events/:id/tags/:tagId')
+  addTag(
+    @CurrentUser() user: User,
+    @Param('id', ParseUUIDPipe) id: string,
+    @Param('tagId', ParseUUIDPipe) tagId: string,
+  ): Promise<EventDto> {
+    return this.eventService.addTag(user.id, id, tagId);
+  }
+
+  @Delete('events/:id/tags/:tagId')
+  removeTag(
+    @CurrentUser() user: User,
+    @Param('id', ParseUUIDPipe) id: string,
+    @Param('tagId', ParseUUIDPipe) tagId: string,
+  ): Promise<EventDto> {
+    return this.eventService.removeTag(user.id, id, tagId);
+  }
 }
