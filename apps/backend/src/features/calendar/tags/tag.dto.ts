@@ -1,5 +1,5 @@
 import { PartialType } from '@nestjs/swagger';
-import { IsEnum, IsOptional, MaxLength } from 'class-validator';
+import { IsEnum, MaxLength } from 'class-validator';
 import { IsNotBlank } from '../../../common/is-not-blank.decorator.js';
 import { TagColor } from '../../../generated/prisma/enums.js';
 import { NAME_MAX } from './tag.constants.js';
@@ -9,9 +9,8 @@ export class TagCreateDto {
   @MaxLength(NAME_MAX)
   name!: string;
 
-  @IsOptional()
   @IsEnum(TagColor)
-  color?: TagColor;
+  color!: TagColor;
 }
 
 export class TagUpdateDto extends PartialType(TagCreateDto, {

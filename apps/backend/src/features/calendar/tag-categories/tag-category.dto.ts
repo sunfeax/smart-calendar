@@ -1,5 +1,5 @@
 import { PartialType } from '@nestjs/swagger';
-import { IsBoolean, IsOptional, MaxLength } from 'class-validator';
+import { IsBoolean, MaxLength } from 'class-validator';
 import { IsNotBlank } from '../../../common/is-not-blank.decorator.js';
 import { TagDto } from '../tags/tag.dto.js';
 import { NAME_MAX } from './tag-category.constants.js';
@@ -9,9 +9,8 @@ export class TagCategoryCreateDto {
   @MaxLength(NAME_MAX)
   name!: string;
 
-  @IsOptional()
   @IsBoolean()
-  multiple?: boolean;
+  multiple!: boolean;
 }
 
 export class TagCategoryUpdateDto extends PartialType(TagCategoryCreateDto, {
