@@ -4,10 +4,11 @@ import { Trim } from '../../../common/trim.decorator.js';
 import { DESCRIPTION_MAX, TITLE_MAX } from './event.constants.js';
 
 export class EventCreateDto {
+  @IsOptional()
   @IsString()
   @Trim()
   @MaxLength(TITLE_MAX)
-  title!: string;
+  title?: string;
 
   @IsOptional()
   @MaxLength(DESCRIPTION_MAX)
@@ -19,9 +20,8 @@ export class EventCreateDto {
   @IsISO8601({ strict: true })
   endAt!: string;
 
-  @IsOptional()
   @IsBoolean()
-  allDay?: boolean;
+  allDay!: boolean;
 }
 
 export class EventUpdateDto extends PartialType(EventCreateDto, {

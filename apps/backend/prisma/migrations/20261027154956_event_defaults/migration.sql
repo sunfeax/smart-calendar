@@ -1,0 +1,3 @@
+-- AlterTable
+ALTER TABLE "Event" ALTER COLUMN "title" SET DEFAULT '',
+ALTER COLUMN "allDay" SET DEFAULT true;

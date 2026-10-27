@@ -62,11 +62,11 @@ model CalendarMember {
 model Event {
   id          String     @id @default(uuid())
   calendarId  String
-  title       String
+  title       String     @default("")
   description String?
   startAt     DateTime   @db.Timestamptz(3)
   endAt       DateTime   @db.Timestamptz(3)
-  allDay      Boolean    @default(false)
+  allDay      Boolean    @default(true)
   completedAt DateTime?  @db.Timestamptz(3)
   createdAt   DateTime   @default(now()) @db.Timestamptz(3)
   updatedAt   DateTime   @updatedAt @db.Timestamptz(3)

@@ -125,11 +125,11 @@ model Event {
   id             String           @id @default(uuid())
   calendarId     String
   createdById    String?
-  title          String
+  title          String           @default("")
   description    String?
   startAt        DateTime         @db.Timestamptz(3)
   endAt          DateTime         @db.Timestamptz(3)
-  allDay         Boolean          @default(false)
+  allDay         Boolean          @default(true)
   completedAt    DateTime?        @db.Timestamptz(3) // отметка «выполнено», null = не выполнено
   icon           String? // "emoji:🎉", "brand:telegram", "url:https://..."
   recurrenceRule String? // строка rrule (RFC 5545)

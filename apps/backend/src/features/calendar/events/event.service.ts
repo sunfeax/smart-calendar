@@ -64,7 +64,7 @@ export class EventService {
 
     const startAt = new Date(dto.startAt);
     const endAt = new Date(dto.endAt);
-    const allDay = dto.allDay ?? false;
+    const { allDay } = dto;
 
     this.assertDates(startAt, endAt, allDay);
 
