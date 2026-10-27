@@ -18,4 +18,5 @@ export interface EventDto {
     completedAt: string | null;
     updatedAt: string;
     createdAt: string;
+    tagIds: Array<string>;
 }
