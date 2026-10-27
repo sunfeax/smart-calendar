@@ -69,6 +69,9 @@
   },
   "event": {
     "toggleCompleted": "Mark as completed",
+    "markNotCompleted": "Mark as not completed",
+    "actions": "Actions",
+    "untitled": "Untitled",
     "createSuccess": "Event created",
     "createError": "Failed to create event",
     "updateSuccess": "Event updated",

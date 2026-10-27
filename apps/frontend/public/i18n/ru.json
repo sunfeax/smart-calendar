@@ -69,6 +69,9 @@
   },
   "event": {
     "toggleCompleted": "Отметить выполненным",
+    "markNotCompleted": "Снять отметку о выполнении",
+    "actions": "Действия",
+    "untitled": "Без названия",
     "createSuccess": "Событие создано",
     "createError": "Не удалось создать событие",
     "updateSuccess": "Событие обновлено",

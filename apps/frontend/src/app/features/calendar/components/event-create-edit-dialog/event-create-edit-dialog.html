@@ -2,15 +2,30 @@
   <h1 mat-dialog-title>
     @if (!data.editable) {
       {{ 'event.viewTitle' | transloco }}
-    } @else if (data.mode === 'create') {
-      {{ 'event.createTitle' | transloco }}
     } @else {
       {{ 'event.editTitle' | transloco }}
     }
   </h1>
-  <button matIconButton [attr.aria-label]="'common.close' | transloco" (click)="cancel()">
-    <mat-icon>close</mat-icon>
-  </button>
+  <div class="edit__header-actions">
+    @if (data.editable) {
+      <button
+        matIconButton
+        class="edit__delete"
+        [attr.aria-label]="'event.delete' | transloco"
+        [matTooltip]="'event.delete' | transloco"
+        (click)="remove()"
+      >
+        <mat-icon>delete</mat-icon>
+      </button>
+    }
+    <button
+      matIconButton
+      [attr.aria-label]="'common.close' | transloco"
+      (click)="cancel()"
+    >
+      <mat-icon>close</mat-icon>
+    </button>
+  </div>
 </div>
 
 <mat-dialog-content
@@ -19,7 +34,11 @@
 >
   <mat-form-field class="edit__field" subscriptSizing="dynamic">
     <mat-label>{{ 'event.title' | transloco }}</mat-label>
-    <input matInput [formField]="eventForm.title" (keydown.enter)="save()" />
+    <input
+      matInput
+      [formField]="eventForm.title"
+      [placeholder]="'event.untitled' | transloco"
+    />
     @if (eventForm.title().errors()[0]; as error) {
       <mat-error>{{ 'event.errors.' + error.kind | transloco }}</mat-error>
     }
@@ -100,25 +119,9 @@
           {{ 'event.removeTime' | transloco }}
         </button>
       }
-
-      @if (data.mode === 'update') {
-        <mat-checkbox class="edit__completed" [formField]="eventForm.completed">
-          {{ 'event.completed' | transloco }}
-        </mat-checkbox>
-      }
+      <mat-checkbox class="edit__completed" [formField]="eventForm.completed">
+        {{ 'event.completed' | transloco }}
+      </mat-checkbox>
     </div>
   }
 </mat-dialog-content>
-
-<mat-dialog-actions class="edit__actions">
-  @if (data.mode === 'update' && data.editable) {
-    <button matButton class="edit__delete" (click)="remove()">
-      {{ 'event.delete' | transloco }}
-    </button>
-  }
-  <span class="edit__spacer"></span>
-  <button matButton (click)="cancel()">{{ 'common.cancel' | transloco }}</button>
-  @if (data.editable) {
-    <button matButton="filled" (click)="save()">{{ 'event.save' | transloco }}</button>
-  }
-</mat-dialog-actions>

@@ -58,7 +58,7 @@ full-calendar {
 
 .calendar__title {
   margin: 0;
-  color: var(--color-text);
+  color: inherit;
   font-size: var(--font-size-lg);
   font-weight: var(--font-weight-semibold);
   min-width: 0;
@@ -99,7 +99,7 @@ full-calendar {
 .calendar__year {
   grid-area: year;
   margin: 0;
-  color: var(--color-text);
+  color: inherit;
   font-size: var(--font-size-2xl);
   font-weight: var(--font-weight-semibold);
   text-align: center;
@@ -133,33 +133,37 @@ full-calendar {
   padding-inline: var(--space-1) var(--space-2);
 }
 
-.calendar__check {
-  --mat-checkbox-state-layer-size: 24px;
-  --mat-checkbox-touch-target-size: 24px;
-  --mat-checkbox-unselected-hover-state-layer-opacity: 0;
-  --mat-checkbox-selected-hover-state-layer-opacity: 0;
-  --mat-checkbox-unselected-focus-state-layer-opacity: 0;
-  --mat-checkbox-selected-focus-state-layer-opacity: 0;
-  --mat-checkbox-unselected-pressed-state-layer-opacity: 0;
-  --mat-checkbox-selected-pressed-state-layer-opacity: 0;
-
+.calendar__more {
   display: flex;
   flex: none;
-  margin-inline-start: auto;
-  translate: 0 -3px;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  border: none;
+  margin-inline: auto calc(-1 * var(--space-1-5));
+  background: none;
+  color: inherit;
+  cursor: pointer;
   opacity: 0;
   pointer-events: none;
   transition: opacity var(--duration-fast) var(--ease-standard);
+
+  mat-icon {
+    width: var(--font-size-xl);
+    height: var(--font-size-xl);
+    font-size: var(--font-size-xl);
+  }
 }
 
-.calendar__event:hover .calendar__check,
-.calendar__event:focus-within .calendar__check {
+.calendar__event:hover .calendar__more,
+.calendar__event:focus-within .calendar__more,
+.calendar__more[aria-expanded='true'] {
   opacity: 1;
   pointer-events: auto;
 }
 
 @media (hover: none) {
-  .calendar__check {
+  .calendar__more {
     opacity: 1;
     pointer-events: auto;
   }
@@ -179,4 +183,8 @@ full-calendar {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+.calendar__event-title--empty {
+  opacity: 0.7;
 }

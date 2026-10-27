@@ -1,5 +1,4 @@
 import { Component, inject, signal } from '@angular/core';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import {
   disabled,
   form,
@@ -19,8 +18,6 @@ import {
 } from '@angular/material/datepicker';
 import {
   MAT_DIALOG_DATA,
-  MatDialog,
-  MatDialogActions,
   MatDialogContent,
   MatDialogRef,
   MatDialogTitle,
@@ -38,13 +35,13 @@ import {
   MatTimepickerInput,
   MatTimepickerToggle,
 } from '@angular/material/timepicker';
+import { MatTooltip } from '@angular/material/tooltip';
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import { startOfDay } from 'date-fns';
-import { filter, merge } from 'rxjs';
-import { ConfirmDialog } from '../../../../shared/components/confirm-dialog/confirm-dialog';
 import { DESCRIPTION_MAX, HOUR_MS, TITLE_MAX } from '../../constants/event.constants';
+import { EventDto } from '../../../../api/generated';
 import { EventDialogData, EventDialogResult } from '../../models/event-dialog';
-import { toEventApiDates, toEventFormDates } from '../../utils/event.mapper';
+import { toEventFormDates } from '../../utils/event.mapper';
 
 interface EventFormModel {
   title: string;
@@ -66,7 +63,6 @@ interface EventFormModel {
     MatEndDate,
     MatIcon,
     MatIconButton,
-    MatDialogActions,
     MatDialogContent,
     MatDialogTitle,
     MatError,
@@ -78,6 +74,7 @@ interface EventFormModel {
     MatTimepicker,
     MatTimepickerInput,
     MatTimepickerToggle,
+    MatTooltip,
     TranslocoPipe,
   ],
   selector: 'app-event-create-edit-dialog',
@@ -86,7 +83,6 @@ interface EventFormModel {
 })
 export class EventCreateEditDialog {
   // DEPENDENCIES
-  private readonly dialog = inject(MatDialog);
   private readonly dialogRef =
     inject<MatDialogRef<EventCreateEditDialog, EventDialogResult>>(MatDialogRef);
   private readonly transloco = inject(TranslocoService);
@@ -94,18 +90,13 @@ export class EventCreateEditDialog {
   readonly data = inject<EventDialogData>(MAT_DIALOG_DATA);
 
   // STATE
-  private readonly initialFormSnapshot: EventFormModel = this.initialForm();
-  private readonly model = signal(this.initialForm());
+  private readonly model = signal(this.toFormModel(this.data.event));
 
   eventForm = form(this.model, schema => {
     disabled(schema, { when: () => !this.data.editable });
-    required(schema.title);
     required(schema.startAt);
     maxLength(schema.title, TITLE_MAX);
     maxLength(schema.description, DESCRIPTION_MAX);
-    validate(schema.title, context => {
-      return context.value().trim().length > 0 ? null : { kind: 'required' };
-    });
     validate(schema.endAt, context => {
       const end = context.value();
       const start = context.valueOf(schema.startAt);
@@ -119,49 +110,9 @@ export class EventCreateEditDialog {
     });
   });
 
-  // LIFECYCLE
-  constructor() {
-    this.confirmBeforeClose();
-  }
-
-  // EFFECTS
-  private confirmBeforeClose(): void {
-    this.dialogRef.disableClose = true;
-
-    merge(
-      this.dialogRef.backdropClick(),
-      this.dialogRef.keydownEvents().pipe(filter(event => event.key === 'Escape')),
-    )
-      .pipe(takeUntilDestroyed())
-      .subscribe(() => this.cancel());
-  }
-
   // ACTIONS
-  save(): void {
-    if (!this.data.editable) return;
-
-    const form = this.eventForm().value();
-
-    if (this.eventForm().invalid() || !form.startAt) {
-      this.eventForm().markAsTouched();
-      return;
-    }
-
-    const payload = {
-      ...form,
-      ...toEventApiDates({ ...form, startAt: form.startAt }),
-    };
-
-    if (this.data.mode === 'update') {
-      this.dialogRef.close({ action: 'update', eventId: this.data.event.id, payload });
-    } else {
-      this.dialogRef.close({ action: 'create', payload });
-    }
-  }
-
   remove(): void {
-    if (this.data.mode !== 'update') return;
-    this.dialogRef.close({ action: 'delete', eventId: this.data.event.id });
+    this.dialogRef.close({ action: 'delete' });
   }
 
   addTime(): void {
@@ -185,38 +136,17 @@ export class EventCreateEditDialog {
   }
 
   cancel() {
-    if (JSON.stringify(this.model()) !== JSON.stringify(this.initialFormSnapshot)) {
-      ConfirmDialog.open(this.dialog, {
-        title: this.transloco.translate('event.discardTitle'),
-        message: this.transloco.translate('event.discardMessage'),
-        confirmText: this.transloco.translate('event.discard'),
-      })
-        .pipe()
-        .subscribe(() => this.dialogRef.close());
-      return;
-    }
     this.dialogRef.close();
   }
 
   // HELPERS
-  private initialForm(): EventFormModel {
-    if (this.data.mode === 'update') {
-      return {
-        title: this.data.event.title,
-        description: this.data.event.description ?? '',
-        allDay: this.data.event.allDay ?? false,
-        ...toEventFormDates(this.data.event),
-        completed: this.data.event.completedAt !== null,
-      };
-    } else {
-      return {
-        title: '',
-        description: '',
-        allDay: true,
-        startAt: new Date(`${this.data.date}T00:00:00`),
-        endAt: null,
-        completed: false,
-      };
-    }
+  private toFormModel(event: EventDto): EventFormModel {
+    return {
+      title: event.title,
+      description: event.description ?? '',
+      allDay: event.allDay,
+      ...toEventFormDates(event),
+      completed: event.completedAt !== null,
+    };
   }
 }

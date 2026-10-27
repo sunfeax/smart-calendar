@@ -1,9 +1,18 @@
+import { EventApi } from '@fullcalendar/angular';
 import { addDays, format, parseISO, startOfDay } from 'date-fns';
 import { EventDto } from '../../../api/generated';
 
-export function countEventsByDay(
-  events: Pick<EventDto, 'startAt' | 'endAt' | 'allDay'>[],
-): Map<string, number> {
+export type EventDates = Pick<EventDto, 'startAt' | 'endAt' | 'allDay'>;
+
+export function toEventDates(event: EventApi): EventDates {
+  return {
+    allDay: event.allDay,
+    startAt: event.startStr,
+    endAt: event.endStr || event.startStr,
+  };
+}
+
+export function countEventsByDay(events: EventDates[]): Map<string, number> {
   const counts = new Map<string, number>();
 
   for (const event of events) {

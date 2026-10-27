@@ -5,6 +5,11 @@
   padding-right: var(--space-2);
 }
 
+.edit__header-actions {
+  display: flex;
+  align-items: center;
+}
+
 .edit__content {
   display: flex;
   flex-direction: column;
@@ -43,14 +48,6 @@
 
 .edit__field {
   width: 100%;
-}
-
-.edit__actions {
-  display: flex;
-}
-
-.edit__spacer {
-  flex: 1;
 }
 
 .edit__delete {

@@ -58,19 +58,51 @@
   <ng-template #eventContent let-arg>
     <span class="calendar__event">
       @if (!arg.event.allDay) {
-        <mat-icon class="calendar__time-icon" aria-hidden="true">schedule</mat-icon>
+        <mat-icon
+          class="calendar__time-icon"
+          role="img"
+          [attr.aria-label]="arg.timeText"
+          [matTooltip]="arg.timeText"
+        >
+          schedule
+        </mat-icon>
       }
-      <span class="calendar__event-title">{{ arg.event.title }}</span>
-      @if (canEdit() || arg.event.extendedProps.completed) {
-        <mat-checkbox
-          class="calendar__check"
-          disableRipple
-          [checked]="arg.event.extendedProps.completed"
-          [disabled]="!canEdit()"
-          [attr.aria-label]="'event.toggleCompleted' | transloco"
+      <span
+        class="calendar__event-title"
+        [class.calendar__event-title--empty]="!arg.event.title"
+      >
+        {{ arg.event.title || ('event.untitled' | transloco) }}
+      </span>
+      @if (canEdit()) {
+        <button
+          type="button"
+          class="calendar__more"
+          [matMenuTriggerFor]="eventMenu"
+          [attr.aria-label]="'event.actions' | transloco"
           (click)="$event.stopPropagation()"
-          (change)="toggleCompleted(arg.event.id, $event.checked)"
-        />
+        >
+          <mat-icon aria-hidden="true">more_vert</mat-icon>
+        </button>
+        <mat-menu #eventMenu="matMenu" xPosition="before">
+          @let completed = arg.event.extendedProps.completed;
+          <button
+            mat-menu-item
+            type="button"
+            (click)="toggleCompleted(arg.event.id, !completed)"
+          >
+            <mat-icon>{{ completed ? 'remove_done' : 'done' }}</mat-icon>
+            <span>
+              {{
+                (completed ? 'event.markNotCompleted' : 'event.toggleCompleted')
+                  | transloco
+              }}
+            </span>
+          </button>
+          <button mat-menu-item type="button" (click)="deleteEvent(arg.event.id)">
+            <mat-icon>delete</mat-icon>
+            <span>{{ 'event.delete' | transloco }}</span>
+          </button>
+        </mat-menu>
       }
     </span>
   </ng-template>
