@@ -19,7 +19,7 @@
           [placeholder]="'calendars.unnamed' | transloco"
           [title]="calendarName"
           [attr.aria-label]="'calendars.edit' | transloco"
-          (blur)="updateTitle(nameInput.value)"
+          (blur)="updateCalendarTitle(nameInput.value)"
           (keydown.enter)="nameInput.blur()"
           (keydown.escape)="nameInput.value = calendar.value().name; nameInput.blur()"
         />
@@ -88,7 +88,7 @@
           <button
             mat-menu-item
             type="button"
-            (click)="toggleCompleted(arg.event.id, !completed)"
+            (click)="updateEventFromMenu(arg.event.id, { completed: !completed })"
           >
             <mat-icon>{{ completed ? 'remove_done' : 'done' }}</mat-icon>
             <span>
@@ -98,7 +98,7 @@
               }}
             </span>
           </button>
-          <button mat-menu-item type="button" (click)="deleteEvent(arg.event.id)">
+          <button mat-menu-item type="button" (click)="deleteEventFromMenu(arg.event.id)">
             <mat-icon>delete</mat-icon>
             <span>{{ 'event.delete' | transloco }}</span>
           </button>

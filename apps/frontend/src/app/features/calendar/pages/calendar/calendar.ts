@@ -38,7 +38,7 @@ import { routePaths } from '../../../../core/constants/routePaths';
 import { ConfirmDialog } from '../../../../shared/components/confirm-dialog/confirm-dialog';
 import { LanguageService } from '../../../../shared/services/language.service';
 import { EventCreateEditDialog } from '../../components/event-create-edit-dialog/event-create-edit-dialog';
-import { EventDialogData, EventDialogResult } from '../../models/event-dialog';
+import { EventDialogData } from '../../models/event-dialog';
 import { EventRange } from '../../models/event-range';
 import { CalendarService } from '../../services/calendar.service';
 import { EventService } from '../../services/event.service';
@@ -149,7 +149,7 @@ export class Calendar {
     eventDrop: info => this.saveEventDates(info),
     eventResize: info => this.saveEventDates(info),
     dateClick: info => this.createEvent(info),
-    eventClick: info => this.editEvent(info.event.id),
+    eventClick: info => this.openEvent(info.event.id),
     datesSet: info => this.changeDates(info),
   }));
 
@@ -193,36 +193,17 @@ export class Calendar {
   }
 
   // ACTIONS
-  toggleCompleted(eventId: string, completed: boolean): void {
-    this.updateEvent(eventId, { completed });
+  updateEventFromMenu(eventId: string, payload: EventUpdateDto): void {
+    this.updateEvent(eventId, payload).subscribe();
   }
 
-  deleteEvent(eventId: string): void {
-    ConfirmDialog.open(this.dialog, {
-      title: this.transloco.translate('event.deleteTitle'),
-      message: this.transloco.translate('event.deleteMessage'),
-      confirmText: this.transloco.translate('event.delete'),
-      variant: 'danger',
-    })
-      .pipe(
-        switchMap(() => this.eventService.delete(eventId)),
-        tap(() => this.events.update(list => list?.filter(item => item.id !== eventId))),
-        catchError(() => {
-          this.snackbarService.error(this.transloco.translate('event.deleteError'));
-          return EMPTY;
-        }),
-      )
-      .subscribe();
+  deleteEventFromMenu(eventId: string): void {
+    this.deleteEvent(eventId).subscribe();
   }
 
-  navigate(action: 'prev' | 'next' | 'today'): void {
-    this.fullCalendar().getApi()[action]();
-  }
-
-  updateTitle(title: string): void {
+  updateCalendarTitle(title: string): void {
     const name = title.trim();
     if (name === this.calendar.value()?.name) return;
-
     this.calendarService
       .update(this.id(), { name })
       .pipe(
@@ -235,43 +216,57 @@ export class Calendar {
       .subscribe();
   }
 
-  private openEventDialog(event: EventDto): void {
-    this.dialog
-      .open<EventCreateEditDialog, EventDialogData, EventDialogResult>(
-        EventCreateEditDialog,
-        {
-          data: { event, editable: this.canEdit() },
-          width: 'min(32rem, calc(100vw - 2rem))',
-          height: 'min(28rem, calc(100dvh - 2rem))',
-          maxHeight: 'calc(100dvh - 2rem)',
-        },
-      )
-      .afterClosed()
-      .subscribe(result => {
-        if (result?.action === 'delete') this.deleteEvent(event.id);
-      });
+  navigate(action: 'prev' | 'next' | 'today'): void {
+    this.fullCalendar().getApi()[action]();
   }
 
   private updateEvent(
     eventId: string,
     payload: EventUpdateDto,
     rollback?: () => void,
-  ): void {
-    this.eventService
-      .update(eventId, payload)
-      .pipe(
-        tap(updated =>
-          this.events.update(list =>
-            list?.map(item => (item.id === updated.id ? updated : item)),
-          ),
+  ): Observable<EventDto> {
+    return this.eventService.update(eventId, payload).pipe(
+      tap(updated =>
+        this.events.update(list =>
+          list?.map(item => (item.id === updated.id ? updated : item)),
         ),
-        catchError(() => {
-          rollback?.();
-          this.snackbarService.error(this.transloco.translate('event.updateError'));
-          return EMPTY;
-        }),
-      )
-      .subscribe();
+      ),
+      catchError(() => {
+        rollback?.();
+        this.snackbarService.error(this.transloco.translate('event.updateError'));
+        return EMPTY;
+      }),
+    );
+  }
+
+  private deleteEvent(eventId: string): Observable<void> {
+    return ConfirmDialog.open(this.dialog, {
+      title: this.transloco.translate('event.deleteTitle'),
+      message: this.transloco.translate('event.deleteMessage'),
+      confirmText: this.transloco.translate('event.delete'),
+      variant: 'danger',
+    }).pipe(
+      switchMap(() => this.eventService.delete(eventId)),
+      tap(() => this.events.update(list => list?.filter(item => item.id !== eventId))),
+      catchError(() => {
+        this.snackbarService.error(this.transloco.translate('event.deleteError'));
+        return EMPTY;
+      }),
+    );
+  }
+
+  private openEventDialog(event: EventDto): void {
+    this.dialog.open<EventCreateEditDialog, EventDialogData>(EventCreateEditDialog, {
+      data: {
+        event,
+        editable: this.canEdit(),
+        update: (payload, rollback) => this.updateEvent(event.id, payload, rollback),
+        remove: () => this.deleteEvent(event.id),
+      },
+      width: 'min(32rem, calc(100vw - 2rem))',
+      height: 'min(28rem, calc(100dvh - 2rem))',
+      maxHeight: 'calc(100dvh - 2rem)',
+    });
   }
 
   private saveNewEvent(payload: EventCreateDto): Observable<EventDto> {
@@ -291,30 +286,29 @@ export class Calendar {
       revert();
       return;
     }
-
     const payload = toEventApiDates({
       allDay,
       startAt: start,
       endAt: end && allDay ? addDays(end, -1) : end,
     });
-
-    this.updateEvent(event.id, payload, revert);
-  }
-
-  private syncRenderedEvents(events: EventApi[]): void {
-    this.renderedEvents.set(events.map(toEventDates));
+    this.updateEvent(event.id, payload, revert).subscribe();
   }
 
   private createEvent({ date }: DateClickInfo): void {
     if (!this.canEdit()) return;
-    this.saveNewEvent(this.newEventPayload(date)).subscribe(event =>
-      this.openEventDialog(event),
-    );
+    this.saveNewEvent(
+      toEventApiDates({ allDay: true, startAt: date, endAt: null }),
+    ).subscribe(event => this.openEventDialog(event));
+  }
+
+  private openEvent(eventId: string): void {
+    if (!this.events.hasValue()) return;
+    const event = this.events.value().find(item => item.id === eventId);
+    if (event) this.openEventDialog(event);
   }
 
   private changeDates({ view, start, end }: DatesSetInfo): void {
     this.year.set(view.currentStart.getFullYear());
-
     const from = start.toISOString();
     const to = end.toISOString();
     const current = this.range();
@@ -322,17 +316,7 @@ export class Calendar {
     this.range.set({ from, to });
   }
 
-  private editEvent(eventId: string): void {
-    if (!this.events.hasValue()) return;
-    const event = this.events.value().find(item => item.id === eventId);
-    if (event) this.openEventDialog(event);
-  }
-
-  // HELPERS
-  private newEventPayload(date: Date): EventCreateDto {
-    return {
-      allDay: true,
-      ...toEventApiDates({ allDay: true, startAt: date, endAt: null }),
-    };
+  private syncRenderedEvents(events: EventApi[]): void {
+    this.renderedEvents.set(events.map(toEventDates));
   }
 }

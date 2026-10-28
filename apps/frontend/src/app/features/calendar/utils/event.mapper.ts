@@ -1,5 +1,7 @@
 import { EventInput } from '@fullcalendar/angular';
+import { addDays } from 'date-fns';
 import { EventDto } from '../../../api/generated';
+import { HOUR_MS } from '../constants/event.constants';
 
 export function toCalendarEvent(event: EventDto): EventInput {
   const input: EventInput = {
@@ -26,9 +28,6 @@ export function toCalendarEvent(event: EventDto): EventInput {
   return input;
 }
 
-import { addDays } from 'date-fns';
-import { HOUR_MS } from '../constants/event.constants';
-
 interface EventFormDates {
   allDay: boolean;
   startAt: Date;
@@ -50,6 +49,7 @@ export function toEventFormDates(event: Pick<EventDto, 'allDay' | 'startAt' | 'e
 }
 
 export function toEventApiDates(form: EventFormDates): {
+  allDay: boolean;
   startAt: string;
   endAt: string;
 } {
@@ -58,8 +58,8 @@ export function toEventApiDates(form: EventFormDates): {
     (form.allDay ? form.startAt : new Date(form.startAt.getTime() + HOUR_MS));
 
   return form.allDay
-    ? { startAt: toAllDayIso(form.startAt), endAt: toAllDayIso(end, 1) }
-    : { startAt: form.startAt.toISOString(), endAt: end.toISOString() };
+    ? { allDay: true, startAt: toAllDayIso(form.startAt), endAt: toAllDayIso(end, 1) }
+    : { allDay: false, startAt: form.startAt.toISOString(), endAt: end.toISOString() };
 }
 
 function fromAllDayIso(value: string): Date {
