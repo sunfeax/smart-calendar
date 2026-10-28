@@ -1,8 +1,7 @@
 import { inject, Service } from '@angular/core';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { SNACKBAR_CONFIG } from '../../core/config/snackbar.config';
-
-type Snackbar = 'success' | 'error' | 'info' | 'warning';
+import { Snackbar, SnackbarData, SnackbarType } from '../components/snackbar/snackbar';
 
 @Service()
 export class SnackbarService {
@@ -26,8 +25,12 @@ export class SnackbarService {
     this.show(message, 'warning');
   }
 
-  private show(message: string, type: Snackbar): void {
+  private show(message: string, type: SnackbarType): void {
     const panelClass = ['app-snack-bar', `app-snack-bar--${type}`];
-    this.snackBarService.open(message, '✕', { ...SNACKBAR_CONFIG, panelClass });
+    this.snackBarService.openFromComponent<Snackbar, SnackbarData>(Snackbar, {
+      ...SNACKBAR_CONFIG,
+      panelClass,
+      data: { message, type },
+    });
   }
 }

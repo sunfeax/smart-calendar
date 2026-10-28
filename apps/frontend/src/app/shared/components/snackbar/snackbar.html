@@ -1,0 +1,16 @@
+<span class="snackbar__badge" aria-hidden="true">
+  <mat-icon>{{ icon() }}</mat-icon>
+</span>
+<div matSnackBarLabel class="snackbar__message">{{ data.message }}</div>
+<div matSnackBarActions>
+  <button
+    matIconButton
+    matSnackBarAction
+    type="button"
+    class="snackbar__close"
+    [attr.aria-label]="'common.close' | transloco"
+    (click)="close()"
+  >
+    <mat-icon>close</mat-icon>
+  </button>
+</div>

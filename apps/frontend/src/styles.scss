@@ -244,31 +244,30 @@ button mat-progress-spinner {
 }
 
 .app-snack-bar {
-  --mat-snack-bar-container-color: var(--color-surface);
-  --mat-snack-bar-supporting-text-color: var(--color-text);
-  --mat-snack-bar-button-color: var(--color-primary-text);
-  --mat-snack-bar-container-shape: var(--radius-xl);
-  --snack-bar-accent: var(--color-primary);
+  --mat-snack-bar-container-color: var(--color-surface-alt);
+  --mat-snack-bar-container-shape: var(--radius-control);
+  --snack-bar-accent: var(--color-info);
+  --snack-bar-accent-soft: var(--color-info-soft);
 
   .mdc-snackbar__surface {
+    min-width: min(22rem, calc(100vw - 2rem));
+    padding-block: var(--space-1);
     border: var(--border-width-sm) solid var(--color-border-soft);
-    border-left: var(--border-width-lg) solid var(--snack-bar-accent);
     box-shadow: var(--shadow-lg);
   }
 }
 
 .app-snack-bar--success {
   --snack-bar-accent: var(--color-success);
+  --snack-bar-accent-soft: var(--color-success-soft);
 }
 
 .app-snack-bar--error {
   --snack-bar-accent: var(--color-danger);
+  --snack-bar-accent-soft: var(--color-danger-soft);
 }
 
 .app-snack-bar--warning {
   --snack-bar-accent: var(--color-warning);
-}
-
-.app-snack-bar--info {
-  --snack-bar-accent: var(--color-info);
+  --snack-bar-accent-soft: var(--color-warning-soft);
 }

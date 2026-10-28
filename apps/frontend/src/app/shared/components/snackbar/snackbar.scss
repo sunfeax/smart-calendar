@@ -1,0 +1,56 @@
+:host {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  gap: var(--space-3);
+  padding-inline-start: var(--space-3);
+}
+
+.snackbar__badge {
+  display: flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  width: var(--space-6);
+  height: var(--space-6);
+  border-radius: var(--radius-full);
+  background: var(--snack-bar-accent-soft);
+  color: var(--snack-bar-accent);
+
+  mat-icon {
+    width: var(--font-size-base);
+    height: var(--font-size-base);
+    font-size: var(--font-size-base);
+  }
+}
+
+.snackbar__message {
+  flex: 1;
+  padding: var(--space-2) 0;
+  line-height: var(--line-height-tight);
+  color: var(--color-text);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+}
+
+.snackbar__close {
+  --mat-icon-button-icon-color: var(--color-text-muted);
+  --mat-icon-button-state-layer-size: var(--space-8);
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--space-8);
+  height: var(--space-8);
+  padding: 0;
+
+  mat-icon {
+    width: var(--font-size-lg);
+    height: var(--font-size-lg);
+    font-size: var(--font-size-lg);
+  }
+
+  &:hover {
+    --mat-icon-button-icon-color: var(--color-text);
+  }
+}
