@@ -64,6 +64,7 @@ model Event {
   calendarId  String
   title       String     @default("")
   description String?
+  icon        String?
   startAt     DateTime   @db.Timestamptz(3)
   endAt       DateTime   @db.Timestamptz(3)
   allDay      Boolean    @default(true)

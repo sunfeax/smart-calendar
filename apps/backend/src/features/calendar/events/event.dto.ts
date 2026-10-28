@@ -1,6 +1,7 @@
 import { PartialType } from '@nestjs/swagger';
 import { IsBoolean, IsISO8601, IsOptional, IsString, MaxLength } from 'class-validator';
 import { Trim } from '../../../common/trim.decorator.js';
+import { IsEventIcon } from './event-icon.decorator.js';
 import { DESCRIPTION_MAX, TITLE_MAX } from './event.constants.js';
 
 export class EventCreateDto {
@@ -13,6 +14,10 @@ export class EventCreateDto {
   @IsOptional()
   @MaxLength(DESCRIPTION_MAX)
   description?: string | null;
+
+  @IsOptional()
+  @IsEventIcon()
+  icon?: string | null;
 
   @IsISO8601({ strict: true })
   startAt!: string;
@@ -45,6 +50,7 @@ export class EventDto {
   calendarId!: string;
   title!: string;
   description!: string | null;
+  icon!: string | null;
   startAt!: string;
   endAt!: string;
   allDay!: boolean;

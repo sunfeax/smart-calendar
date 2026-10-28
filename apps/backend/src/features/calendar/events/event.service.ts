@@ -73,6 +73,7 @@ export class EventService {
         calendarId,
         title: dto.title,
         description: dto.description,
+        icon: dto.icon,
         startAt,
         endAt,
         allDay,
@@ -105,6 +106,7 @@ export class EventService {
       data: {
         title: dto.title,
         description: dto.description,
+        icon: dto.icon,
         startAt,
         endAt,
         allDay,
