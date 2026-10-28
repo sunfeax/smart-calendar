@@ -90,9 +90,7 @@ export class EventIconPicker {
       : 'event.icon.inputPlaceholder',
   );
   readonly inputLabelKey = computed(() =>
-    this.inputKind() === 'image'
-      ? 'event.icon.imageInputLabel'
-      : 'event.icon.inputLabel',
+    this.inputKind() === 'image' ? 'event.icon.imageInputLabel' : 'event.icon.inputLabel',
   );
 
   // ACTIONS

@@ -8,8 +8,7 @@ import {
 export type IconInputKind = 'site' | 'image';
 
 export type EventIconView =
-  | { kind: 'emoji'; value: string }
-  | { kind: 'image'; src: string };
+  { kind: 'emoji'; value: string } | { kind: 'image'; src: string };
 
 export function toEventIconView(icon: string): EventIconView | null {
   if (icon.startsWith('emoji:')) {
