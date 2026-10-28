@@ -1,4 +1,4 @@
-import { Component, inject, signal } from '@angular/core';
+import { Component, computed, effect, inject, signal } from '@angular/core';
 import { toObservable } from '@angular/core/rxjs-interop';
 import {
   disabled,
@@ -38,10 +38,15 @@ import {
 } from '@angular/material/timepicker';
 import { MatTooltip } from '@angular/material/tooltip';
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
-import { startOfDay } from 'date-fns';
+import { addMinutes, differenceInMinutes, isSameDay, startOfDay } from 'date-fns';
 import { concatMap, debounceTime, filter, map, takeUntil, tap } from 'rxjs';
 import { EventDto, EventUpdateDto } from '../../../../api/generated';
-import { DESCRIPTION_MAX, HOUR_MS, TITLE_MAX } from '../../constants/event.constants';
+import {
+  DESCRIPTION_MAX,
+  HOUR_MS,
+  TIME_STEP_MINUTES,
+  TITLE_MAX,
+} from '../../constants/event.constants';
 import { EventDialogData } from '../../models/event-dialog';
 import { toEventApiDates, toEventFormDates } from '../../utils/event.mapper';
 
@@ -91,6 +96,7 @@ export class EventCreateEditDialog {
   readonly data = inject<EventDialogData>(MAT_DIALOG_DATA);
 
   // STATE
+  readonly timeStep = `${TIME_STEP_MINUTES}m`;
   private readonly model = signal(this.toFormModel(this.data.event));
   private readonly saved = signal(this.data.event);
 
@@ -107,17 +113,45 @@ export class EventCreateEditDialog {
       if (!start) return null;
       if (!end) return null;
 
-      const isValid = allDay ? end >= start : end > start;
-      return isValid ? null : { kind: 'endBeforeStart' };
+      if (allDay) return end >= start ? null : { kind: 'endBeforeStart' };
+      return differenceInMinutes(end, start) >= TIME_STEP_MINUTES
+        ? null
+        : { kind: 'durationTooShort' };
     });
+  });
+
+  // COMPUTED
+  readonly endTimeMin = computed(() => {
+    const { startAt, endAt } = this.model();
+    if (!startAt || !endAt || !isSameDay(startAt, endAt)) return null;
+    return addMinutes(startAt, TIME_STEP_MINUTES);
   });
 
   // LIFECYCLE
   constructor() {
+    this.keepDuration();
     this.autosave();
   }
 
   // EFFECTS
+  private keepDuration(): void {
+    let previous = this.model();
+
+    effect(() => {
+      const current = this.model();
+      const { startAt, endAt } = current;
+      const { startAt: prevStart, endAt: prevEnd } = previous;
+      previous = current;
+
+      if (!prevStart || !startAt || !endAt || endAt !== prevEnd) return;
+
+      const shift = startAt.getTime() - prevStart.getTime();
+      if (shift === 0) return;
+
+      this.model.update(form => ({ ...form, endAt: new Date(endAt.getTime() + shift) }));
+    });
+  }
+
   private autosave(): void {
     if (!this.data.editable) return;
 

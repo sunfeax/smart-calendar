@@ -103,6 +103,7 @@
       "maxLength": "El valor es demasiado largo",
       "matDatepickerParse": "Fecha no válida",
       "endBeforeStart": "El final debe ser posterior al inicio",
+      "durationTooShort": "El evento debe durar al menos 15 minutos",
       "matStartDateInvalid": "La fecha de inicio no puede ser posterior a la de fin",
       "matEndDateInvalid": "La fecha de fin no puede ser anterior a la de inicio"
     }

@@ -89,7 +89,7 @@
           (click)="startAtTime.open()"
         />
         <mat-timepicker-toggle matIconSuffix [for]="startAtTime" />
-        <mat-timepicker #startAtTime />
+        <mat-timepicker #startAtTime [interval]="timeStep" />
       </mat-form-field>
 
       <mat-form-field class="edit__field" subscriptSizing="dynamic">
@@ -98,10 +98,11 @@
           matInput
           [matTimepicker]="endAtTime"
           [formField]="eventForm.endAt"
+          [matTimepickerMin]="endTimeMin()"
           (click)="endAtTime.open()"
         />
         <mat-timepicker-toggle matIconSuffix [for]="endAtTime" />
-        <mat-timepicker #endAtTime />
+        <mat-timepicker #endAtTime [interval]="timeStep" />
       </mat-form-field>
     </div>
   }

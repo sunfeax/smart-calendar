@@ -103,6 +103,7 @@
       "maxLength": "The value is too long",
       "matDatepickerParse": "Invalid date",
       "endBeforeStart": "The end must be later than the start",
+      "durationTooShort": "The event must last at least 15 minutes",
       "matStartDateInvalid": "The start date can't be after the end date",
       "matEndDateInvalid": "The end date can't be before the start date"
     }
