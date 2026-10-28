@@ -9,7 +9,7 @@
 }
 
 full-calendar {
-  --calendar-event-height: calc(var(--space-6) * 1.1);
+  --calendar-event-height: var(--space-8);
   --calendar-event-outer-height: calc(
     var(--calendar-event-height) + 2 * var(--border-width-sm)
   );
