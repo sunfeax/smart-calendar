@@ -1,0 +1,10 @@
+@use 'sass:string';
+
+$tag-colors: 'gray', 'red', 'orange', 'yellow', 'green', 'teal', 'blue', 'violet', 'pink';
+
+@each $color in $tag-colors {
+  [data-tag-color='#{string.to-upper-case($color)}'] {
+    background: var(--color-tag-#{$color});
+    color: var(--color-on-tag-#{$color});
+  }
+}

@@ -26,4 +26,12 @@ export class EventService {
   delete(eventId: string) {
     return this.http.delete<void>(`/api/events/${eventId}`);
   }
+
+  addTag(eventId: string, tagId: string) {
+    return this.http.post<EventDto>(`/api/events/${eventId}/tags/${tagId}`, null);
+  }
+
+  removeTag(eventId: string, tagId: string) {
+    return this.http.delete<EventDto>(`/api/events/${eventId}/tags/${tagId}`);
+  }
 }

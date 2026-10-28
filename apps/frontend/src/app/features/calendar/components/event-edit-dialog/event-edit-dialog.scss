@@ -1,0 +1,223 @@
+:host {
+  --event-property-columns: minmax(0, min(9rem, 36%)) minmax(0, 1fr);
+
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+}
+
+.edit__header {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+  padding: var(--space-3) var(--space-3) var(--space-2) var(--space-6);
+}
+
+.edit__heading {
+  margin: 0;
+  padding: 0;
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  line-height: var(--line-height-normal);
+
+  &::before {
+    display: none;
+  }
+}
+
+.edit__header-actions {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+}
+
+.edit__content {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: var(--space-4);
+  min-height: 0;
+  max-height: none;
+  padding: var(--space-2) var(--space-6) var(--space-6);
+  overflow-y: auto;
+}
+
+.edit__intro {
+  display: flex;
+  flex-shrink: 0;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.edit__title,
+.edit__description {
+  width: 100%;
+  padding: var(--space-2);
+  border: var(--border-width-sm) solid transparent;
+  border-radius: var(--radius-control);
+  background: transparent;
+  color: var(--color-text);
+  transition:
+    background-color var(--duration-fast) var(--ease-standard),
+    border-color var(--duration-fast) var(--ease-standard);
+
+  &::placeholder {
+    color: var(--color-text-muted);
+  }
+
+  &:enabled:hover {
+    background: var(--color-surface-alt);
+  }
+
+  &:focus-visible {
+    border-color: var(--color-focus-ring);
+    outline: none;
+  }
+
+  &:disabled {
+    opacity: 1;
+    -webkit-text-fill-color: var(--color-text);
+  }
+}
+
+.edit__title {
+  min-height: var(--space-10);
+  resize: none;
+  field-sizing: content;
+  font-size: var(--font-size-2xl);
+  font-weight: var(--font-weight-semibold);
+  line-height: var(--line-height-tight);
+}
+
+.edit__description {
+  min-height: var(--space-16);
+  max-height: 10rem;
+  resize: vertical;
+  field-sizing: content;
+  font-size: var(--font-size-sm);
+  line-height: var(--line-height-relaxed);
+}
+
+.edit__error {
+  margin: 0;
+  padding-inline: var(--space-2);
+  color: var(--color-danger);
+  font-size: var(--font-size-xs);
+}
+
+.edit__properties {
+  display: flex;
+  flex-shrink: 0;
+  flex-direction: column;
+  gap: var(--space-4);
+  padding-top: var(--space-4);
+  border-top: var(--border-width-sm) solid var(--color-border-soft);
+}
+
+.edit__property {
+  display: grid;
+  grid-template-columns: var(--event-property-columns);
+  align-items: start;
+  gap: var(--space-2);
+}
+
+.edit__property-label {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1-5);
+  min-height: var(--space-10);
+  padding-inline: var(--space-2);
+  color: var(--color-text-soft);
+  font-size: var(--font-size-sm);
+
+  mat-icon {
+    flex-shrink: 0;
+    width: var(--font-size-lg);
+    height: var(--font-size-lg);
+    font-size: var(--font-size-lg);
+  }
+}
+
+.edit__property-value {
+  display: flex;
+  align-items: center;
+  min-width: 0;
+}
+
+.edit__action {
+  --mat-button-text-horizontal-padding: var(--space-2);
+  --mat-button-text-with-icon-horizontal-padding: var(--space-2);
+}
+
+.edit__field {
+  --mat-form-field-container-height: 40px;
+  --mat-form-field-container-vertical-padding: 8px;
+  --mat-form-field-outlined-outline-width: 0;
+  --mat-form-field-outlined-focus-outline-width: 0;
+
+  width: 100%;
+  min-width: 0;
+  border-radius: var(--radius-control);
+
+  &:focus-within {
+    background: var(--color-surface-alt);
+  }
+}
+
+.edit__time-values {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr)) auto;
+  align-items: start;
+  gap: var(--space-4);
+  min-width: 0;
+}
+
+.edit__completed {
+  justify-self: start;
+}
+
+.edit__content--readonly {
+  --mat-form-field-outlined-disabled-input-text-color: var(--color-text);
+  --mat-form-field-outlined-disabled-label-text-color: var(--color-text-soft);
+  --mat-form-field-outlined-disabled-outline-color: var(--color-border);
+  --mat-form-field-disabled-input-text-placeholder-color: var(--color-text-muted);
+  --mat-form-field-disabled-trailing-icon-color: var(--color-text-soft);
+  --mat-icon-button-disabled-icon-color: var(--color-text-soft);
+  --mat-datepicker-range-input-disabled-state-text-color: var(--color-text);
+  --mat-datepicker-range-input-disabled-state-separator-color: var(--color-text-soft);
+}
+
+.edit__delete {
+  color: var(--color-danger);
+}
+
+@media (max-width: 540px) {
+  .edit__header {
+    padding-inline-start: var(--space-4);
+  }
+
+  .edit__content {
+    padding-inline: var(--space-4);
+  }
+
+  .edit__time-values {
+    grid-template-columns: minmax(0, 1fr);
+
+    button {
+      justify-self: end;
+    }
+  }
+
+  .edit__property--dates {
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--space-1);
+
+    .edit__property-label {
+      min-height: var(--space-6);
+    }
+  }
+}

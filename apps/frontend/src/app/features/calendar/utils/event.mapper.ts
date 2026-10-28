@@ -1,21 +1,18 @@
 import { EventInput } from '@fullcalendar/angular';
 import { addDays } from 'date-fns';
-import { EventDto } from '../../../api/generated';
+import { EventDto, TagDto } from '../../../api/generated';
 import { HOUR_MS } from '../constants/event.constants';
 
-export function toCalendarEvent(event: EventDto): EventInput {
+export function toCalendarEvent(event: EventDto, tags: TagDto[]): EventInput {
   const input: EventInput = {
     id: event.id,
     title: event.title,
     allDay: event.allDay,
-    className: event.completedAt ? 'is-completed' : '',
-    extendedProps: { completed: event.completedAt !== null },
+    className: [event.completedAt ? 'is-completed' : '', tags.length ? 'has-tags' : '']
+      .filter(Boolean)
+      .join(' '),
+    extendedProps: { completed: event.completedAt !== null, tags },
   };
-
-  if (event.completedAt) {
-    input.color = 'var(--color-primary-soft)';
-    input.contrastColor = 'var(--color-primary-text)';
-  }
 
   if (event.allDay) {
     input.start = event.startAt.slice(0, 10);

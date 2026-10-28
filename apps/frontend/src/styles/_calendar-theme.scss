@@ -71,6 +71,11 @@ full-calendar .app-calendar-event {
   height: var(--calendar-event-outer-height);
   margin-inline: calc(var(--calendar-event-gap) / 2);
   margin-bottom: var(--calendar-event-gap);
+
+  &.has-tags {
+    height: auto;
+    min-height: var(--calendar-event-outer-height);
+  }
 }
 
 full-calendar .app-month-body {
@@ -86,7 +91,8 @@ full-calendar .app-week-row {
     var(--calendar-week-min-height),
     calc(
       var(--space-12) + var(--app-week-event-count, 0) *
-        (var(--calendar-event-outer-height) + var(--calendar-event-gap))
+        (var(--calendar-event-outer-height) + var(--calendar-event-gap)) +
+        var(--app-week-tag-lines, 0) * var(--calendar-event-tags-height)
     )
   );
   transition: min-height var(--duration-slow) var(--ease-standard);
@@ -123,6 +129,10 @@ full-calendar .app-day-editable:hover .app-day-top::after {
 
 full-calendar .fc-event:hover {
   background: var(--color-event-hover);
+}
+
+full-calendar .is-completed .calendar__tag {
+  opacity: 0.5;
 }
 
 full-calendar .is-completed .calendar__event-title {

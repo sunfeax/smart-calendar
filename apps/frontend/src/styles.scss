@@ -2,6 +2,7 @@
 @use '@fontsource-variable/inter';
 @use 'styles/tokens';
 @use 'styles/calendar-theme';
+@use 'styles/tags';
 
 html {
   @include mat.theme(
@@ -77,6 +78,26 @@ html {
       item-icon-size: var(--icon-size),
     )
   );
+}
+
+.tags-menu {
+  --mat-menu-container-color: var(--color-surface-alt);
+  --mat-menu-container-shape: var(--radius-xl);
+  --mat-menu-item-leading-spacing: var(--space-3);
+  --mat-menu-item-trailing-spacing: var(--space-3);
+}
+
+.tags-menu--categories.mat-mdc-menu-panel,
+.tags-menu--picker.mat-mdc-menu-panel {
+  width: min(22rem, calc(100vw - 2rem));
+  min-width: 0;
+  max-width: calc(100vw - 2rem);
+  border: var(--border-width-sm) solid var(--color-border-soft);
+  border-radius: var(--radius-control);
+
+  .mat-mdc-menu-content {
+    padding: 0;
+  }
 }
 
 *,

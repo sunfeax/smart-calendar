@@ -1,0 +1,176 @@
+<div class="edit__header">
+  <h1 mat-dialog-title class="edit__heading">
+    {{ (data.editable ? 'event.editTitle' : 'event.viewTitle') | transloco }}
+  </h1>
+  <div class="edit__header-actions">
+    @if (data.editable) {
+      <button
+        matIconButton
+        class="edit__delete"
+        [attr.aria-label]="'event.delete' | transloco"
+        [matTooltip]="'event.delete' | transloco"
+        (click)="remove()"
+      >
+        <mat-icon>delete</mat-icon>
+      </button>
+    }
+    <button
+      matIconButton
+      [attr.aria-label]="'common.close' | transloco"
+      (click)="close()"
+    >
+      <mat-icon>close</mat-icon>
+    </button>
+  </div>
+</div>
+
+<mat-dialog-content
+  class="edit__content"
+  [class.edit__content--readonly]="!data.editable"
+>
+  <div class="edit__intro">
+    <textarea
+      class="edit__title"
+      rows="1"
+      [formField]="eventForm.title"
+      [attr.aria-label]="'event.title' | transloco"
+      [attr.aria-invalid]="eventForm.title().errors().length > 0"
+      [attr.aria-describedby]="
+        eventForm.title().errors().length ? 'event-title-error' : null
+      "
+      [placeholder]="'event.untitled' | transloco"
+    ></textarea>
+    @if (eventForm.title().errors()[0]; as error) {
+      <p id="event-title-error" class="edit__error" role="alert">
+        {{ 'event.errors.' + error.kind | transloco }}
+      </p>
+    }
+    <textarea
+      class="edit__description"
+      rows="2"
+      [formField]="eventForm.description"
+      [attr.aria-label]="'event.description' | transloco"
+      [attr.aria-invalid]="eventForm.description().errors().length > 0"
+      [attr.aria-describedby]="
+        eventForm.description().errors().length ? 'event-description-error' : null
+      "
+      [placeholder]="'event.description' | transloco"
+    ></textarea>
+    @if (eventForm.description().errors()[0]; as error) {
+      <p id="event-description-error" class="edit__error" role="alert">
+        {{ 'event.errors.' + error.kind | transloco }}
+      </p>
+    }
+  </div>
+
+  <div class="edit__properties">
+    <div class="edit__property edit__property--dates">
+      <span class="edit__property-label">
+        <mat-icon>calendar_today</mat-icon>
+        {{ 'event.dates' | transloco }}
+      </span>
+      <mat-form-field
+        class="edit__field"
+        subscriptSizing="dynamic"
+        (click)="datesPicker.open()"
+        (keydown.enter)="datesPicker.open()"
+      >
+        <mat-date-range-input [rangePicker]="datesPicker">
+          <input
+            matStartDate
+            [formField]="eventForm.startAt"
+            [attr.aria-label]="'event.startAt' | transloco"
+            [placeholder]="'event.startAt' | transloco"
+          />
+          <input
+            matEndDate
+            [formField]="eventForm.endAt"
+            [attr.aria-label]="'event.endAt' | transloco"
+            [placeholder]="'event.endAt' | transloco"
+          />
+        </mat-date-range-input>
+        <mat-datepicker-toggle matIconSuffix [for]="datesPicker" />
+        <mat-date-range-picker #datesPicker panelClass="event-date-picker" />
+        @if (eventForm.startAt().errors()[0] ?? eventForm.endAt().errors()[0]; as error) {
+          <mat-error>{{ 'event.errors.' + error.kind | transloco }}</mat-error>
+        }
+      </mat-form-field>
+    </div>
+
+    @if (data.editable || !eventForm.allDay().value()) {
+      <div class="edit__property">
+        <span class="edit__property-label">
+          <mat-icon>schedule</mat-icon>
+          {{ 'event.time' | transloco }}
+        </span>
+        @if (eventForm.allDay().value()) {
+          <div class="edit__property-value">
+            <button matButton class="edit__action" type="button" (click)="addTime()">
+              <mat-icon>add</mat-icon>
+              {{ 'event.addTime' | transloco }}
+            </button>
+          </div>
+        } @else {
+          <div class="edit__time-values">
+            <mat-form-field class="edit__field" subscriptSizing="dynamic">
+              <mat-label>{{ 'event.startTime' | transloco }}</mat-label>
+              <input
+                matInput
+                [matTimepicker]="startAtTime"
+                [formField]="eventForm.startAt"
+                (click)="startAtTime.open()"
+              />
+              <mat-timepicker-toggle matIconSuffix [for]="startAtTime" />
+              <mat-timepicker #startAtTime [interval]="timeStep" />
+            </mat-form-field>
+
+            <mat-form-field class="edit__field" subscriptSizing="dynamic">
+              <mat-label>{{ 'event.endTime' | transloco }}</mat-label>
+              <input
+                matInput
+                [matTimepicker]="endAtTime"
+                [formField]="eventForm.endAt"
+                [matTimepickerMin]="endTimeMin()"
+                (click)="endAtTime.open()"
+              />
+              <mat-timepicker-toggle matIconSuffix [for]="endAtTime" />
+              <mat-timepicker #endAtTime [interval]="timeStep" />
+            </mat-form-field>
+
+            @if (data.editable) {
+              <button
+                matIconButton
+                type="button"
+                [attr.aria-label]="'event.removeTime' | transloco"
+                [matTooltip]="'event.removeTime' | transloco"
+                (click)="removeTime()"
+              >
+                <mat-icon>timer_off</mat-icon>
+              </button>
+            }
+          </div>
+        }
+      </div>
+    }
+
+    <div class="edit__property">
+      <span class="edit__property-label">
+        <mat-icon>task_alt</mat-icon>
+        {{ 'event.status' | transloco }}
+      </span>
+      <mat-checkbox class="edit__completed" [formField]="eventForm.completed">
+        {{ 'event.completed' | transloco }}
+      </mat-checkbox>
+    </div>
+
+    <app-event-tags
+      [calendarId]="data.event.calendarId"
+      [categories]="data.categories"
+      [tagIds]="tagIds()"
+      [editable]="data.editable"
+      (tagToggle)="setTag($event)"
+      (tagCreate)="createTag($event)"
+      (categoryDetach)="detachCategory($event)"
+    />
+  </div>
+</mat-dialog-content>

@@ -57,52 +57,67 @@
 <full-calendar [options]="options()">
   <ng-template #eventContent let-arg>
     <span class="calendar__event">
-      @if (!arg.event.allDay) {
-        <mat-icon
-          class="calendar__time-icon"
-          role="img"
-          [attr.aria-label]="arg.timeText"
-          [matTooltip]="arg.timeText"
-        >
-          schedule
-        </mat-icon>
-      }
-      <span
-        class="calendar__event-title"
-        [class.calendar__event-title--empty]="!arg.event.title"
-      >
-        {{ arg.event.title || ('event.untitled' | transloco) }}
-      </span>
-      @if (canEdit()) {
-        <button
-          type="button"
-          class="calendar__more"
-          [matMenuTriggerFor]="eventMenu"
-          [attr.aria-label]="'event.actions' | transloco"
-          (click)="$event.stopPropagation()"
-        >
-          <mat-icon aria-hidden="true">more_vert</mat-icon>
-        </button>
-        <mat-menu #eventMenu="matMenu" xPosition="before">
-          @let completed = arg.event.extendedProps.completed;
-          <button
-            mat-menu-item
-            type="button"
-            (click)="updateEventFromMenu(arg.event.id, { completed: !completed })"
+      <span class="calendar__event-main">
+        @if (!arg.event.allDay) {
+          <mat-icon
+            class="calendar__time-icon"
+            role="img"
+            [attr.aria-label]="arg.timeText"
+            [matTooltip]="arg.timeText"
           >
-            <mat-icon>{{ completed ? 'remove_done' : 'done' }}</mat-icon>
-            <span>
-              {{
-                (completed ? 'event.markNotCompleted' : 'event.toggleCompleted')
-                  | transloco
-              }}
+            schedule
+          </mat-icon>
+        }
+        <span
+          class="calendar__event-title"
+          [class.calendar__event-title--empty]="!arg.event.title"
+        >
+          {{ arg.event.title || ('event.untitled' | transloco) }}
+        </span>
+        @if (canEdit()) {
+          <button
+            type="button"
+            class="calendar__more"
+            [matMenuTriggerFor]="eventMenu"
+            [attr.aria-label]="'event.actions' | transloco"
+            (click)="$event.stopPropagation()"
+          >
+            <mat-icon aria-hidden="true">more_vert</mat-icon>
+          </button>
+          <mat-menu #eventMenu="matMenu" xPosition="before">
+            @let completed = arg.event.extendedProps.completed;
+            <button
+              mat-menu-item
+              type="button"
+              (click)="updateEventFromMenu(arg.event.id, { completed: !completed })"
+            >
+              <mat-icon>{{ completed ? 'remove_done' : 'done' }}</mat-icon>
+              <span>
+                {{
+                  (completed ? 'event.markNotCompleted' : 'event.toggleCompleted')
+                    | transloco
+                }}
+              </span>
+            </button>
+            <button
+              mat-menu-item
+              type="button"
+              (click)="deleteEventFromMenu(arg.event.id)"
+            >
+              <mat-icon>delete</mat-icon>
+              <span>{{ 'event.delete' | transloco }}</span>
+            </button>
+          </mat-menu>
+        }
+      </span>
+      @if (arg.event.extendedProps.tags.length) {
+        <span class="calendar__event-tags">
+          @for (tag of arg.event.extendedProps.tags; track tag.id) {
+            <span class="calendar__tag" [attr.data-tag-color]="tag.color">
+              {{ tag.name | truncate: tagNameMax }}
             </span>
-          </button>
-          <button mat-menu-item type="button" (click)="deleteEventFromMenu(arg.event.id)">
-            <mat-icon>delete</mat-icon>
-            <span>{{ 'event.delete' | transloco }}</span>
-          </button>
-        </mat-menu>
+          }
+        </span>
       }
     </span>
   </ng-template>

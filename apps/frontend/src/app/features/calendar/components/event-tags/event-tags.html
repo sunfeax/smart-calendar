@@ -1,0 +1,304 @@
+<div class="tags">
+  @for (row of rows(); track row.category.id) {
+    @let category = row.category;
+    <div class="tags__row">
+      @if (editable()) {
+        <button
+          type="button"
+          class="tags__name"
+          [matMenuTriggerFor]="categoryMenu"
+          (menuOpened)="categoryName.value = category.name; focusInput(categoryName)"
+          (menuClosed)="renameCategory(category, categoryName.value)"
+        >
+          <mat-icon>label</mat-icon>
+          <span class="tags__label">{{ category.name }}</span>
+        </button>
+        <button
+          type="button"
+          class="tags__value"
+          [matMenuTriggerFor]="pickerMenu"
+          (menuOpened)="openPicker(category.id)"
+          (menuClosed)="closePicker()"
+        >
+          <ng-container
+            [ngTemplateOutlet]="chips"
+            [ngTemplateOutletContext]="{ $implicit: row.assigned }"
+          />
+        </button>
+      } @else {
+        <span class="tags__name">
+          <mat-icon>label</mat-icon>
+          <span class="tags__label">{{ category.name }}</span>
+        </span>
+        <span class="tags__value">
+          <ng-container
+            [ngTemplateOutlet]="chips"
+            [ngTemplateOutletContext]="{ $implicit: row.assigned }"
+          />
+        </span>
+      }
+    </div>
+
+    <mat-menu #pickerMenu class="tags-menu tags-menu--picker">
+      @if (editingTagId(); as tagId) {
+        @if (tagForEdit(category.id, tagId); as tag) {
+          <div class="tags__editor-toolbar">
+            <button
+              matIconButton
+              class="tags__back"
+              type="button"
+              [attr.aria-label]="'tags.backToTags' | transloco"
+              (click)="keepMenuOpen($event); backToTags()"
+            >
+              <mat-icon>arrow_back</mat-icon>
+            </button>
+            <p class="tags__menu-heading">{{ 'tags.edit' | transloco }}</p>
+            <button
+              matIconButton
+              class="tags__danger tags__delete"
+              type="button"
+              [attr.aria-label]="'tags.deleteTag' | transloco"
+              (click)="deleteTag(category.id, tag)"
+            >
+              <mat-icon>delete</mat-icon>
+            </button>
+          </div>
+          <div
+            class="tags__editor-fields"
+            tabindex="-1"
+            (click)="keepMenuOpen($event)"
+            (keydown)="keepMenuOpen($event)"
+          >
+            <mat-form-field
+              class="tags__input tags__menu-search"
+              subscriptSizing="dynamic"
+            >
+              <span
+                matPrefix
+                class="tags__editor-swatch"
+                [attr.data-tag-color]="tag.color"
+                aria-hidden="true"
+              ></span>
+              <input
+                matInput
+                #tagName
+                [attr.aria-label]="'tags.tagName' | transloco"
+                [placeholder]="'tags.tagName' | transloco"
+                [maxLength]="nameMax"
+                [value]="tagNameDraft()"
+                (input)="tagNameDraft.set(tagName.value)"
+                (keydown.enter)="tagName.blur()"
+                (blur)="renameTag(category.id, tag, tagName.value)"
+              />
+            </mat-form-field>
+          </div>
+          <div class="tags__palette-section">
+            <p class="tags__editor-label">{{ 'tags.color' | transloco }}</p>
+            <div class="tags__palette">
+              @for (color of colors; track color) {
+                <button
+                  mat-menu-item
+                  class="tags__color-option"
+                  role="menuitemradio"
+                  type="button"
+                  [attr.aria-label]="'tags.colors.' + color | transloco"
+                  [attr.aria-checked]="color === tag.color"
+                  [matTooltip]="'tags.colors.' + color | transloco"
+                  (click)="keepMenuOpen($event); recolorTag(category.id, tag, color)"
+                >
+                  <span class="tags__color-dot" [attr.data-tag-color]="color">
+                    @if (color === tag.color) {
+                      <mat-icon>check</mat-icon>
+                    }
+                  </span>
+                </button>
+              }
+            </div>
+          </div>
+        }
+      } @else {
+        <div
+          class="tags__menu-header"
+          tabindex="-1"
+          (click)="keepMenuOpen($event)"
+          (keydown)="keepMenuOpen($event)"
+        >
+          <p class="tags__menu-heading">{{ 'tags.tags' | transloco }}</p>
+          <mat-form-field class="tags__input tags__menu-search" subscriptSizing="dynamic">
+            <mat-icon matPrefix>search</mat-icon>
+            <input
+              matInput
+              #tagSearch
+              [attr.aria-label]="'tags.search' | transloco"
+              [placeholder]="'tags.search' | transloco"
+              [maxLength]="nameMax"
+              [value]="query()"
+              (input)="query.set(tagSearch.value)"
+              (keydown.enter)="submitQuery(category)"
+            />
+          </mat-form-field>
+        </div>
+        <div
+          class="tags__picker-list"
+          tabindex="-1"
+          (click)="keepMenuOpen($event)"
+          (keydown)="keepMenuOpen($event)"
+        >
+          @for (tag of filteredTags(category); track tag.id) {
+            <span class="tags__chip" [attr.data-tag-color]="tag.color">
+              <button
+                type="button"
+                class="tags__chip-toggle"
+                [attr.aria-pressed]="isSelected(tag.id)"
+                (click)="toggleTag(tag.id)"
+              >
+                @if (isSelected(tag.id)) {
+                  <mat-icon aria-hidden="true">check</mat-icon>
+                }
+                <span class="tags__chip-name">{{ tag.name }}</span>
+              </button>
+              <button
+                type="button"
+                class="tags__chip-edit"
+                [attr.aria-label]="'tags.editTag' | transloco: { name: tag.name }"
+                (click)="editTag(category.id, tag)"
+              >
+                <mat-icon aria-hidden="true">more_horiz</mat-icon>
+              </button>
+            </span>
+          }
+        </div>
+        @if (canCreateTag(category)) {
+          <button
+            mat-menu-item
+            class="tags__create-tag"
+            type="button"
+            (click)="keepMenuOpen($event); createTag(category)"
+          >
+            <mat-icon>add</mat-icon>
+            <span>{{ 'tags.create' | transloco: { name: query().trim() } }}</span>
+          </button>
+        } @else if (filteredTags(category).length === 0) {
+          <p class="tags__picker-empty">{{ 'tags.searchHint' | transloco }}</p>
+        }
+      }
+    </mat-menu>
+
+    <mat-menu #categoryMenu class="tags-menu">
+      <div
+        class="tags__field"
+        tabindex="-1"
+        (click)="keepMenuOpen($event)"
+        (keydown)="keepMenuOpen($event)"
+      >
+        <mat-form-field class="tags__input" subscriptSizing="dynamic">
+          <mat-label>{{ 'tags.categoryName' | transloco }}</mat-label>
+          <input
+            matInput
+            #categoryName
+            [maxLength]="nameMax"
+            [value]="category.name"
+            (keydown.enter)="categoryName.blur()"
+            (blur)="renameCategory(category, categoryName.value)"
+          />
+        </mat-form-field>
+      </div>
+      <button
+        mat-menu-item
+        type="button"
+        (click)="keepMenuOpen($event); toggleMultiple(category)"
+      >
+        <mat-icon>
+          {{ category.multiple ? 'check_box' : 'check_box_outline_blank' }}
+        </mat-icon>
+        <span>{{ 'tags.multiple' | transloco }}</span>
+      </button>
+      <button mat-menu-item type="button" (click)="detachCategory(category)">
+        <mat-icon>link_off</mat-icon>
+        <span>{{ 'tags.detachCategory' | transloco }}</span>
+      </button>
+      <button
+        mat-menu-item
+        type="button"
+        class="tags__danger"
+        (click)="deleteCategory(category)"
+      >
+        <mat-icon>delete</mat-icon>
+        <span>{{ 'tags.deleteCategory' | transloco }}</span>
+      </button>
+    </mat-menu>
+  }
+
+  @if (editable()) {
+    <button
+      matButton
+      type="button"
+      class="tags__add"
+      [disabled]="!categories().hasValue()"
+      [matMenuTriggerFor]="addMenu"
+      (menuOpened)="focusInput(newCategory)"
+      (menuClosed)="categoryQuery.set('')"
+    >
+      <mat-icon>add</mat-icon>
+      <span>{{ 'tags.addCategory' | transloco }}</span>
+    </button>
+  }
+</div>
+
+<mat-menu #addMenu class="tags-menu tags-menu--categories">
+  <div
+    class="tags__category-header"
+    tabindex="-1"
+    (click)="keepMenuOpen($event)"
+    (keydown)="keepMenuOpen($event)"
+  >
+    <p class="tags__category-heading">{{ 'tags.categories' | transloco }}</p>
+    <mat-form-field class="tags__input tags__category-search" subscriptSizing="dynamic">
+      <mat-icon matPrefix>search</mat-icon>
+      <input
+        matInput
+        #newCategory
+        [attr.aria-label]="'tags.searchCategory' | transloco"
+        [placeholder]="'tags.searchCategory' | transloco"
+        [maxLength]="nameMax"
+        [value]="categoryQuery()"
+        (input)="categoryQuery.set(newCategory.value)"
+        (keydown.enter)="submitCategoryQuery(); addMenu.closed.emit('click')"
+      />
+    </mat-form-field>
+  </div>
+  <div class="tags__category-list">
+    @for (category of hiddenCategories(); track category.id) {
+      <button
+        mat-menu-item
+        class="tags__category-option"
+        type="button"
+        (click)="keepCategory(category.id)"
+      >
+        <mat-icon class="tags__category-option-icon">label</mat-icon>
+        <span class="tags__category-option-name">{{ category.name }}</span>
+      </button>
+    }
+    @if (canCreateCategory()) {
+      <button
+        mat-menu-item
+        class="tags__category-option tags__category-create"
+        type="button"
+        (click)="createCategory(categoryQuery())"
+      >
+        <mat-icon class="tags__category-option-icon">add</mat-icon>
+        <span class="tags__category-option-name">
+          {{ 'tags.create' | transloco: { name: categoryQuery().trim() } }}
+        </span>
+      </button>
+    }
+  </div>
+</mat-menu>
+
+<ng-template #chips let-tags>
+  @for (tag of tags; track tag.id) {
+    <span class="tag" [attr.data-tag-color]="tag.color">{{ tag.name }}</span>
+  } @empty {
+    <span class="tags__empty">{{ 'tags.empty' | transloco }}</span>
+  }
+</ng-template>

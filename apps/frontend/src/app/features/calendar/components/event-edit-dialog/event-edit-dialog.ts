@@ -1,4 +1,4 @@
-import { Component, computed, effect, inject, signal } from '@angular/core';
+import { Component, computed, DestroyRef, effect, inject, signal } from '@angular/core';
 import { toObservable } from '@angular/core/rxjs-interop';
 import {
   disabled,
@@ -37,18 +37,43 @@ import {
   MatTimepickerToggle,
 } from '@angular/material/timepicker';
 import { MatTooltip } from '@angular/material/tooltip';
-import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
-import { addMinutes, differenceInMinutes, isSameDay, startOfDay } from 'date-fns';
-import { concatMap, debounceTime, filter, map, takeUntil, tap } from 'rxjs';
+import { TranslocoPipe } from '@jsverse/transloco';
+import {
+  addMinutes,
+  differenceInMinutes,
+  isSameDay,
+  isValid,
+  startOfDay,
+} from 'date-fns';
+import {
+  concatMap,
+  debounceTime,
+  EMPTY,
+  from,
+  Observable,
+  of,
+  Subject,
+  takeUntil,
+  tap,
+} from 'rxjs';
 import { EventDto, EventUpdateDto } from '../../../../api/generated';
 import {
+  AUTOSAVE_DELAY_MS,
   DESCRIPTION_MAX,
   HOUR_MS,
   TIME_STEP_MINUTES,
   TITLE_MAX,
 } from '../../constants/event.constants';
 import { EventDialogData } from '../../models/event-dialog';
+import { TagCreateRequest } from '../../models/tag-create-request';
 import { toEventApiDates, toEventFormDates } from '../../utils/event.mapper';
+import { EventTags } from '../event-tags/event-tags';
+
+interface EventFormValidity {
+  title: boolean;
+  description: boolean;
+  dates: boolean;
+}
 
 interface EventFormModel {
   title: string;
@@ -61,6 +86,7 @@ interface EventFormModel {
 
 @Component({
   imports: [
+    EventTags,
     FormField,
     MatButton,
     MatCheckbox,
@@ -84,14 +110,14 @@ interface EventFormModel {
     MatTooltip,
     TranslocoPipe,
   ],
-  selector: 'app-event-create-edit-dialog',
-  styleUrl: './event-create-edit-dialog.scss',
-  templateUrl: './event-create-edit-dialog.html',
+  selector: 'app-event-edit-dialog',
+  styleUrl: './event-edit-dialog.scss',
+  templateUrl: './event-edit-dialog.html',
 })
-export class EventCreateEditDialog {
+export class EventEditDialog {
   // DEPENDENCIES
-  private readonly dialogRef = inject<MatDialogRef<EventCreateEditDialog>>(MatDialogRef);
-  private readonly transloco = inject(TranslocoService);
+  private readonly dialogRef = inject<MatDialogRef<EventEditDialog>>(MatDialogRef);
+  private readonly destroyRef = inject(DestroyRef);
 
   readonly data = inject<EventDialogData>(MAT_DIALOG_DATA);
 
@@ -99,8 +125,11 @@ export class EventCreateEditDialog {
   readonly timeStep = `${TIME_STEP_MINUTES}m`;
   private readonly model = signal(this.toFormModel(this.data.event));
   private readonly saved = signal(this.data.event);
+  private readonly mutations = new Subject<() => Observable<unknown>>();
+  private deleted = false;
+  private closing = false;
 
-  eventForm = form(this.model, schema => {
+  readonly eventForm = form(this.model, schema => {
     disabled(schema, { when: () => !this.data.editable });
     required(schema.startAt);
     maxLength(schema.title, TITLE_MAX);
@@ -110,8 +139,7 @@ export class EventCreateEditDialog {
       const start = context.valueOf(schema.startAt);
       const allDay = context.valueOf(schema.allDay);
 
-      if (!start) return null;
-      if (!end) return null;
+      if (!start || !end || !isValid(start) || !isValid(end)) return null;
 
       if (allDay) return end >= start ? null : { kind: 'endBeforeStart' };
       return differenceInMinutes(end, start) >= TIME_STEP_MINUTES
@@ -121,6 +149,8 @@ export class EventCreateEditDialog {
   });
 
   // COMPUTED
+  readonly tagIds = computed(() => this.saved().tagIds);
+
   readonly endTimeMin = computed(() => {
     const { startAt, endAt } = this.model();
     if (!startAt || !endAt || !isSameDay(startAt, endAt)) return null;
@@ -130,10 +160,27 @@ export class EventCreateEditDialog {
   // LIFECYCLE
   constructor() {
     this.keepDuration();
+    this.runMutations();
     this.autosave();
+    this.saveOnClose();
   }
 
   // EFFECTS
+  private runMutations(): void {
+    this.mutations
+      .pipe(concatMap(request => (this.deleted ? EMPTY : request())))
+      .subscribe();
+    this.destroyRef.onDestroy(() => this.mutations.complete());
+  }
+
+  private saveOnClose(): void {
+    this.dialogRef.beforeClosed().subscribe(() => {
+      this.closing = true;
+      this.queueFormSave(this.model());
+      this.mutations.complete();
+    });
+  }
+
   private keepDuration(): void {
     let previous = this.model();
 
@@ -143,7 +190,16 @@ export class EventCreateEditDialog {
       const { startAt: prevStart, endAt: prevEnd } = previous;
       previous = current;
 
-      if (!prevStart || !startAt || !endAt || endAt !== prevEnd) return;
+      if (
+        !prevStart ||
+        !startAt ||
+        !endAt ||
+        endAt !== prevEnd ||
+        !isValid(prevStart) ||
+        !isValid(startAt) ||
+        !isValid(endAt)
+      )
+        return;
 
       const shift = startAt.getTime() - prevStart.getTime();
       if (shift === 0) return;
@@ -156,23 +212,22 @@ export class EventCreateEditDialog {
     if (!this.data.editable) return;
 
     toObservable(this.model)
-      .pipe(
-        takeUntil(this.dialogRef.beforeClosed()),
-        debounceTime(500),
-        map(model => this.changes(model, this.saved())),
-        filter(payload => Object.keys(payload).length > 0),
-        concatMap(payload =>
-          this.data
-            .update(payload, () => this.model.set(this.toFormModel(this.saved())))
-            .pipe(tap(event => this.saved.set(event))),
-        ),
-      )
-      .subscribe();
+      .pipe(debounceTime(AUTOSAVE_DELAY_MS), takeUntil(this.dialogRef.beforeClosed()))
+      .subscribe(model => this.queueFormSave(model));
   }
 
   // ACTIONS
   remove(): void {
-    this.data.remove().subscribe(() => this.dialogRef.close());
+    this.mutations.next(() =>
+      this.closing
+        ? EMPTY
+        : this.data.remove().pipe(
+            tap(() => {
+              this.deleted = true;
+              this.dialogRef.close();
+            }),
+          ),
+    );
   }
 
   addTime(): void {
@@ -195,8 +250,64 @@ export class EventCreateEditDialog {
     }));
   }
 
+  setTag(tagId: string): void {
+    this.mutations.next(() =>
+      this.data
+        .setTag(tagId, !this.saved().tagIds.includes(tagId))
+        .pipe(tap(event => this.saved.set(event))),
+    );
+  }
+
+  createTag({ categoryId, payload }: TagCreateRequest): void {
+    this.mutations.next(() => {
+      const existing = this.data.categories
+        .value()
+        ?.find(category => category.id === categoryId)
+        ?.tags.find(tag => tag.name.toLowerCase() === payload.name.toLowerCase());
+      return (existing ? of(existing) : this.data.createTag(categoryId, payload)).pipe(
+        concatMap(tag => this.data.setTag(tag.id, true)),
+        tap(event => this.saved.set(event)),
+      );
+    });
+  }
+
+  detachCategory(categoryId: string): void {
+    this.mutations.next(() => {
+      const category = this.data.categories.value()?.find(item => item.id === categoryId);
+      const tagIds =
+        category?.tags
+          .filter(tag => this.saved().tagIds.includes(tag.id))
+          .map(tag => tag.id) ?? [];
+      return from(tagIds).pipe(
+        concatMap(tagId => this.data.setTag(tagId, false)),
+        tap(event => this.saved.set(event)),
+      );
+    });
+  }
+
   close(): void {
     this.dialogRef.close();
+  }
+
+  private queueFormSave(model: EventFormModel): void {
+    if (!this.data.editable || this.deleted) return;
+    const valid: EventFormValidity = {
+      title: !this.eventForm.title().invalid(),
+      description: !this.eventForm.description().invalid(),
+      dates: !this.eventForm.startAt().invalid() && !this.eventForm.endAt().invalid(),
+    };
+
+    this.mutations.next(() => {
+      const payload = this.changes(model, this.saved(), valid);
+      if (Object.keys(payload).length === 0) return EMPTY;
+      return this.data
+        .update(payload, () => {
+          if (this.model() === model) {
+            this.model.set(this.toFormModel(this.saved()));
+          }
+        })
+        .pipe(tap(event => this.saved.set(event)));
+    });
   }
 
   // HELPERS
@@ -210,18 +321,28 @@ export class EventCreateEditDialog {
     };
   }
 
-  private changes(model: EventFormModel, saved: EventDto): EventUpdateDto {
+  private changes(
+    model: EventFormModel,
+    saved: EventDto,
+    valid: EventFormValidity,
+  ): EventUpdateDto {
     const payload: EventUpdateDto = {};
 
-    if (model.title !== saved.title) payload.title = model.title;
-    if (model.description !== (saved.description ?? '')) {
+    if (valid.title && model.title.trim() !== saved.title)
+      payload.title = model.title.trim();
+    if (valid.description && model.description !== (saved.description ?? '')) {
       payload.description = model.description;
     }
     if (model.completed !== (saved.completedAt !== null)) {
       payload.completed = model.completed;
     }
 
-    if (model.startAt && this.eventForm.endAt().errors().length === 0) {
+    if (
+      valid.dates &&
+      model.startAt &&
+      isValid(model.startAt) &&
+      (!model.endAt || isValid(model.endAt))
+    ) {
       const dates = toEventApiDates({
         allDay: model.allDay,
         startAt: model.startAt,

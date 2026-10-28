@@ -33,15 +33,24 @@ import themePlugin from '@fullcalendar/angular/themes/monarch';
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import { addDays } from 'date-fns';
 import { catchError, EMPTY, Observable, switchMap, tap } from 'rxjs';
-import { EventCreateDto, EventDto, EventUpdateDto } from '../../../../api/generated';
+import {
+  EventCreateDto,
+  EventDto,
+  EventUpdateDto,
+  TagDto,
+  TagCreateDto,
+} from '../../../../api/generated';
 import { routePaths } from '../../../../core/constants/routePaths';
 import { ConfirmDialog } from '../../../../shared/components/confirm-dialog/confirm-dialog';
+import { TruncatePipe } from '../../../../shared/pipes/truncate.pipe';
 import { LanguageService } from '../../../../shared/services/language.service';
-import { EventCreateEditDialog } from '../../components/event-create-edit-dialog/event-create-edit-dialog';
+import { EventEditDialog } from '../../components/event-edit-dialog/event-edit-dialog';
+import { TAG_CARD_NAME_MAX } from '../../constants/tag.constants';
 import { EventDialogData } from '../../models/event-dialog';
 import { EventRange } from '../../models/event-range';
 import { CalendarService } from '../../services/calendar.service';
 import { EventService } from '../../services/event.service';
+import { TagService } from '../../services/tag.service';
 import {
   countEventsByDay,
   EventDates,
@@ -64,6 +73,7 @@ import { SnackbarService } from './../../../../shared/services/snackbar.service'
     MatTooltip,
     RouterLink,
     TranslocoPipe,
+    TruncatePipe,
   ],
   templateUrl: './calendar.html',
   styleUrl: './calendar.scss',
@@ -72,6 +82,7 @@ export class Calendar {
   // DEPENDENCIES
   private readonly calendarService = inject(CalendarService);
   private readonly eventService = inject(EventService);
+  private readonly tagService = inject(TagService);
   private readonly snackbarService = inject(SnackbarService);
   private readonly dialog = inject(MatDialog);
   private readonly transloco = inject(TranslocoService);
@@ -84,6 +95,7 @@ export class Calendar {
 
   // STATE
   readonly routePaths = routePaths;
+  readonly tagNameMax = TAG_CARD_NAME_MAX;
   readonly year = signal(new Date().getFullYear());
   private readonly fullCalendar = viewChild.required(FullCalendarComponent);
   private readonly range = signal<EventRange | null>(null);
@@ -102,6 +114,11 @@ export class Calendar {
       return { id: this.id(), range };
     },
     stream: ({ params }) => this.eventService.getListRange(params.id, params.range),
+  });
+
+  readonly tagCategories = rxResource({
+    params: () => this.id(),
+    stream: ({ params }) => this.tagService.listCategories(params),
   });
 
   // COMPUTED
@@ -153,9 +170,25 @@ export class Calendar {
     datesSet: info => this.changeDates(info),
   }));
 
-  private readonly calendarEvents = computed(() =>
-    this.events.hasValue() ? this.events.value().map(toCalendarEvent) : [],
-  );
+  private readonly tagsById = computed(() => {
+    const tags = new Map<string, TagDto>();
+    if (!this.tagCategories.hasValue()) return tags;
+    for (const category of this.tagCategories.value()) {
+      for (const tag of category.tags) tags.set(tag.id, tag);
+    }
+    return tags;
+  });
+
+  private readonly calendarEvents = computed(() => {
+    if (!this.events.hasValue()) return [];
+    const tags = this.tagsById();
+    return this.events.value().map(event =>
+      toCalendarEvent(
+        event,
+        event.tagIds.flatMap(id => tags.get(id) ?? []),
+      ),
+    );
+  });
 
   private readonly eventsByDay = computed(() => countEventsByDay(this.renderedEvents()));
 
@@ -163,6 +196,7 @@ export class Calendar {
   constructor() {
     this.fitWeekRows();
     this.showEventsError();
+    this.showTagsError();
     this.leaveOnCalendarError();
   }
 
@@ -181,6 +215,13 @@ export class Calendar {
     effect(() => {
       if (!this.events.error()) return;
       this.snackbarService.error(this.transloco.translate('calendar.eventsError'));
+    });
+  }
+
+  private showTagsError(): void {
+    effect(() => {
+      if (!this.tagCategories.error()) return;
+      this.snackbarService.error(this.transloco.translate('tags.loadError'));
     });
   }
 
@@ -226,11 +267,7 @@ export class Calendar {
     rollback?: () => void,
   ): Observable<EventDto> {
     return this.eventService.update(eventId, payload).pipe(
-      tap(updated =>
-        this.events.update(list =>
-          list?.map(item => (item.id === updated.id ? updated : item)),
-        ),
-      ),
+      tap(updated => this.replaceEvent(updated)),
       catchError(() => {
         rollback?.();
         this.snackbarService.error(this.transloco.translate('event.updateError'));
@@ -256,17 +293,63 @@ export class Calendar {
   }
 
   private openEventDialog(event: EventDto): void {
-    this.dialog.open<EventCreateEditDialog, EventDialogData>(EventCreateEditDialog, {
+    this.dialog.open<EventEditDialog, EventDialogData>(EventEditDialog, {
       data: {
         event,
         editable: this.canEdit(),
         update: (payload, rollback) => this.updateEvent(event.id, payload, rollback),
         remove: () => this.deleteEvent(event.id),
+        categories: this.tagCategories,
+        createTag: (categoryId, payload) => this.createTag(categoryId, payload),
+        setTag: (tagId, assigned) => this.setEventTag(event.id, tagId, assigned),
       },
-      width: 'min(32rem, calc(100vw - 2rem))',
-      height: 'min(28rem, calc(100dvh - 2rem))',
+      width: 'min(40rem, calc(100vw - 2rem))',
+      height: 'min(36rem, calc(100dvh - 2rem))',
+      maxWidth: 'calc(100vw - 2rem)',
       maxHeight: 'calc(100dvh - 2rem)',
     });
+  }
+
+  private createTag(categoryId: string, payload: TagCreateDto): Observable<TagDto> {
+    return this.tagService.createTag(categoryId, payload).pipe(
+      tap(tag =>
+        this.tagCategories.update(list =>
+          list?.map(category =>
+            category.id === categoryId
+              ? { ...category, tags: [...category.tags, tag] }
+              : category,
+          ),
+        ),
+      ),
+      catchError(() => {
+        this.snackbarService.error(this.transloco.translate('tags.createError'));
+        return EMPTY;
+      }),
+    );
+  }
+
+  private setEventTag(
+    eventId: string,
+    tagId: string,
+    assigned: boolean,
+  ): Observable<EventDto> {
+    const request = assigned
+      ? this.eventService.addTag(eventId, tagId)
+      : this.eventService.removeTag(eventId, tagId);
+
+    return request.pipe(
+      tap(updated => this.replaceEvent(updated)),
+      catchError(() => {
+        this.snackbarService.error(this.transloco.translate('tags.setError'));
+        return EMPTY;
+      }),
+    );
+  }
+
+  private replaceEvent(updated: EventDto): void {
+    this.events.update(list =>
+      list?.map(item => (item.id === updated.id ? updated : item)),
+    );
   }
 
   private saveNewEvent(payload: EventCreateDto): Observable<EventDto> {
