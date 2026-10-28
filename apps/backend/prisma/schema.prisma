@@ -26,15 +26,17 @@ enum TagColor {
 }
 
 model User {
-  id          String           @id @default(uuid())
-  googleId    String           @unique
-  email       String           @unique
-  name        String
-  avatarUrl   String?
-  createdAt   DateTime         @default(now()) @db.Timestamptz(3)
-  updatedAt   DateTime         @updatedAt @db.Timestamptz(3)
-  memberships CalendarMember[]
-  sessions    Session[]
+  id             String           @id @default(uuid())
+  googleId       String           @unique
+  email          String           @unique
+  name           String
+  avatarUrl      String?
+  createdAt      DateTime         @default(now()) @db.Timestamptz(3)
+  updatedAt      DateTime         @updatedAt @db.Timestamptz(3)
+  memberships    CalendarMember[]
+  sessions       Session[]
+  invitesCreated CalendarInvite[] @relation("InviteCreatedBy")
+  invitesUsed    CalendarInvite[] @relation("InviteUsedBy")
 }
 
 model Calendar {
@@ -45,6 +47,24 @@ model Calendar {
   members       CalendarMember[]
   events        Event[]
   tagCategories TagCategory[]
+  invites       CalendarInvite[]
+}
+
+model CalendarInvite {
+  id          String       @id @default(uuid())
+  calendarId  String
+  tokenHash   String       @unique
+  role        CalendarRole
+  createdById String
+  expiresAt   DateTime     @db.Timestamptz(3)
+  usedAt      DateTime?    @db.Timestamptz(3)
+  usedById    String?
+  createdAt   DateTime     @default(now()) @db.Timestamptz(3)
+  calendar    Calendar     @relation(fields: [calendarId], references: [id], onDelete: Cascade)
+  createdBy   User         @relation("InviteCreatedBy", fields: [createdById], references: [id], onDelete: Cascade)
+  usedBy      User?        @relation("InviteUsedBy", fields: [usedById], references: [id], onDelete: SetNull)
+
+  @@index([calendarId])
 }
 
 model CalendarMember {
