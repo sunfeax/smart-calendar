@@ -168,5 +168,51 @@
     "categories": "Categories",
     "searchCategory": "Search or create a category…",
     "detachCategory": "Remove from event"
+  },
+  "share": {
+    "button": "Share",
+    "title": "Sharing",
+    "invite": "Invite by link",
+    "inviteHint": "The link works once and expires in {{days}} days.",
+    "role": "Role",
+    "roles": {
+      "OWNER": "Owner",
+      "EDITOR": "Editor",
+      "VIEWER": "Viewer"
+    },
+    "createLink": "Create link",
+    "link": "Invite link",
+    "copy": "Copy link",
+    "copied": "Link copied",
+    "full": "The calendar already has {{max}} members. New links will not work until someone leaves.",
+    "members": "Members · {{count}} of {{max}}",
+    "you": "(you)",
+    "remove": "Remove from calendar",
+    "removeTitle": "Remove member?",
+    "removeMessage": "{{name}} will lose access to the calendar.",
+    "activeLinks": "Active links",
+    "expires": "valid until {{date}}",
+    "revoke": "Revoke link",
+    "leave": "Leave calendar",
+    "leaveTitle": "Leave calendar?",
+    "leaveMessage": "You will lose access and can return only with a new link.",
+    "left": "You left the calendar",
+    "confirm": "Confirm",
+    "createError": "Could not create the link",
+    "revokeError": "Could not revoke the link",
+    "removeError": "Could not remove the member",
+    "leaveError": "Could not leave the calendar"
+  },
+  "invite": {
+    "accepting": "Accepting the invite…",
+    "joined": "You joined the calendar",
+    "failedTitle": "Could not join",
+    "toCalendars": "To calendars",
+    "errors": {
+      "notFound": "Invite not found. Check the link.",
+      "expired": "The link was already used or has expired. Ask for a new one.",
+      "full": "The calendar already has the maximum number of members.",
+      "generic": "Something went wrong. Try again later."
+    }
   }
 }

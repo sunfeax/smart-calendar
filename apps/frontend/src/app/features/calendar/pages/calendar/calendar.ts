@@ -44,6 +44,11 @@ import { routePaths } from '../../../../core/constants/routePaths';
 import { ConfirmDialog } from '../../../../shared/components/confirm-dialog/confirm-dialog';
 import { TruncatePipe } from '../../../../shared/pipes/truncate.pipe';
 import { LanguageService } from '../../../../shared/services/language.service';
+import {
+  CalendarShareDialog,
+  CalendarShareDialogData,
+  CalendarShareDialogResult,
+} from '../../components/calendar-share-dialog/calendar-share-dialog';
 import { EventEditDialog } from '../../components/event-edit-dialog/event-edit-dialog';
 import { EventIcon } from '../../components/event-icon/event-icon';
 import { TAG_CARD_NAME_MAX } from '../../constants/tag.constants';
@@ -257,6 +262,27 @@ export class Calendar {
         }),
       )
       .subscribe();
+  }
+
+  openShare(): void {
+    if (!this.calendar.hasValue()) return;
+    const { id, role } = this.calendar.value();
+
+    this.dialog
+      .open<CalendarShareDialog, CalendarShareDialogData, CalendarShareDialogResult>(
+        CalendarShareDialog,
+        {
+          data: { calendarId: id, role },
+          width: 'min(34rem, calc(100vw - 2rem))',
+          maxHeight: 'calc(100dvh - 2rem)',
+        },
+      )
+      .afterClosed()
+      .subscribe(result => {
+        if (!result?.left) return;
+        this.snackbarService.success(this.transloco.translate('share.left'));
+        void this.router.navigateByUrl(routePaths.calendars);
+      });
   }
 
   navigate(action: 'prev' | 'next' | 'today'): void {

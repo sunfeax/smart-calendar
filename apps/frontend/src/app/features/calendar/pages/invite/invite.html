@@ -1,0 +1,13 @@
+<section class="invite">
+  @if (errorKey(); as key) {
+    <mat-icon class="invite__icon">link_off</mat-icon>
+    <h1 class="invite__title">{{ 'invite.failedTitle' | transloco }}</h1>
+    <p class="invite__text">{{ key | transloco }}</p>
+    <a matButton="filled" [routerLink]="routePaths.calendars">
+      {{ 'invite.toCalendars' | transloco }}
+    </a>
+  } @else {
+    <mat-progress-spinner mode="indeterminate" diameter="32" />
+    <p class="invite__text">{{ 'invite.accepting' | transloco }}</p>
+  }
+</section>

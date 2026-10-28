@@ -32,6 +32,12 @@
   <h2 class="calendar__year" aria-live="polite" aria-atomic="true">{{ year() }}</h2>
 
   <div class="calendar__controls">
+    @if (calendar.hasValue()) {
+      <button matButton type="button" (click)="openShare()">
+        <mat-icon>group</mat-icon>
+        {{ 'share.button' | transloco }}
+      </button>
+    }
     <button matButton="filled" type="button" (click)="navigate('today')">
       {{ 'calendar.today' | transloco }}
     </button>

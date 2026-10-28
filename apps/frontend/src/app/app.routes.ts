@@ -25,6 +25,11 @@ export const routes: Routes = [
           import('./features/calendar/pages/calendars/calendars').then(m => m.Calendars),
       },
       {
+        path: 'invite/:token',
+        loadComponent: () =>
+          import('./features/calendar/pages/invite/invite').then(m => m.Invite),
+      },
+      {
         path: 'calendars/:id',
         loadComponent: () =>
           import('./features/calendar/pages/calendar/calendar').then(m => m.Calendar),

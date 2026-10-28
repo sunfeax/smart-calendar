@@ -20,6 +20,7 @@ export class InviteAcceptDto {
 export class InviteDto {
   id!: string;
   role!: CalendarRole;
+  createdById!: string;
   expiresAt!: string;
   createdAt!: string;
 }

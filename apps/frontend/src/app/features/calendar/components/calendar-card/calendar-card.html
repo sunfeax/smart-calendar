@@ -3,6 +3,13 @@
     {{ calendar().name || ('calendars.unnamed' | transloco) }}
   </a>
 
+  @if (!isOwner()) {
+    <span class="calendar-card__role">
+      <mat-icon>group</mat-icon>
+      {{ 'share.roles.' + calendar().role | transloco }}
+    </span>
+  }
+
   @if (isOwner()) {
     <div class="calendar-card__actions">
       <button

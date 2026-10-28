@@ -10,6 +10,7 @@
 export interface InviteDto {
     id: string;
     role: 'OWNER' | 'EDITOR' | 'VIEWER';
+    createdById: string;
     expiresAt: string;
     createdAt: string;
 }

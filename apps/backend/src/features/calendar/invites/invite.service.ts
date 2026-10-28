@@ -128,6 +128,7 @@ export class InviteService {
     return {
       id: invite.id,
       role: invite.role,
+      createdById: invite.createdById,
       expiresAt: invite.expiresAt.toISOString(),
       createdAt: invite.createdAt.toISOString(),
     };

@@ -90,3 +90,17 @@
     opacity: 1;
   }
 }
+
+.calendar-card__role {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  color: var(--color-text-muted);
+  font-size: var(--font-size-xs);
+
+  mat-icon {
+    width: var(--font-size-base);
+    height: var(--font-size-base);
+    font-size: var(--font-size-base);
+  }
+}

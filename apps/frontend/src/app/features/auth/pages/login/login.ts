@@ -6,7 +6,7 @@ import {
   signal,
   viewChild,
 } from '@angular/core';
-import { Router } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import { environment } from '../../../../../environments/environment.development';
 import { routePaths } from '../../../../core/constants/routePaths';
@@ -27,6 +27,7 @@ export class Login {
   // DEPENDENCIES
   private readonly authService = inject(AuthService);
   private readonly router = inject(Router);
+  private readonly route = inject(ActivatedRoute);
   private readonly snackbar = inject(SnackbarService);
   private readonly transloco = inject(TranslocoService);
   private readonly language = inject(LanguageService);
@@ -49,7 +50,7 @@ export class Login {
             client_id: environment.googleClientId,
             callback: response =>
               this.authService.login(response.credential).subscribe({
-                next: () => void this.router.navigateByUrl(routePaths.calendars),
+                next: () => void this.router.navigateByUrl(this.returnUrl()),
                 error: () =>
                   this.snackbar.error(this.transloco.translate('auth.loginError')),
               }),
@@ -71,6 +72,11 @@ export class Login {
   }
 
   // HELPERS
+  private returnUrl(): string {
+    const url = this.route.snapshot.queryParamMap.get('returnUrl');
+    return url?.startsWith('/') && !url.startsWith('//') ? url : routePaths.calendars;
+  }
+
   private waitForGoogleFrame(host: HTMLElement): Promise<void> {
     return new Promise(resolve => {
       const done = (): void => {

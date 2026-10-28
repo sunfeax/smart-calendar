@@ -168,5 +168,51 @@
     "categories": "Categorías",
     "searchCategory": "Buscar o crear una categoría…",
     "detachCategory": "Quitar del evento"
+  },
+  "share": {
+    "button": "Compartir",
+    "title": "Acceso compartido",
+    "invite": "Invitar por enlace",
+    "inviteHint": "El enlace es de un solo uso y caduca en {{days}} días.",
+    "role": "Rol",
+    "roles": {
+      "OWNER": "Propietario",
+      "EDITOR": "Editor",
+      "VIEWER": "Lector"
+    },
+    "createLink": "Crear enlace",
+    "link": "Enlace de invitación",
+    "copy": "Copiar enlace",
+    "copied": "Enlace copiado",
+    "full": "El calendario ya tiene {{max}} miembros. Los enlaces nuevos no funcionarán hasta que alguien salga.",
+    "members": "Miembros · {{count}} de {{max}}",
+    "you": "(tú)",
+    "remove": "Quitar del calendario",
+    "removeTitle": "¿Quitar al miembro?",
+    "removeMessage": "{{name}} perderá el acceso al calendario.",
+    "activeLinks": "Enlaces activos",
+    "expires": "válido hasta {{date}}",
+    "revoke": "Revocar enlace",
+    "leave": "Salir del calendario",
+    "leaveTitle": "¿Salir del calendario?",
+    "leaveMessage": "Perderás el acceso y solo podrás volver con un enlace nuevo.",
+    "left": "Has salido del calendario",
+    "confirm": "Confirmar",
+    "createError": "No se pudo crear el enlace",
+    "revokeError": "No se pudo revocar el enlace",
+    "removeError": "No se pudo quitar al miembro",
+    "leaveError": "No se pudo salir del calendario"
+  },
+  "invite": {
+    "accepting": "Aceptando la invitación…",
+    "joined": "Te has unido al calendario",
+    "failedTitle": "No se pudo unir",
+    "toCalendars": "A los calendarios",
+    "errors": {
+      "notFound": "Invitación no encontrada. Revisa el enlace.",
+      "expired": "El enlace ya se usó o ha caducado. Pide uno nuevo.",
+      "full": "El calendario ya tiene el número máximo de miembros.",
+      "generic": "Algo salió mal. Inténtalo más tarde."
+    }
   }
 }
