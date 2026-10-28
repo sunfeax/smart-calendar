@@ -98,7 +98,7 @@ model TagCategory {
   calendarId String
   name       String
   multiple   Boolean  @default(true) // можно ли выбрать несколько тегов категории
-  sortOrder  Int      @default(0) // ручной порядок внутри календаря, ставит сервер
+  sortOrder  Int      @default(0) // порядок внутри календаря, ставит сервер (пока порядок создания)
   createdAt  DateTime @default(now()) @db.Timestamptz(3)
   updatedAt  DateTime @updatedAt @db.Timestamptz(3)
   calendar   Calendar @relation(fields: [calendarId], references: [id], onDelete: Cascade)
@@ -112,7 +112,7 @@ model Tag {
   categoryId String
   name       String
   color      TagColor    @default(GRAY) // ключ палитры
-  sortOrder  Int         @default(0) // ручной порядок внутри категории, ставит сервер
+  sortOrder  Int         @default(0) // порядок внутри категории, ставит сервер (пока порядок создания)
   createdAt  DateTime    @default(now()) @db.Timestamptz(3)
   updatedAt  DateTime    @updatedAt @db.Timestamptz(3)
   category   TagCategory @relation(fields: [categoryId], references: [id], onDelete: Cascade)
@@ -217,7 +217,7 @@ model EventException {
 - Родитель передаётся в URL, а не в теле: `calendars/:calendarId/tag-categories`, `tag-categories/:categoryId/tags`. Перенос тега в другую категорию не поддерживается.
 - Список категорий отдаётся вместе с тегами одним запросом: категории с вложенным `tags`. Сортировка по `sortOrder`, затем по `createdAt`.
 - `multiple` при создании категории и `color` при создании тега обязательны: форма всегда отправляет значение, default в схеме через API не используется. Необязательные поля в create-DTO не помечаем `@IsOptional()`, если колонка `NOT NULL`: этот декоратор пропускает `null`, и запрос падает в Prisma с 500.
-- `sortOrder` клиент не присылает и не получает. При создании сервер ставит запись в конец (максимум + 1). Порядок меняется отдельным эндпоинтом, который принимает весь список `ids` и переписывает номера по порядку.
+- `sortOrder` клиент не присылает и не получает. При создании сервер ставит запись в конец (максимум + 1), поэтому сейчас это порядок создания. Ручную сортировку категорий и тегов не делаем: их немного, в интерфейсе есть поиск. Колонку оставляем, чтобы при необходимости добавить эндпоинт перестановки (весь список `ids`, номера переписываются по порядку) без миграции данных.
 - Теги события меняются по одному (`POST` и `DELETE events/:id/tags/:tagId`), без общего списка: быстрые клики не перезаписывают друг друга. Тег из другого календаря даёт 404. Для категории с `multiple = false` `POST` в одной транзакции снимает с события другой тег этой категории, поэтому в интерфейсе такая категория работает как радиокнопки. Повторный `POST` и `DELETE` безопасны.
 - Событие отдаёт только `tagIds`. Клиент строит словарь тегов из списка категорий, загруженного один раз на календарь: так тег не дублируется в каждом событии, а переименование сразу видно на всех карточках. Удалённый тег пропадает из `tagIds` каскадом.
 
