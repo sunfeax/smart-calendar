@@ -30,17 +30,6 @@
     </button>
 
     <button
-      matIconButton
-      type="button"
-      [matMenuTriggerFor]="langMenu"
-      [attr.aria-label]="'sidebar.language' | transloco"
-      [matTooltip]="'sidebar.language' | transloco"
-      matTooltipPosition="right"
-    >
-      <mat-icon>translate</mat-icon>
-    </button>
-
-    <button
       type="button"
       class="sidebar__avatar"
       [matMenuTriggerFor]="menu"
@@ -77,6 +66,11 @@
         <span>{{ currentUser.email }}</span>
       </div>
     }
+
+    <button mat-menu-item type="button" [matMenuTriggerFor]="langMenu">
+      <mat-icon>translate</mat-icon>
+      <span>{{ 'sidebar.language' | transloco }}</span>
+    </button>
 
     <button mat-menu-item type="button" (click)="logout()">
       <mat-icon>logout</mat-icon>

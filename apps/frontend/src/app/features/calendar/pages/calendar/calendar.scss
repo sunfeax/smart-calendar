@@ -32,10 +32,7 @@ full-calendar {
   align-items: center;
   gap: var(--gap-md);
   padding: var(--space-2) var(--space-4);
-  border: var(--border-width-sm) solid var(--color-border-soft);
-  border-bottom: 0;
-  border-radius: var(--radius-xl) var(--radius-xl) 0 0;
-  background: var(--color-surface);
+  background: var(--color-background);
 }
 
 .calendar__identity {
@@ -73,7 +70,7 @@ full-calendar {
   max-width: 100%;
   padding: var(--space-1) var(--space-2);
   border: 1px solid transparent;
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-control);
   background-color: transparent;
   font-family: inherit;
   line-height: inherit;
@@ -173,13 +170,16 @@ full-calendar {
   flex: none;
   width: var(--font-size-sm);
   height: var(--font-size-sm);
+  overflow: visible;
   font-size: var(--font-size-sm);
+  line-height: 1;
 }
 
 .calendar__event-title {
   flex: 1;
   min-width: 0;
-  font-size: var(--font-size-base);
+  color: inherit;
+  font-size: var(--font-size-lg);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;

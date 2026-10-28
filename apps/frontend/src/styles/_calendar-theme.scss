@@ -16,8 +16,8 @@ full-calendar {
   );
   --fc-monarch-tertiary-down: var(--fc-monarch-tertiary-over);
 
-  --fc-monarch-event: var(--color-primary);
-  --fc-monarch-event-contrast: var(--color-on-primary);
+  --fc-monarch-event: var(--color-event);
+  --fc-monarch-event-contrast: var(--color-event-text);
   --fc-monarch-highlight: var(--color-primary-soft);
   --fc-monarch-now: var(--color-secondary);
   --fc-monarch-selected: var(--color-primary);
@@ -28,7 +28,7 @@ full-calendar {
 
   --fc-monarch-popover: var(--color-surface);
   --fc-monarch-popover-foreground: var(--color-text);
-  --fc-monarch-background: var(--color-surface);
+  --fc-monarch-background: var(--color-background);
   --fc-monarch-faint: color-mix(in srgb, var(--color-text) 4%, transparent);
   --fc-monarch-muted: color-mix(in srgb, var(--color-text) 7%, transparent);
   --fc-monarch-strong: color-mix(in srgb, var(--color-text) 12%, transparent);
@@ -42,7 +42,7 @@ full-calendar {
 }
 
 full-calendar .app-year-view > :first-child {
-  scrollbar-gutter: stable both-edges;
+  scrollbar-gutter: stable;
 }
 
 full-calendar .app-day-editable {
@@ -122,10 +122,11 @@ full-calendar .app-day-editable:hover .app-day-top::after {
 }
 
 full-calendar .fc-event:hover {
-  background: color-mix(in srgb, var(--color-accent) 28%, var(--color-surface-alt));
+  background: var(--color-event-hover);
 }
 
 full-calendar .is-completed .calendar__event-title {
+  color: inherit;
   opacity: 0.8;
   text-decoration: line-through;
   text-decoration-thickness: 1px;

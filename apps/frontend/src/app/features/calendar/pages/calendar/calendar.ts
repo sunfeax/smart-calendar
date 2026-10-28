@@ -123,7 +123,7 @@ export class Calendar {
     height: '100%',
     fixedWeekCount: false,
     headerToolbar: false,
-    borderlessTop: true,
+    borderless: true,
     viewClass: 'app-year-view',
     dayHeaderInnerClass: 'app-weekday',
     dayCellTopInnerClass: 'app-day-number',

@@ -31,6 +31,52 @@ html {
       density: 0,
     )
   );
+
+  @include mat.theme-overrides(
+    (
+      body-large-size: var(--font-size-base),
+      body-medium-size: var(--font-size-sm),
+      body-small-size: var(--font-size-xs),
+      label-large-size: var(--font-size-sm),
+      label-medium-size: var(--font-size-xs),
+      label-small-size: var(--font-size-2xs),
+      title-large-size: var(--font-size-xl),
+      title-medium-size: var(--font-size-base),
+      title-small-size: var(--font-size-sm),
+      headline-small-size: var(--font-size-2xl),
+    )
+  );
+
+  @include mat.button-overrides(
+    (
+      filled-container-shape: var(--radius-control),
+      outlined-container-shape: var(--radius-control),
+      protected-container-shape: var(--radius-control),
+      text-container-shape: var(--radius-control),
+      tonal-container-shape: var(--radius-control),
+    )
+  );
+
+  @include mat.icon-button-overrides(
+    (
+      icon-size: var(--icon-size),
+      container-shape: var(--radius-control),
+    )
+  );
+
+  @include mat.fab-overrides(
+    (
+      container-shape: var(--radius-control),
+      small-container-shape: var(--radius-control),
+      extended-container-shape: var(--radius-control),
+    )
+  );
+
+  @include mat.menu-overrides(
+    (
+      item-icon-size: var(--icon-size),
+    )
+  );
 }
 
 *,
@@ -74,6 +120,14 @@ button {
   padding: 0;
   background: transparent;
   color: inherit;
+  border-radius: var(--radius-control);
+}
+
+button.mat-mdc-menu-item,
+a.mat-mdc-menu-item,
+button.mat-calendar-body-cell .mat-calendar-body-cell-content,
+button.mat-calendar-body-cell .mat-calendar-body-cell-content::before {
+  border-radius: var(--radius-control);
 }
 
 a {
@@ -89,6 +143,16 @@ svg {
 
 input {
   min-width: 0;
+}
+
+.cdk-overlay-dark-backdrop {
+  background: var(--color-overlay);
+}
+
+mat-icon.mat-icon {
+  width: var(--icon-size);
+  height: var(--icon-size);
+  font-size: var(--icon-size);
 }
 
 mat-form-field {
@@ -115,11 +179,8 @@ mat-form-field {
 }
 
 .event-date-picker {
-  $scale: 1.15;
-
-  zoom: $scale;
-  max-width: calc((100vw - var(--space-8)) / $scale);
-  max-height: calc((100dvh - var(--space-8)) / $scale);
+  max-width: calc(100vw - var(--space-8));
+  max-height: calc(100dvh - var(--space-8));
   overflow-y: auto;
 
   .mat-calendar-body {
