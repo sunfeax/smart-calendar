@@ -27,7 +27,7 @@
 - **Стили**: дизайн-токены в `src/styles/_tokens.scss`, тёмная тема через `data-theme='dark'` на `<html>`. Токены Material (`--mat-sys-*`) привязаны к нашим, поэтому компоненты Material берут наши цвета.
 - **Даты**: `date-fns`; `temporal-polyfill` нужен FullCalendar.
 - **Повторы**: `rrule` (строки формата RFC 5545). Плагин FullCalendar для rrule проверить в доках v7.
-- **Иконки**: Simple Icons (`simple-icons`) для брендов, Lucide или Material Icons для общих значков, эмодзи.
+- **Иконки**: свой набор цветных SVG-логотипов брендов в `public/icons/brands` (gilbarbara/logos, CC0, без зависимости), Material Icons для общих значков, эмодзи.
 - **Клиент API**: генерация из OpenAPI (Swagger) бэкенда, чтобы не дублировать типы вручную.
 
 ## Бэкенд

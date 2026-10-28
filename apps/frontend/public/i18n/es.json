@@ -108,6 +108,16 @@
       "durationTooShort": "El evento debe durar al menos 15 minutos",
       "matStartDateInvalid": "La fecha de inicio no puede ser posterior a la de fin",
       "matEndDateInvalid": "La fecha de fin no puede ser anterior a la de inicio"
+    },
+    "icon": {
+      "add": "Añadir icono",
+      "change": "Cambiar icono",
+      "remove": "Quitar",
+      "title": "Icono",
+      "inputLabel": "Emoji, sitio o enlace a una imagen",
+      "inputPlaceholder": "🎉, t.me o https://…/logo.png",
+      "inputHint": "Pega un emoji, la dirección de un sitio o un enlace a una imagen y pulsa Enter",
+      "inputInvalid": "No parece un emoji, un sitio ni un enlace https a una imagen"
     }
   },
   "tags": {

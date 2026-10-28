@@ -68,6 +68,9 @@
             schedule
           </mat-icon>
         }
+        @if (arg.event.extendedProps.icon) {
+          <app-event-icon class="calendar__icon" [icon]="arg.event.extendedProps.icon" />
+        }
         <span
           class="calendar__event-title"
           [class.calendar__event-title--empty]="!arg.event.title"

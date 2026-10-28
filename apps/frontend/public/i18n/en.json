@@ -108,6 +108,16 @@
       "durationTooShort": "The event must last at least 15 minutes",
       "matStartDateInvalid": "The start date can't be after the end date",
       "matEndDateInvalid": "The end date can't be before the start date"
+    },
+    "icon": {
+      "add": "Add icon",
+      "change": "Change icon",
+      "remove": "Remove",
+      "title": "Icon",
+      "inputLabel": "Emoji, site or image link",
+      "inputPlaceholder": "🎉, t.me or https://…/logo.png",
+      "inputHint": "Paste an emoji, a site address or an image link and press Enter",
+      "inputInvalid": "This is not an emoji, a site or an https image link"
     }
   },
   "tags": {

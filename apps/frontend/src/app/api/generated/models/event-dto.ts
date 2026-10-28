@@ -12,6 +12,7 @@ export interface EventDto {
     calendarId: string;
     title: string;
     description: string | null;
+    icon: string | null;
     startAt: string;
     endAt: string;
     allDay: boolean;

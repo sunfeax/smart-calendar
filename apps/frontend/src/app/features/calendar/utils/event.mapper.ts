@@ -11,7 +11,7 @@ export function toCalendarEvent(event: EventDto, tags: TagDto[]): EventInput {
     className: [event.completedAt ? 'is-completed' : '', tags.length ? 'has-tags' : '']
       .filter(Boolean)
       .join(' '),
-    extendedProps: { completed: event.completedAt !== null, tags },
+    extendedProps: { completed: event.completedAt !== null, tags, icon: event.icon },
   };
 
   if (event.allDay) {

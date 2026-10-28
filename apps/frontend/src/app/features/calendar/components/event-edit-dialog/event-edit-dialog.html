@@ -29,6 +29,11 @@
   [class.edit__content--readonly]="!data.editable"
 >
   <div class="edit__intro">
+    <app-event-icon-picker
+      [icon]="icon()"
+      [editable]="data.editable"
+      (iconChange)="setIcon($event)"
+    />
     <textarea
       class="edit__title"
       rows="1"

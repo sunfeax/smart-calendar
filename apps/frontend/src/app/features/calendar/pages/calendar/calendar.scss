@@ -202,6 +202,10 @@ full-calendar {
   line-height: 1;
 }
 
+.calendar__icon {
+  font-size: var(--font-size-2xl);
+}
+
 .calendar__event-title {
   flex: 1;
   min-width: 0;

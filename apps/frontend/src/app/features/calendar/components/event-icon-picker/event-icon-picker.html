@@ -1,0 +1,75 @@
+@if (icon(); as current) {
+  <button
+    type="button"
+    class="picker__current"
+    [disabled]="!editable()"
+    [matMenuTriggerFor]="menu"
+    [attr.aria-label]="'event.icon.change' | transloco"
+    (menuOpened)="focusField(field)"
+  >
+    <app-event-icon [icon]="current" />
+  </button>
+} @else if (editable()) {
+  <button
+    matButton
+    type="button"
+    class="picker__add"
+    [matMenuTriggerFor]="menu"
+    (menuOpened)="focusField(field)"
+  >
+    <mat-icon>add_reaction</mat-icon>
+    {{ 'event.icon.add' | transloco }}
+  </button>
+}
+
+<mat-menu #menu class="icon-menu" (closed)="reset()">
+  <div
+    class="picker"
+    tabindex="-1"
+    (click)="keepMenuOpen($event)"
+    (keydown)="keepMenuOpen($event)"
+  >
+    <div class="picker__header">
+      <span class="picker__title">{{ 'event.icon.title' | transloco }}</span>
+      @if (icon()) {
+        <button type="button" class="picker__remove" (click)="choose(null)">
+          {{ 'event.icon.remove' | transloco }}
+        </button>
+      }
+    </div>
+
+    <div class="picker__brands">
+      @for (brand of brands; track brand) {
+        <button
+          type="button"
+          class="picker__brand"
+          [attr.aria-label]="brand"
+          (click)="choose('brand:' + brand)"
+        >
+          <img alt="" [src]="brandSrc(brand)" />
+        </button>
+      }
+    </div>
+
+    <div class="picker__field" [class.picker__field--invalid]="invalid()">
+      <input
+        #field
+        class="picker__input"
+        [attr.aria-label]="'event.icon.inputLabel' | transloco"
+        [placeholder]="'event.icon.inputPlaceholder' | transloco"
+        [maxLength]="urlMax"
+        [value]="query()"
+        (input)="setQuery(field.value)"
+        (keydown.enter)="submit()"
+      />
+      <span class="picker__preview" aria-hidden="true">
+        @if (candidate(); as preview) {
+          <app-event-icon [icon]="preview" />
+        }
+      </span>
+    </div>
+    <p class="picker__hint" [class.picker__hint--error]="invalid()">
+      {{ (invalid() ? 'event.icon.inputInvalid' : 'event.icon.inputHint') | transloco }}
+    </p>
+  </div>
+</mat-menu>

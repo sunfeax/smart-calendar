@@ -67,6 +67,7 @@ import {
 import { EventDialogData } from '../../models/event-dialog';
 import { TagCreateRequest } from '../../models/tag-create-request';
 import { toEventApiDates, toEventFormDates } from '../../utils/event.mapper';
+import { EventIconPicker } from '../event-icon-picker/event-icon-picker';
 import { EventTags } from '../event-tags/event-tags';
 
 interface EventFormValidity {
@@ -78,6 +79,7 @@ interface EventFormValidity {
 interface EventFormModel {
   title: string;
   description: string;
+  icon: string | null;
   allDay: boolean;
   startAt: Date | null;
   endAt: Date | null;
@@ -86,6 +88,7 @@ interface EventFormModel {
 
 @Component({
   imports: [
+    EventIconPicker,
     EventTags,
     FormField,
     MatButton,
@@ -149,6 +152,8 @@ export class EventEditDialog {
   });
 
   // COMPUTED
+  readonly icon = computed(() => this.model().icon);
+
   readonly tagIds = computed(() => this.saved().tagIds);
 
   readonly endTimeMin = computed(() => {
@@ -285,6 +290,10 @@ export class EventEditDialog {
     });
   }
 
+  setIcon(icon: string | null): void {
+    this.model.update(form => ({ ...form, icon }));
+  }
+
   close(): void {
     this.dialogRef.close();
   }
@@ -315,6 +324,7 @@ export class EventEditDialog {
     return {
       title: event.title,
       description: event.description ?? '',
+      icon: event.icon,
       allDay: event.allDay,
       ...toEventFormDates(event),
       completed: event.completedAt !== null,
@@ -333,6 +343,7 @@ export class EventEditDialog {
     if (valid.description && model.description !== (saved.description ?? '')) {
       payload.description = model.description;
     }
+    if (model.icon !== saved.icon) payload.icon = model.icon;
     if (model.completed !== (saved.completedAt !== null)) {
       payload.completed = model.completed;
     }

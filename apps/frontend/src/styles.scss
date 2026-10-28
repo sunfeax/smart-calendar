@@ -80,6 +80,17 @@ html {
   );
 }
 
+.icon-menu {
+  --mat-menu-container-color: var(--color-surface-alt);
+  --mat-menu-container-shape: var(--radius-xl);
+}
+
+.icon-menu.mat-mdc-menu-panel {
+  max-width: calc(100vw - 2rem);
+  overflow: hidden;
+  border: var(--border-width-sm) solid var(--color-border-soft);
+}
+
 .tags-menu {
   --mat-menu-container-color: var(--color-surface-alt);
   --mat-menu-container-shape: var(--radius-xl);

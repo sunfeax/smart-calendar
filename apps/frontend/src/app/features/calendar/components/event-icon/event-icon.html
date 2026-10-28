@@ -1,0 +1,15 @@
+@let current = view();
+@if (current && current.kind === 'emoji') {
+  <span class="icon__emoji" aria-hidden="true">{{ current.value }}</span>
+} @else if (current && current.kind === 'image' && !failed()) {
+  <img
+    class="icon__image"
+    alt=""
+    loading="lazy"
+    referrerpolicy="no-referrer"
+    [src]="current.src"
+    (error)="failed.set(true)"
+  />
+} @else {
+  <mat-icon class="icon__fallback" aria-hidden="true">image_not_supported</mat-icon>
+}

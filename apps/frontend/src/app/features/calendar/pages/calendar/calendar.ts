@@ -45,6 +45,7 @@ import { ConfirmDialog } from '../../../../shared/components/confirm-dialog/conf
 import { TruncatePipe } from '../../../../shared/pipes/truncate.pipe';
 import { LanguageService } from '../../../../shared/services/language.service';
 import { EventEditDialog } from '../../components/event-edit-dialog/event-edit-dialog';
+import { EventIcon } from '../../components/event-icon/event-icon';
 import { TAG_CARD_NAME_MAX } from '../../constants/tag.constants';
 import { EventDialogData } from '../../models/event-dialog';
 import { EventRange } from '../../models/event-range';
@@ -63,6 +64,7 @@ import { SnackbarService } from './../../../../shared/services/snackbar.service'
 @Component({
   selector: 'app-calendar',
   imports: [
+    EventIcon,
     FullCalendarModule,
     MatButton,
     MatIcon,
