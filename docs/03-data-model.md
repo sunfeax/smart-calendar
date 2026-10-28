@@ -169,6 +169,27 @@ model EventException {
 
 Тема и язык в профиле не хранятся, только в браузере. Язык добавим в `User`, когда сервер начнёт отправлять письма и напоминания.
 
+### Приглашение (`CalendarInvite`, следующая порция схемы)
+
+```prisma
+model CalendarInvite {
+  id          String       @id @default(uuid())
+  calendarId  String
+  tokenHash   String       @unique // sha256 токена, сам токен только в ссылке
+  role        CalendarRole // только EDITOR или VIEWER
+  createdById String
+  expiresAt   DateTime     @db.Timestamptz(3) // создание + 7 дней
+  usedAt      DateTime?    @db.Timestamptz(3)
+  usedById    String?
+  createdAt   DateTime     @default(now()) @db.Timestamptz(3)
+  calendar    Calendar     @relation(fields: [calendarId], references: [id], onDelete: Cascade)
+  createdBy   User         @relation("InviteCreatedBy", fields: [createdById], references: [id], onDelete: Cascade)
+  usedBy      User?        @relation("InviteUsedBy", fields: [usedById], references: [id], onDelete: SetNull)
+
+  @@index([calendarId])
+}
+```
+
 ## Порядок внедрения
 
 Схему добавляем порциями, каждая порция отдельной миграцией: `npm run prisma:migrate -- --name <описание>`, затем `npx prisma generate`. Добавлять поля и таблицы потом дёшево, дороже всего менять устройство связей, поэтому оно выбрано в первой порции.
@@ -234,6 +255,15 @@ model EventException {
 - Индекс `(calendarId, startAt)` обслуживает этот запрос.
 - Событие попадает в период `[from, to)`, если оно начинается до `to` и заканчивается после `from`. Поле `endAt` обязательно и должно быть позже `startAt`. На границах периода чаще всего делают ошибки.
 - Повторяющиеся события с `startAt` в прошлом тоже должны попадать в выборку: запрос должен включать события с `recurrenceRule IS NOT NULL` и `startAt <= to`. Развёртывание повторений делается на клиенте (плагин rrule) или на сервере.
+
+### Приглашения
+
+- Ссылка одноразовая и живёт 7 дней. Токен случайный (32 байта), в базе только его хеш, как у сессий.
+- Роль выбирает создатель ссылки: EDITOR или VIEWER. OWNER по ссылке не выдаётся. EDITOR не может выдать роль выше своей, то есть может создать ссылку на EDITOR или VIEWER.
+- Принятие в одной транзакции: ссылка не использована и не просрочена, пользователь ещё не участник, лимит не превышен. Затем `usedAt`, `usedById` и запись `CalendarMember`. Повторное принятие и чужая просроченная ссылка дают 410 или 404 без подробностей.
+- Если пользователь уже участник, ссылка не тратится: клиент просто открывает календарь.
+- Лимит: `MAX_CALENDAR_MEMBERS = 5` участников на календарь вместе с владельцем. Ссылок можно создать сколько угодно, места они не занимают: лимит проверяется при принятии, и если календарь заполнен, ссылка не тратится и возвращается 409. Константа сейчас общая, позже значение зависит от тарифа (подписка снимает лимит).
+- Отозвать ссылку может её создатель и OWNER. Удалить участника: OWNER любого, EDITOR любого кроме OWNER. Участник может выйти сам, OWNER выйти не может.
 
 ### Иконка
 
