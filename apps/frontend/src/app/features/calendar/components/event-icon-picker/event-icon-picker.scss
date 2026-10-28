@@ -2,6 +2,10 @@
   display: flex;
 }
 
+.picker__trigger {
+  display: inline-flex;
+}
+
 .picker__current {
   display: inline-flex;
   padding: var(--space-1);
@@ -31,7 +35,18 @@
   flex-direction: column;
   gap: var(--space-3);
   width: min(22rem, calc(100vw - 2rem));
+  max-height: calc(100dvh - var(--space-8));
   padding: var(--space-3);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  border: var(--border-width-sm) solid var(--color-border-soft);
+  border-radius: var(--radius-control);
+  background: var(--color-surface-alt);
+  box-shadow: var(--shadow-lg);
+
+  > * {
+    flex-shrink: 0;
+  }
 }
 
 .picker__header {
@@ -63,6 +78,7 @@
 
 .picker__brands {
   display: flex;
+  flex-wrap: wrap;
   gap: var(--space-2);
 }
 
@@ -109,6 +125,7 @@
 
 .picker__input {
   flex: 1;
+  min-width: 0;
   padding: var(--space-1) 0;
   border: 0;
   outline: none;
@@ -120,6 +137,7 @@
 
 .picker__preview {
   display: inline-flex;
+  flex: none;
   width: var(--space-6);
   height: var(--space-6);
   font-size: var(--space-6);
@@ -133,4 +151,39 @@
 
 .picker__hint--error {
   color: var(--color-danger);
+}
+
+.picker__sources {
+  display: flex;
+  gap: var(--space-1);
+  padding: var(--space-1);
+  border-radius: var(--radius-control);
+  background: var(--color-surface);
+
+  button {
+    flex: 1;
+    padding: var(--space-1-5) var(--space-2);
+    color: var(--color-text-soft);
+    font-size: var(--font-size-sm);
+    cursor: pointer;
+
+    &:hover {
+      background: var(--color-control-hover);
+    }
+
+    &[aria-pressed='true'] {
+      background: var(--color-control-selected);
+      color: var(--color-text);
+    }
+
+    &:focus-visible {
+      outline: var(--border-width-md) solid var(--color-focus-ring);
+    }
+  }
+}
+
+.picker__apply {
+  --mat-icon-button-icon-color: var(--color-text-soft);
+
+  flex: none;
 }

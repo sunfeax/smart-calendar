@@ -114,10 +114,17 @@
       "change": "Change icon",
       "remove": "Remove",
       "title": "Icon",
-      "inputLabel": "Emoji, site or image link",
-      "inputPlaceholder": "🎉, t.me or https://…/logo.png",
-      "inputHint": "Paste an emoji, a site address or an image link and press Enter",
-      "inputInvalid": "This is not an emoji, a site or an https image link"
+      "inputLabel": "Emoji or website address",
+      "inputPlaceholder": "🎉 or example.com",
+      "inputHint": "Paste an emoji or a website address and apply the icon",
+      "inputInvalid": "Enter an emoji or a valid address. Images require an HTTPS URL",
+      "source": "Icon source",
+      "site": "Website",
+      "image": "Image",
+      "apply": "Apply icon",
+      "imageInputLabel": "Emoji or HTTPS image URL",
+      "imagePlaceholder": "🎉 or https://…/image",
+      "imageHint": "Paste an emoji or an HTTPS image URL, with or without a file extension"
     }
   },
   "tags": {

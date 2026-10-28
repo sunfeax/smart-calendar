@@ -1,33 +1,57 @@
-@if (icon(); as current) {
-  <button
-    type="button"
-    class="picker__current"
-    [disabled]="!editable()"
-    [matMenuTriggerFor]="menu"
-    [attr.aria-label]="'event.icon.change' | transloco"
-    (menuOpened)="focusField(field)"
-  >
-    <app-event-icon [icon]="current" />
-  </button>
-} @else if (editable()) {
-  <button
-    matButton
-    type="button"
-    class="picker__add"
-    [matMenuTriggerFor]="menu"
-    (menuOpened)="focusField(field)"
-  >
-    <mat-icon>add_reaction</mat-icon>
-    {{ 'event.icon.add' | transloco }}
-  </button>
-}
+<div cdkOverlayOrigin #origin="cdkOverlayOrigin" class="picker__trigger">
+  @if (icon(); as current) {
+    <button
+      #triggerButton
+      type="button"
+      class="picker__current"
+      [disabled]="!editable()"
+      aria-haspopup="dialog"
+      [attr.aria-expanded]="opened()"
+      [attr.aria-controls]="opened() ? dialogId : null"
+      [attr.aria-label]="'event.icon.change' | transloco"
+      (click)="open()"
+    >
+      <app-event-icon [icon]="current" />
+    </button>
+  } @else if (editable()) {
+    <button
+      #triggerButton
+      matButton
+      type="button"
+      class="picker__add"
+      aria-haspopup="dialog"
+      [attr.aria-expanded]="opened()"
+      [attr.aria-controls]="opened() ? dialogId : null"
+      (click)="open()"
+    >
+      <mat-icon>add_reaction</mat-icon>
+      {{ 'event.icon.add' | transloco }}
+    </button>
+  }
+</div>
 
-<mat-menu #menu class="icon-menu" (closed)="reset()">
-  <div
+<ng-template
+  cdkConnectedOverlay
+  [cdkConnectedOverlayOrigin]="origin"
+  [cdkConnectedOverlayOpen]="opened()"
+  [cdkConnectedOverlayPositions]="positions"
+  [cdkConnectedOverlayHasBackdrop]="true"
+  cdkConnectedOverlayBackdropClass="cdk-overlay-transparent-backdrop"
+  [cdkConnectedOverlayDisableClose]="true"
+  [cdkConnectedOverlayViewportMargin]="16"
+  [cdkConnectedOverlayPush]="true"
+  (backdropClick)="close()"
+  (detach)="opened.set(false)"
+>
+  <section
     class="picker"
-    tabindex="-1"
-    (click)="keepMenuOpen($event)"
-    (keydown)="keepMenuOpen($event)"
+    role="dialog"
+    aria-modal="true"
+    [id]="dialogId"
+    [attr.aria-label]="'event.icon.title' | transloco"
+    cdkTrapFocus
+    [cdkTrapFocusAutoCapture]="true"
+    (keydown.escape)="close($event)"
   >
     <div class="picker__header">
       <span class="picker__title">{{ 'event.icon.title' | transloco }}</span>
@@ -51,25 +75,65 @@
       }
     </div>
 
-    <div class="picker__field" [class.picker__field--invalid]="invalid()">
+    <div
+      class="picker__sources"
+      role="group"
+      [attr.aria-label]="'event.icon.source' | transloco"
+    >
+      <button
+        type="button"
+        [attr.aria-pressed]="inputKind() === 'site'"
+        (click)="setKind('site')"
+      >
+        {{ 'event.icon.site' | transloco }}
+      </button>
+      <button
+        type="button"
+        [attr.aria-pressed]="inputKind() === 'image'"
+        (click)="setKind('image')"
+      >
+        {{ 'event.icon.image' | transloco }}
+      </button>
+    </div>
+
+    <form
+      class="picker__field"
+      [class.picker__field--invalid]="invalid()"
+      (submit)="submit($event)"
+    >
       <input
+        cdkFocusInitial
         #field
         class="picker__input"
-        [attr.aria-label]="'event.icon.inputLabel' | transloco"
-        [placeholder]="'event.icon.inputPlaceholder' | transloco"
+        [attr.aria-label]="inputLabelKey() | transloco"
+        [attr.aria-invalid]="invalid()"
+        [attr.aria-describedby]="hintId"
+        [placeholder]="placeholderKey() | transloco"
         [maxLength]="urlMax"
         [value]="query()"
         (input)="setQuery(field.value)"
-        (keydown.enter)="submit()"
       />
       <span class="picker__preview" aria-hidden="true">
         @if (candidate(); as preview) {
           <app-event-icon [icon]="preview" />
         }
       </span>
-    </div>
-    <p class="picker__hint" [class.picker__hint--error]="invalid()">
-      {{ (invalid() ? 'event.icon.inputInvalid' : 'event.icon.inputHint') | transloco }}
+      <button
+        matIconButton
+        class="picker__apply"
+        type="submit"
+        [attr.aria-label]="'event.icon.apply' | transloco"
+      >
+        <mat-icon>check</mat-icon>
+      </button>
+    </form>
+    <p
+      class="picker__hint"
+      [id]="hintId"
+      [class.picker__hint--error]="invalid()"
+      aria-live="polite"
+    >
+      {{ hintKey() | transloco }}
     </p>
-  </div>
-</mat-menu>
+  </section>
+</ng-template>

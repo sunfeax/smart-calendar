@@ -1,7 +1,10 @@
 import { ValidateBy, ValidationOptions } from 'class-validator';
-import { ICON_BRAND_PATTERN, ICON_EMOJI_MAX, ICON_URL_MAX } from './event.constants.js';
-
-const EMOJI_PATTERN = /\p{Extended_Pictographic}|\p{Regional_Indicator}/u;
+import {
+  ICON_BRAND_PATTERN,
+  ICON_EMOJI_MAX,
+  ICON_EMOJI_PATTERN,
+  ICON_URL_MAX,
+} from './event.constants.js';
 
 export function isEventIcon(value: unknown): boolean {
   if (typeof value !== 'string') return false;
@@ -11,7 +14,7 @@ export function isEventIcon(value: unknown): boolean {
     return (
       [...emoji].length <= ICON_EMOJI_MAX &&
       !/\s/.test(emoji) &&
-      EMOJI_PATTERN.test(emoji)
+      ICON_EMOJI_PATTERN.test(emoji)
     );
   }
 
