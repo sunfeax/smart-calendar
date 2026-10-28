@@ -201,7 +201,13 @@
     "createError": "Could not create the link",
     "revokeError": "Could not revoke the link",
     "removeError": "Could not remove the member",
-    "leaveError": "Could not leave the calendar"
+    "leaveError": "Could not leave the calendar",
+    "membersTitle": "Members",
+    "loading": "Loading…",
+    "membersLoadError": "Could not load members",
+    "invitesLoadError": "Could not load invites",
+    "retry": "Retry",
+    "noActiveLinks": "No active links"
   },
   "invite": {
     "accepting": "Accepting the invite…",

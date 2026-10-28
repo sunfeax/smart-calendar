@@ -1,6 +1,6 @@
 import { Clipboard } from '@angular/cdk/clipboard';
-import { Component, computed, inject, signal } from '@angular/core';
-import { rxResource } from '@angular/core/rxjs-interop';
+import { Component, computed, DestroyRef, inject, signal } from '@angular/core';
+import { rxResource, takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { MatButton, MatIconButton } from '@angular/material/button';
 import { MatButtonToggle, MatButtonToggleGroup } from '@angular/material/button-toggle';
 import {
@@ -13,7 +13,7 @@ import {
 import { MatIcon } from '@angular/material/icon';
 import { MatTooltip } from '@angular/material/tooltip';
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
-import { catchError, EMPTY, switchMap, tap } from 'rxjs';
+import { catchError, EMPTY, finalize, switchMap, tap } from 'rxjs';
 import { CalendarDto, InviteDto, MemberDto } from '../../../../api/generated';
 import { ConfirmDialog } from '../../../../shared/components/confirm-dialog/confirm-dialog';
 import { LanguageService } from '../../../../shared/services/language.service';
@@ -63,6 +63,7 @@ export class CalendarShareDialog {
   private readonly transloco = inject(TranslocoService);
   private readonly languageService = inject(LanguageService);
   private readonly clipboard = inject(Clipboard);
+  private readonly destroyRef = inject(DestroyRef);
 
   readonly data = inject<CalendarShareDialogData>(MAT_DIALOG_DATA);
 
@@ -71,7 +72,8 @@ export class CalendarShareDialog {
   readonly maxMembers = MAX_CALENDAR_MEMBERS;
   readonly ttlDays = INVITE_TTL_DAYS;
   readonly inviteRole = signal<InviteRole>('EDITOR');
-  readonly link = signal<string | null>(null);
+  readonly link = signal<{ id: string; url: string } | null>(null);
+  readonly pending = signal(false);
 
   // DATA
   readonly members = rxResource({
@@ -96,18 +98,33 @@ export class CalendarShareDialog {
 
   readonly isFull = computed(() => this.memberCount() >= MAX_CALENDAR_MEMBERS);
 
+  readonly canCreate = computed(
+    () =>
+      this.canInvite() &&
+      this.members.hasValue() &&
+      !this.members.isLoading() &&
+      this.invites.hasValue() &&
+      !this.invites.isLoading() &&
+      !this.isFull() &&
+      !this.pending(),
+  );
+
   // ACTIONS
   createInvite(): void {
+    if (!this.canCreate()) return;
+    this.pending.set(true);
     this.inviteService
       .create(this.data.calendarId, { role: this.inviteRole() })
       .pipe(
         tap(({ token, ...invite }) => {
           const link = `${location.origin}/invite/${token}`;
-          this.link.set(link);
-          this.invites.update(list => list && [invite, ...list]);
+          this.link.set({ id: invite.id, url: link });
+          this.invites.update(list => [invite, ...(list ?? [])]);
           this.copyLink(link);
         }),
         catchError(() => this.notifyError('share.createError')),
+        finalize(() => this.pending.set(false)),
+        takeUntilDestroyed(this.destroyRef),
       )
       .subscribe();
   }
@@ -119,18 +136,39 @@ export class CalendarShareDialog {
   }
 
   revokeInvite(invite: InviteDto): void {
+    if (
+      this.pending() ||
+      !this.canRevoke(invite) ||
+      !this.invites.hasValue() ||
+      this.invites.isLoading()
+    ) {
+      return;
+    }
+    this.pending.set(true);
     this.inviteService
       .revoke(invite.id)
       .pipe(
-        tap(() =>
-          this.invites.update(list => list?.filter(item => item.id !== invite.id)),
-        ),
+        tap(() => {
+          this.invites.update(list => list?.filter(item => item.id !== invite.id));
+          if (this.link()?.id === invite.id) this.link.set(null);
+        }),
         catchError(() => this.notifyError('share.revokeError')),
+        finalize(() => this.pending.set(false)),
+        takeUntilDestroyed(this.destroyRef),
       )
       .subscribe();
   }
 
   removeMember(member: MemberDto): void {
+    if (
+      this.pending() ||
+      !this.canRemove(member) ||
+      !this.members.hasValue() ||
+      this.members.isLoading()
+    ) {
+      return;
+    }
+    this.pending.set(true);
     this.confirm('share.removeTitle', 'share.removeMessage', { name: member.name })
       .pipe(
         switchMap(() => this.memberService.remove(this.data.calendarId, member.userId)),
@@ -140,19 +178,24 @@ export class CalendarShareDialog {
           ),
         ),
         catchError(() => this.notifyError('share.removeError')),
+        finalize(() => this.pending.set(false)),
+        takeUntilDestroyed(this.destroyRef),
       )
       .subscribe();
   }
 
   leave(): void {
     const userId = this.currentUserId();
-    if (!userId) return;
+    if (!userId || this.isOwner() || this.pending()) return;
+    this.pending.set(true);
 
     this.confirm('share.leaveTitle', 'share.leaveMessage')
       .pipe(
         switchMap(() => this.memberService.remove(this.data.calendarId, userId)),
         tap(() => this.dialogRef.close({ left: true })),
         catchError(() => this.notifyError('share.leaveError')),
+        finalize(() => this.pending.set(false)),
+        takeUntilDestroyed(this.destroyRef),
       )
       .subscribe();
   }

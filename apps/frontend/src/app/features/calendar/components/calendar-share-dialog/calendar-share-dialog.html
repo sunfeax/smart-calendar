@@ -20,6 +20,7 @@
           class="share__roles"
           hideSingleSelectionIndicator
           [value]="inviteRole()"
+          [disabled]="pending()"
           [attr.aria-label]="'share.role' | transloco"
           (change)="inviteRole.set($event.value)"
         >
@@ -32,7 +33,7 @@
         <button
           matButton="filled"
           type="button"
-          [disabled]="isFull()"
+          [disabled]="!canCreate()"
           (click)="createInvite()"
         >
           <mat-icon>link</mat-icon>
@@ -49,7 +50,7 @@
           <input
             class="share__link-input"
             readonly
-            [value]="current"
+            [value]="current.url"
             [attr.aria-label]="'share.link' | transloco"
           />
           <button
@@ -57,7 +58,8 @@
             type="button"
             [attr.aria-label]="'share.copy' | transloco"
             [matTooltip]="'share.copy' | transloco"
-            (click)="copyLink(current)"
+            [disabled]="pending()"
+            (click)="copyLink(current.url)"
           >
             <mat-icon>content_copy</mat-icon>
           </button>
@@ -68,73 +70,58 @@
 
   <section class="share__section">
     <h2 class="share__heading">
-      {{ 'share.members' | transloco: { count: memberCount(), max: maxMembers } }}
-    </h2>
-    <ul class="share__list">
-      @for (member of members.hasValue() ? members.value() : []; track member.userId) {
-        <li class="share__row">
-          @if (member.avatarUrl) {
-            <img
-              class="share__avatar"
-              alt=""
-              referrerpolicy="no-referrer"
-              [src]="member.avatarUrl"
-            />
-          } @else {
-            <span class="share__avatar share__avatar--empty" aria-hidden="true">
-              {{ member.name.charAt(0) }}
-            </span>
-          }
-          <span class="share__person">
-            <span class="share__name">
-              {{ member.name }}
-              @if (member.userId === currentUserId()) {
-                <span class="share__you">{{ 'share.you' | transloco }}</span>
-              }
-            </span>
-            <span class="share__email">{{ member.email }}</span>
-          </span>
-          <span class="share__role">{{ 'share.roles.' + member.role | transloco }}</span>
-          @if (canRemove(member)) {
-            <button
-              matIconButton
-              type="button"
-              class="share__danger"
-              [attr.aria-label]="'share.remove' | transloco"
-              [matTooltip]="'share.remove' | transloco"
-              (click)="removeMember(member)"
-            >
-              <mat-icon>delete</mat-icon>
-            </button>
-          }
-        </li>
+      @if (members.hasValue()) {
+        {{ 'share.members' | transloco: { count: memberCount(), max: maxMembers } }}
+      } @else {
+        {{ 'share.membersTitle' | transloco }}
       }
-    </ul>
-  </section>
-
-  @if (canInvite() && invites.hasValue() && invites.value().length) {
-    <section class="share__section">
-      <h2 class="share__heading">{{ 'share.activeLinks' | transloco }}</h2>
+    </h2>
+    @if (members.isLoading()) {
+      <p class="share__hint" role="status">{{ 'share.loading' | transloco }}</p>
+    } @else if (members.error()) {
+      <div class="share__error" role="alert">
+        <p class="share__hint share__hint--error">
+          {{ 'share.membersLoadError' | transloco }}
+        </p>
+        <button matButton type="button" [disabled]="pending()" (click)="members.reload()">
+          {{ 'share.retry' | transloco }}
+        </button>
+      </div>
+    } @else if (members.hasValue()) {
       <ul class="share__list">
-        @for (invite of invites.value(); track invite.id) {
+        @for (member of members.value(); track member.userId) {
           <li class="share__row">
-            <mat-icon class="share__link-icon">person</mat-icon>
+            @if (member.avatarUrl) {
+              <img
+                class="share__avatar"
+                alt=""
+                referrerpolicy="no-referrer"
+                [src]="member.avatarUrl"
+              />
+            } @else {
+              <span class="share__avatar share__avatar--empty" aria-hidden="true">
+                {{ member.name.charAt(0) }}
+              </span>
+            }
             <span class="share__person">
               <span class="share__name">
-                {{ 'share.roles.' + invite.role | transloco }}
+                {{ member.name }}
+                @if (member.userId === currentUserId()) {
+                  <span class="share__you">{{ 'share.you' | transloco }}</span>
+                }
               </span>
-              <span class="share__email">
-                {{ 'share.expires' | transloco: { date: formatDate(invite.expiresAt) } }}
-              </span>
+              <span class="share__email">{{ member.email }}</span>
             </span>
-            @if (canRevoke(invite)) {
+            <span class="share__role">{{ 'share.roles.' + member.role | transloco }}</span>
+            @if (canRemove(member)) {
               <button
                 matIconButton
                 type="button"
                 class="share__danger"
-                [attr.aria-label]="'share.revoke' | transloco"
-                [matTooltip]="'share.revoke' | transloco"
-                (click)="revokeInvite(invite)"
+                [attr.aria-label]="'share.remove' | transloco"
+                [matTooltip]="'share.remove' | transloco"
+                [disabled]="pending() || members.isLoading()"
+                (click)="removeMember(member)"
               >
                 <mat-icon>delete</mat-icon>
               </button>
@@ -142,11 +129,66 @@
           </li>
         }
       </ul>
+    }
+  </section>
+
+  @if (canInvite()) {
+    <section class="share__section">
+      <h2 class="share__heading">{{ 'share.activeLinks' | transloco }}</h2>
+      @if (invites.isLoading()) {
+        <p class="share__hint" role="status">{{ 'share.loading' | transloco }}</p>
+      } @else if (invites.error()) {
+        <div class="share__error" role="alert">
+          <p class="share__hint share__hint--error">
+            {{ 'share.invitesLoadError' | transloco }}
+          </p>
+          <button matButton type="button" [disabled]="pending()" (click)="invites.reload()">
+            {{ 'share.retry' | transloco }}
+          </button>
+        </div>
+      } @else if (invites.hasValue()) {
+        <ul class="share__list">
+          @for (invite of invites.value(); track invite.id) {
+            <li class="share__row">
+              <mat-icon class="share__link-icon">person</mat-icon>
+              <span class="share__person">
+                <span class="share__name">
+                  {{ 'share.roles.' + invite.role | transloco }}
+                </span>
+                <span class="share__email">
+                  {{ 'share.expires' | transloco: { date: formatDate(invite.expiresAt) } }}
+                </span>
+              </span>
+              @if (canRevoke(invite)) {
+                <button
+                  matIconButton
+                  type="button"
+                  class="share__danger"
+                  [attr.aria-label]="'share.revoke' | transloco"
+                  [matTooltip]="'share.revoke' | transloco"
+                  [disabled]="pending() || invites.isLoading()"
+                  (click)="revokeInvite(invite)"
+                >
+                  <mat-icon>delete</mat-icon>
+                </button>
+              }
+            </li>
+          } @empty {
+            <li class="share__hint">{{ 'share.noActiveLinks' | transloco }}</li>
+          }
+        </ul>
+      }
     </section>
   }
 
   @if (!isOwner()) {
-    <button matButton type="button" class="share__leave" (click)="leave()">
+    <button
+      matButton
+      type="button"
+      class="share__leave"
+      [disabled]="pending()"
+      (click)="leave()"
+    >
       <mat-icon>logout</mat-icon>
       {{ 'share.leave' | transloco }}
     </button>

@@ -34,6 +34,17 @@
   font-size: var(--font-size-xs);
 }
 
+.share__error {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.share__hint--error {
+  color: var(--color-danger);
+}
+
 .share__hint--warning {
   color: var(--color-warning);
 }

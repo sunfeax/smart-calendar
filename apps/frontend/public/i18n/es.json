@@ -201,7 +201,13 @@
     "createError": "No se pudo crear el enlace",
     "revokeError": "No se pudo revocar el enlace",
     "removeError": "No se pudo quitar al miembro",
-    "leaveError": "No se pudo salir del calendario"
+    "leaveError": "No se pudo salir del calendario",
+    "membersTitle": "Miembros",
+    "loading": "Cargando…",
+    "membersLoadError": "No se pudieron cargar los miembros",
+    "invitesLoadError": "No se pudieron cargar las invitaciones",
+    "retry": "Reintentar",
+    "noActiveLinks": "No hay enlaces activos"
   },
   "invite": {
     "accepting": "Aceptando la invitación…",

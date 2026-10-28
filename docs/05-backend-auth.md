@@ -3,7 +3,7 @@
 ## Структура Nest-проекта
 
 Модули сейчас: `auth`, `user`, `session`.
-Этап 2: `calendars`, `events`. Этап 3: `tags`. Следующий: `invites` (приглашения и участники). Позже: `ai`.
+Этап 2: `calendars`, `events`. Этап 3: `tags`. Затем `members` и `invites` (участники и приглашения). Позже: `ai`.
 
 - `auth`: вход через Google, logout, `/auth/me`, глобальный guard. Сам сессии не хранит, вызывает `session`.
 - `session`: создание, поиск по хешу токена, продление, удаление и очистка просроченных. Отдельно от `auth`, потому что его используют и guard, и вход, а позже экран активных сессий.
@@ -25,7 +25,7 @@
 - `GET /calendars`, `POST /calendars`, `PATCH /calendars/:id`, `DELETE /calendars/:id`
 - `GET /calendars/:id/members`: участники с ролями.
 - `DELETE /calendars/:id/members/:userId`: удалить участника или выйти самому (свой `userId`).
-- `GET /calendars/:id/invites`: активные ссылки (без токенов).
+- `GET /calendars/:id/invites`: активные ссылки (без токенов, с `createdById`, чтобы клиент знал, кто может отозвать).
 - `POST /calendars/:id/invites` `{ role }`: создать ссылку, токен приходит один раз в ответе.
 - `DELETE /invites/:id`: отозвать ссылку.
 - `POST /invites/accept` `{ token }`: принять приглашение, ответ: календарь.
