@@ -80,21 +80,35 @@ model CalendarMember {
 }
 
 model Event {
-  id          String     @id @default(uuid())
-  calendarId  String
-  title       String     @default("")
-  description String?
-  icon        String?
-  startAt     DateTime   @db.Timestamptz(3)
-  endAt       DateTime   @db.Timestamptz(3)
-  allDay      Boolean    @default(true)
-  completedAt DateTime?  @db.Timestamptz(3)
-  createdAt   DateTime   @default(now()) @db.Timestamptz(3)
-  updatedAt   DateTime   @updatedAt @db.Timestamptz(3)
-  calendar    Calendar   @relation(fields: [calendarId], references: [id], onDelete: Cascade)
-  tags        EventTag[]
+  id             String           @id @default(uuid())
+  calendarId     String
+  title          String           @default("")
+  description    String?
+  icon           String?
+  startAt        DateTime         @db.Timestamptz(3)
+  endAt          DateTime         @db.Timestamptz(3)
+  allDay         Boolean          @default(true)
+  completedAt    DateTime?        @db.Timestamptz(3)
+  recurrenceRule String?
+  timeZone       String?
+  createdAt      DateTime         @default(now()) @db.Timestamptz(3)
+  updatedAt      DateTime         @updatedAt @db.Timestamptz(3)
+  calendar       Calendar         @relation(fields: [calendarId], references: [id], onDelete: Cascade)
+  tags           EventTag[]
+  exceptions     EventException[]
 
   @@index([calendarId, startAt])
+}
+
+model EventException {
+  id            String   @id @default(uuid())
+  eventId       String
+  originalStart DateTime @db.Timestamptz(3)
+  cancelled     Boolean  @default(false)
+  overrides     Json?
+  event         Event    @relation(fields: [eventId], references: [id], onDelete: Cascade)
+
+  @@unique([eventId, originalStart])
 }
 
 model TagCategory {
