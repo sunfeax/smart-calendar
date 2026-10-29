@@ -1,15 +1,18 @@
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { ONE_DAY_MS } from '../../../common/constants.js';
-import { Event, Prisma } from '../../../generated/prisma/client.js';
+import { Event, EventException, Prisma } from '../../../generated/prisma/client.js';
 import { CalendarRole } from '../../../generated/prisma/enums.js';
 import { PrismaService } from '../../../prisma/prisma.service.js';
 import { CalendarAccessService } from '../calendars/calendar-access.service.js';
+import { expandSeries, Occurrence } from './event-recurrence.js';
 import { RANGE_MAX_DAYS, RANGE_MAX_ITEMS } from './event.constants.js';
 import { EventCreateDto, EventDto, EventsRangeDto, EventUpdateDto } from './event.dto.js';
 
 const EVENT_INCLUDE = { tags: { select: { tagId: true } } } satisfies Prisma.EventInclude;
 
 type EventWithTags = Event & { tags: { tagId: string }[] };
+
+type EventWithExceptions = EventWithTags & { exceptions: EventException[] };
 
 @Injectable()
 export class EventService {
@@ -38,21 +41,33 @@ export class EventService {
     const events = await this.prisma.event.findMany({
       where: {
         calendarId,
-        startAt: {
-          lt: to,
-        },
-        endAt: {
-          gt: from,
+        OR: [
+          { recurrenceRule: null, startAt: { lt: to }, endAt: { gt: from } },
+          { recurrenceRule: { not: null }, startAt: { lt: to } },
+        ],
+      },
+      include: {
+        ...EVENT_INCLUDE,
+        exceptions: {
+          where: {
+            cancelled: true,
+            originalStart: {
+              gte: new Date(from.getTime() - RANGE_MAX_DAYS * ONE_DAY_MS),
+              lt: to,
+            },
+          },
         },
       },
-      include: EVENT_INCLUDE,
       orderBy: {
         startAt: 'asc',
       },
       take: RANGE_MAX_ITEMS,
     });
 
-    return events.map(event => this.toEventDto(event));
+    return events
+      .flatMap(event => this.toRangeDtos(event, from, to))
+      .sort((a, b) => a.startAt.localeCompare(b.startAt))
+      .slice(0, RANGE_MAX_ITEMS);
   }
 
   async create(
@@ -65,6 +80,8 @@ export class EventService {
     const startAt = new Date(dto.startAt);
     const endAt = new Date(dto.endAt);
     const { allDay } = dto;
+    const recurrenceRule = dto.recurrenceRule ?? null;
+    const timeZone = this.resolveTimeZone(recurrenceRule, allDay, dto.timeZone ?? null);
 
     this.assertDates(startAt, endAt, allDay);
 
@@ -77,6 +94,8 @@ export class EventService {
         startAt,
         endAt,
         allDay,
+        recurrenceRule,
+        timeZone,
       },
       include: EVENT_INCLUDE,
     });
@@ -90,6 +109,13 @@ export class EventService {
     const startAt = dto.startAt ? new Date(dto.startAt) : event.startAt;
     const endAt = dto.endAt !== undefined ? new Date(dto.endAt) : event.endAt;
     const allDay = dto.allDay ?? event.allDay;
+    const recurrenceRule =
+      dto.recurrenceRule !== undefined ? dto.recurrenceRule : event.recurrenceRule;
+    const timeZone = this.resolveTimeZone(
+      recurrenceRule,
+      allDay,
+      dto.timeZone !== undefined ? dto.timeZone : event.timeZone,
+    );
 
     this.assertDates(startAt, endAt, allDay);
 
@@ -111,6 +137,8 @@ export class EventService {
         endAt,
         allDay,
         completedAt,
+        recurrenceRule,
+        timeZone,
       },
       include: EVENT_INCLUDE,
     });
@@ -208,13 +236,45 @@ export class EventService {
     }
   }
 
-  private toEventDto(event: EventWithTags): EventDto {
+  private resolveTimeZone(
+    recurrenceRule: string | null,
+    allDay: boolean,
+    timeZone: string | null,
+  ): string | null {
+    if (!recurrenceRule || allDay) return null;
+
+    if (!timeZone) {
+      throw new BadRequestException('timeZone is required for timed recurring events');
+    }
+
+    return timeZone;
+  }
+
+  private toRangeDtos(event: EventWithExceptions, from: Date, to: Date): EventDto[] {
+    const { exceptions, ...rest } = event;
+    const { recurrenceRule } = event;
+
+    if (!recurrenceRule) return [this.toEventDto(rest)];
+
+    const cancelled = new Set(
+      exceptions.map(exception => exception.originalStart.getTime()),
+    );
+
+    return expandSeries({ ...event, recurrenceRule }, from, to, RANGE_MAX_ITEMS)
+      .filter(occurrence => !cancelled.has(occurrence.startAt.getTime()))
+      .map(occurrence => this.toEventDto(rest, occurrence));
+  }
+
+  private toEventDto(event: EventWithTags, occurrence?: Occurrence): EventDto {
     const { tags, ...rest } = event;
+    const startAt = occurrence?.startAt ?? event.startAt;
+    const endAt = occurrence?.endAt ?? event.endAt;
     return {
       ...rest,
       tagIds: tags.map(tag => tag.tagId),
-      startAt: event.startAt.toISOString(),
-      endAt: event.endAt.toISOString(),
+      startAt: startAt.toISOString(),
+      endAt: endAt.toISOString(),
+      originalStart: occurrence ? occurrence.startAt.toISOString() : null,
       completedAt: event.completedAt ? event.completedAt.toISOString() : null,
       createdAt: event.createdAt.toISOString(),
       updatedAt: event.updatedAt.toISOString(),

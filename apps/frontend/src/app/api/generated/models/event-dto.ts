@@ -17,6 +17,9 @@ export interface EventDto {
     endAt: string;
     allDay: boolean;
     completedAt: string | null;
+    recurrenceRule: string | null;
+    timeZone: string | null;
+    originalStart: string | null;
     updatedAt: string;
     createdAt: string;
     tagIds: Array<string>;

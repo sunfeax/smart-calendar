@@ -1,8 +1,16 @@
 import { PartialType } from '@nestjs/swagger';
-import { IsBoolean, IsISO8601, IsOptional, IsString, MaxLength } from 'class-validator';
+import {
+  IsBoolean,
+  IsISO8601,
+  IsOptional,
+  IsString,
+  IsTimeZone,
+  MaxLength,
+} from 'class-validator';
 import { Trim } from '../../../common/trim.decorator.js';
 import { IsEventIcon } from './event-icon.decorator.js';
 import { DESCRIPTION_MAX, TITLE_MAX } from './event.constants.js';
+import { IsRecurrenceRule } from './recurrence-rule.decorator.js';
 
 export class EventCreateDto {
   @IsOptional()
@@ -27,6 +35,14 @@ export class EventCreateDto {
 
   @IsBoolean()
   allDay!: boolean;
+
+  @IsOptional()
+  @IsRecurrenceRule()
+  recurrenceRule?: string | null;
+
+  @IsOptional()
+  @IsTimeZone()
+  timeZone?: string | null;
 }
 
 export class EventUpdateDto extends PartialType(EventCreateDto, {
@@ -55,6 +71,9 @@ export class EventDto {
   endAt!: string;
   allDay!: boolean;
   completedAt!: string | null;
+  recurrenceRule!: string | null;
+  timeZone!: string | null;
+  originalStart!: string | null;
   updatedAt!: string;
   createdAt!: string;
   tagIds!: string[];

@@ -32,7 +32,7 @@
 
 **События**
 
-- `GET /calendars/:id/events?from=&to=`
+- `GET /calendars/:id/events?from=&to=`: одиночные события и развёрнутые повторения серий за диапазон. У повторения `id` серии и `originalStart`, у одиночного события `originalStart = null`.
 - `POST /calendars/:id/events`
 - `PATCH /events/:id`, `DELETE /events/:id`
 - Ответ события содержит `tagIds: string[]`. Имена и цвета клиент берёт из списка категорий календаря.

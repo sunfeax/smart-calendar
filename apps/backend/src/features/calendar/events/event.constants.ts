@@ -13,3 +13,17 @@ export const ICON_BRAND_PATTERN = /^[a-z0-9-]{1,40}$/;
 export const ICON_URL_MAX = 2048;
 export const RANGE_MAX_DAYS = 375;
 export const RANGE_MAX_ITEMS = 5000;
+export const RECURRENCE_RULE_MAX = 200;
+export const RECURRENCE_FREQUENCIES = ['DAILY', 'WEEKLY', 'MONTHLY', 'YEARLY'];
+export const RECURRENCE_KEYS = [
+  'FREQ',
+  'INTERVAL',
+  'COUNT',
+  'UNTIL',
+  'BYDAY',
+  'BYMONTHDAY',
+  'BYMONTH',
+  'BYSETPOS',
+  'WKST',
+];
+export const RECURRENCE_NUMBER_MAX = 1000;

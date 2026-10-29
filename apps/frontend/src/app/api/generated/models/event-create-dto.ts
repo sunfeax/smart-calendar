@@ -14,4 +14,6 @@ export interface EventCreateDto {
     startAt: string;
     endAt: string;
     allDay: boolean;
+    recurrenceRule?: string | null;
+    timeZone?: string | null;
 }
