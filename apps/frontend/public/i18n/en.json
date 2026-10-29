@@ -185,6 +185,7 @@
     "copy": "Copy link",
     "copied": "Link copied",
     "full": "The calendar already has {{max}} members. New links will not work until someone leaves.",
+    "linksFull": "There are already {{max}} active links. Revoke one to create a new link.",
     "members": "Members · {{count}} of {{max}}",
     "you": "(you)",
     "remove": "Remove from calendar",

@@ -12,7 +12,11 @@ import { generateToken, hashToken } from '../../session/session-token.js';
 import { CalendarAccessService } from '../calendars/calendar-access.service.js';
 import { MAX_CALENDAR_MEMBERS } from '../calendars/calendar.constants.js';
 import { CalendarDto } from '../calendars/calendar.dto.js';
-import { INVITE_TTL_MS, MAX_INVITES_LIST } from './invite.constants.js';
+import {
+  INVITE_TTL_MS,
+  MAX_ACTIVE_INVITES,
+  MAX_INVITES_LIST,
+} from './invite.constants.js';
 import { InviteCreatedDto, InviteCreateDto, InviteDto } from './invite.dto.js';
 
 @Injectable()
@@ -43,18 +47,30 @@ export class InviteService {
   ): Promise<InviteCreatedDto> {
     await this.access.assertRole(userId, calendarId, CalendarRole.EDITOR);
 
-    const token = generateToken();
-    const invite = await this.prisma.calendarInvite.create({
-      data: {
-        calendarId,
-        tokenHash: hashToken(token),
-        role: dto.role,
-        createdById: userId,
-        expiresAt: new Date(Date.now() + INVITE_TTL_MS),
-      },
-    });
+    return this.prisma.$transaction(async tx => {
+      await tx.$queryRaw`SELECT 1 FROM "Calendar" WHERE "id" = ${calendarId} FOR UPDATE`;
 
-    return { ...this.toInviteDto(invite), token };
+      const activeCount = await tx.calendarInvite.count({
+        where: { calendarId, usedAt: null, expiresAt: { gt: new Date() } },
+      });
+
+      if (activeCount >= MAX_ACTIVE_INVITES) {
+        throw new ConflictException('Active invite limit reached');
+      }
+
+      const token = generateToken();
+      const invite = await tx.calendarInvite.create({
+        data: {
+          calendarId,
+          tokenHash: hashToken(token),
+          role: dto.role,
+          createdById: userId,
+          expiresAt: new Date(Date.now() + INVITE_TTL_MS),
+        },
+      });
+
+      return { ...this.toInviteDto(invite), token };
+    });
   }
 
   async revoke(userId: string, id: string): Promise<void> {

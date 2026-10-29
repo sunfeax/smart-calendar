@@ -1,4 +1,5 @@
 import { Clipboard } from '@angular/cdk/clipboard';
+import { HttpErrorResponse } from '@angular/common/http';
 import { Component, computed, DestroyRef, inject, signal } from '@angular/core';
 import { rxResource, takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { MatButton, MatIconButton } from '@angular/material/button';
@@ -23,6 +24,7 @@ import {
   INVITE_ROLES,
   INVITE_TTL_DAYS,
   InviteRole,
+  MAX_ACTIVE_INVITES,
   MAX_CALENDAR_MEMBERS,
 } from '../../constants/share.constants';
 import { InviteService } from '../../services/invite.service';
@@ -70,6 +72,7 @@ export class CalendarShareDialog {
   // STATE
   readonly roles = INVITE_ROLES;
   readonly maxMembers = MAX_CALENDAR_MEMBERS;
+  readonly maxInvites = MAX_ACTIVE_INVITES;
   readonly ttlDays = INVITE_TTL_DAYS;
   readonly inviteRole = signal<InviteRole>('EDITOR');
   readonly link = signal<{ id: string; url: string } | null>(null);
@@ -98,6 +101,10 @@ export class CalendarShareDialog {
 
   readonly isFull = computed(() => this.memberCount() >= MAX_CALENDAR_MEMBERS);
 
+  readonly hasMaxInvites = computed(
+    () => this.invites.hasValue() && this.invites.value().length >= MAX_ACTIVE_INVITES,
+  );
+
   readonly canCreate = computed(
     () =>
       this.canInvite() &&
@@ -106,6 +113,7 @@ export class CalendarShareDialog {
       this.invites.hasValue() &&
       !this.invites.isLoading() &&
       !this.isFull() &&
+      !this.hasMaxInvites() &&
       !this.pending(),
   );
 
@@ -122,7 +130,14 @@ export class CalendarShareDialog {
           this.invites.update(list => [invite, ...(list ?? [])]);
           this.copyLink(link);
         }),
-        catchError(() => this.notifyError('share.createError')),
+        catchError((error: unknown) =>
+          this.notifyError(
+            error instanceof HttpErrorResponse && error.status === 409
+              ? 'share.linksFull'
+              : 'share.createError',
+            { max: String(MAX_ACTIVE_INVITES) },
+          ),
+        ),
         finalize(() => this.pending.set(false)),
         takeUntilDestroyed(this.destroyRef),
       )
@@ -232,8 +247,8 @@ export class CalendarShareDialog {
     });
   }
 
-  private notifyError(key: string) {
-    this.snackbarService.error(this.transloco.translate(key));
+  private notifyError(key: string, params?: Record<string, string>) {
+    this.snackbarService.error(this.transloco.translate(key, params));
     return EMPTY;
   }
 }

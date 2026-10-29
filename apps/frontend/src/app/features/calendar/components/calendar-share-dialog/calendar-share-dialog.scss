@@ -50,6 +50,9 @@
 }
 
 .share__invite {
+  --mat-button-filled-container-height: var(--space-10);
+  --mat-button-filled-container-shape: var(--radius-control);
+
   display: flex;
   flex-wrap: wrap;
   align-items: center;
@@ -58,14 +61,24 @@
 
 .share__roles {
   --mat-button-toggle-shape: var(--radius-control);
-  --mat-button-toggle-height: var(--space-10);
+  --mat-button-toggle-height: calc(var(--space-10) - 2 * var(--border-width-sm));
+
+  flex: 1;
+
+  mat-button-toggle {
+    flex: 1;
+  }
 }
 
 .share__link {
+  --mat-icon-button-state-layer-size: var(--space-8);
+
   display: flex;
   align-items: center;
   gap: var(--space-1);
-  padding-inline-start: var(--space-3);
+  box-sizing: border-box;
+  height: var(--space-10);
+  padding-inline: var(--space-3) var(--space-1);
   border: var(--border-width-sm) solid var(--color-border);
   border-radius: var(--radius-control);
   background: var(--color-surface);
@@ -97,7 +110,7 @@
   align-items: center;
   gap: var(--space-3);
   min-height: var(--space-12);
-  padding: var(--space-1) var(--space-2);
+  padding-block: var(--space-1);
   border-radius: var(--radius-control);
 }
 

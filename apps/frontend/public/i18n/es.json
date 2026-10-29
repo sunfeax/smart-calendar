@@ -185,6 +185,7 @@
     "copy": "Copiar enlace",
     "copied": "Enlace copiado",
     "full": "El calendario ya tiene {{max}} miembros. Los enlaces nuevos no funcionarán hasta que alguien salga.",
+    "linksFull": "Ya hay {{max}} enlaces activos. Revoca uno para crear uno nuevo.",
     "members": "Miembros · {{count}} de {{max}}",
     "you": "(tú)",
     "remove": "Quitar del calendario",

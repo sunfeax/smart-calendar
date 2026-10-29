@@ -6,6 +6,12 @@ import { TranslocoPipe } from '@jsverse/transloco';
 import { CalendarDto } from '../../../../api/generated';
 import { routePaths } from '../../../../core/constants/routePaths';
 
+const ROLE_ICONS: Record<CalendarDto['role'], string> = {
+  OWNER: 'shield_person',
+  EDITOR: 'edit',
+  VIEWER: 'visibility',
+};
+
 @Component({
   imports: [MatIcon, MatIconButton, RouterLink, TranslocoPipe],
   selector: 'app-calendar-card',
@@ -23,4 +29,6 @@ export class CalendarCard {
 
   // COMPUTED
   readonly isOwner = computed(() => this.calendar().role === 'OWNER');
+
+  readonly roleIcon = computed(() => ROLE_ICONS[this.calendar().role]);
 }

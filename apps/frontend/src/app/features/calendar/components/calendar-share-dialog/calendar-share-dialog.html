@@ -44,6 +44,10 @@
         <p class="share__hint share__hint--warning">
           {{ 'share.full' | transloco: { max: maxMembers } }}
         </p>
+      } @else if (hasMaxInvites()) {
+        <p class="share__hint share__hint--warning">
+          {{ 'share.linksFull' | transloco: { max: maxInvites } }}
+        </p>
       }
       @if (link(); as current) {
         <div class="share__link">
@@ -112,7 +116,9 @@
               </span>
               <span class="share__email">{{ member.email }}</span>
             </span>
-            <span class="share__role">{{ 'share.roles.' + member.role | transloco }}</span>
+            <span class="share__role">
+              {{ 'share.roles.' + member.role | transloco }}
+            </span>
             @if (canRemove(member)) {
               <button
                 matIconButton
@@ -142,7 +148,12 @@
           <p class="share__hint share__hint--error">
             {{ 'share.invitesLoadError' | transloco }}
           </p>
-          <button matButton type="button" [disabled]="pending()" (click)="invites.reload()">
+          <button
+            matButton
+            type="button"
+            [disabled]="pending()"
+            (click)="invites.reload()"
+          >
             {{ 'share.retry' | transloco }}
           </button>
         </div>
@@ -156,7 +167,9 @@
                   {{ 'share.roles.' + invite.role | transloco }}
                 </span>
                 <span class="share__email">
-                  {{ 'share.expires' | transloco: { date: formatDate(invite.expiresAt) } }}
+                  {{
+                    'share.expires' | transloco: { date: formatDate(invite.expiresAt) }
+                  }}
                 </span>
               </span>
               @if (canRevoke(invite)) {
