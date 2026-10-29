@@ -15,12 +15,14 @@ import {
 } from 'rxjs';
 import { CalendarDto, CalendarUpdateDto } from '../../../../api/generated';
 import { routePaths } from '../../../../core/constants/routePaths';
+import { AuthService } from '../../../auth/service/auth.service';
 import { ConfirmDialog } from '../../../../shared/components/confirm-dialog/confirm-dialog';
 import { CalendarAddCard } from '../../components/calendar-add-card/calendar-add-card';
 import { CalendarCard } from '../../components/calendar-card/calendar-card';
 import { CalendarEditDialog } from '../../components/calendar-edit-dialog/calendar-edit-dialog';
 import { CalendarAction } from '../../models/calendar-action';
 import { CalendarService } from '../../services/calendar.service';
+import { MemberService } from '../../services/member.service';
 import { SnackbarService } from './../../../../shared/services/snackbar.service';
 
 @Component({
@@ -32,6 +34,8 @@ import { SnackbarService } from './../../../../shared/services/snackbar.service'
 export class Calendars {
   // DEPENDENCIES
   private readonly calendarService = inject(CalendarService);
+  private readonly memberService = inject(MemberService);
+  private readonly authService = inject(AuthService);
   private readonly snackbarService = inject(SnackbarService);
   private readonly dialog = inject(MatDialog);
   private readonly transloco = inject(TranslocoService);
@@ -96,6 +100,30 @@ export class Calendars {
 
   deleteCalendar(calendarId: string): void {
     this.submitCalendar({ action: 'delete', calendarId }).subscribe();
+  }
+
+  leaveCalendar(calendarId: string): void {
+    const userId = this.authService.user()?.id;
+    if (!userId) return;
+
+    ConfirmDialog.open(this.dialog, {
+      title: this.transloco.translate('share.leaveTitle'),
+      message: this.transloco.translate('share.leaveMessage'),
+      confirmText: this.transloco.translate('share.leave'),
+      variant: 'danger',
+    })
+      .pipe(
+        switchMap(() => this.memberService.remove(calendarId, userId)),
+        tap(() => {
+          this.calendars.update(list => list?.filter(item => item.id !== calendarId));
+          this.snackbarService.success(this.transloco.translate('share.left'));
+        }),
+        catchError(() => {
+          this.snackbarService.error(this.transloco.translate('share.leaveError'));
+          return EMPTY;
+        }),
+      )
+      .subscribe();
   }
 
   private submitCalendar(result: CalendarAction): Observable<unknown> {

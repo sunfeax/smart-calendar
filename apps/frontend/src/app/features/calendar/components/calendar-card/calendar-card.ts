@@ -23,6 +23,7 @@ export class CalendarCard {
   readonly calendar = input.required<CalendarDto>();
   readonly edit = output();
   readonly remove = output();
+  readonly leave = output();
 
   // STATE
   protected readonly routePaths = routePaths;

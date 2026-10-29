@@ -4,6 +4,7 @@
       [calendar]="calendar"
       (edit)="editCalendar(calendar)"
       (remove)="deleteCalendar(calendar.id)"
+      (leave)="leaveCalendar(calendar.id)"
     ></app-calendar-card>
   }
   <app-calendar-add-card (add)="createCalendar()"></app-calendar-add-card>

@@ -7,14 +7,10 @@ full-calendar {
   --fc-monarch-secondary-foreground: var(--color-primary-text);
   --fc-monarch-secondary-over: var(--color-surface-alt);
   --fc-monarch-secondary-down: var(--color-border-soft);
-  --fc-monarch-tertiary: var(--color-secondary);
-  --fc-monarch-tertiary-foreground: var(--color-on-secondary);
-  --fc-monarch-tertiary-over: color-mix(
-    in srgb,
-    var(--color-secondary) 85%,
-    var(--color-text)
-  );
-  --fc-monarch-tertiary-down: var(--fc-monarch-tertiary-over);
+  --fc-monarch-tertiary: var(--color-primary);
+  --fc-monarch-tertiary-foreground: var(--color-on-primary);
+  --fc-monarch-tertiary-over: var(--color-primary-hover);
+  --fc-monarch-tertiary-down: var(--color-primary-hover);
 
   --fc-monarch-event: var(--color-event);
   --fc-monarch-event-contrast: var(--color-event-text);

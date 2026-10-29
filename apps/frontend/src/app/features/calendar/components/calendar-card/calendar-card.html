@@ -28,5 +28,16 @@
         <mat-icon>delete</mat-icon>
       </button>
     </div>
+  } @else {
+    <div class="calendar-card__actions">
+      <button
+        matIconButton
+        type="button"
+        [attr.aria-label]="'share.leave' | transloco"
+        (click)="leave.emit()"
+      >
+        <mat-icon>logout</mat-icon>
+      </button>
+    </div>
   }
 </article>

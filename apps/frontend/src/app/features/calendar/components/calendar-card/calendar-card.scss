@@ -103,12 +103,14 @@
   color: var(--color-text-soft);
   font-size: var(--font-size-xs);
   font-weight: var(--font-weight-medium);
+  line-height: 1;
   pointer-events: none;
 
   mat-icon {
     width: var(--font-size-base);
     height: var(--font-size-base);
     font-size: var(--font-size-base);
+    line-height: 1;
   }
 }
 
