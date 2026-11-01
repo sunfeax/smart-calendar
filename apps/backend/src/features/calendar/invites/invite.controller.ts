@@ -9,6 +9,8 @@ import {
   ParseUUIDPipe,
   Post,
 } from '@nestjs/common';
+import { Throttle } from '@nestjs/throttler';
+import { STRICT_THROTTLE } from '../../../common/constants.js';
 import { type User } from '../../../generated/prisma/client.js';
 import { CurrentUser } from '../../auth/decorators/current-user.decorator.js';
 import { CalendarDto } from '../calendars/calendar.dto.js';
@@ -43,6 +45,7 @@ export class InviteController {
     return this.inviteService.create(user.id, calendarId, dto);
   }
 
+  @Throttle(STRICT_THROTTLE)
   @Post('invites/accept')
   accept(@CurrentUser() user: User, @Body() dto: InviteAcceptDto): Promise<CalendarDto> {
     return this.inviteService.accept(user.id, dto.token);

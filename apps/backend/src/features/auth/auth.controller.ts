@@ -9,7 +9,9 @@ import {
   Req,
   Res,
 } from '@nestjs/common';
+import { Throttle } from '@nestjs/throttler';
 import type { Response } from 'express';
+import { STRICT_THROTTLE } from '../../common/constants.js';
 import type { User } from '../../generated/prisma/client.js';
 import { SESSION_COOKIE, SESSION_COOKIE_OPTIONS } from '../session/session.constants.js';
 import { SessionService } from '../session/session.service.js';
@@ -30,6 +32,7 @@ export class AuthController {
 
   // ACTIONS
   @Public()
+  @Throttle(STRICT_THROTTLE)
   @Post('google')
   @HttpCode(HttpStatus.OK)
   async login(
