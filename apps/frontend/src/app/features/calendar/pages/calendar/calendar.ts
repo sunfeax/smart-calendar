@@ -152,7 +152,10 @@ export class Calendar {
     dayHeaderInnerClass: 'app-weekday',
     dayCellTopInnerClass: 'app-day-number',
     eventInnerClass: 'app-event-content',
-    eventClass: 'app-calendar-event',
+    eventClass: info =>
+      ['app-calendar-event', info.isStart && 'is-start', info.isEnd && 'is-end']
+        .filter(Boolean)
+        .join(' '),
     eventDisplay: 'block',
     displayEventEnd: true,
     eventTimeFormat: { hour: '2-digit', minute: '2-digit' },

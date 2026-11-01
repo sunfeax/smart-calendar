@@ -72,6 +72,16 @@ full-calendar .app-calendar-event {
     height: auto;
     min-height: var(--calendar-event-outer-height);
   }
+
+  &.is-start {
+    border-start-start-radius: var(--radius-control);
+    border-end-start-radius: var(--radius-control);
+  }
+
+  &.is-end {
+    border-start-end-radius: var(--radius-control);
+    border-end-end-radius: var(--radius-control);
+  }
 }
 
 full-calendar .app-month-body {
