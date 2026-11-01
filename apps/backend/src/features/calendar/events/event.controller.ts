@@ -13,7 +13,13 @@ import {
 } from '@nestjs/common';
 import { type User } from '../../../generated/prisma/client.js';
 import { CurrentUser } from '../../auth/decorators/current-user.decorator.js';
-import { EventCreateDto, EventDto, EventsRangeDto, EventUpdateDto } from './event.dto.js';
+import {
+  EventCreateDto,
+  EventDto,
+  EventScopeDto,
+  EventsRangeDto,
+  EventUpdateDto,
+} from './event.dto.js';
 import { EventService } from './event.service.js';
 
 @Controller()
@@ -45,8 +51,9 @@ export class EventController {
     @CurrentUser() user: User,
     @Param('id', ParseUUIDPipe) id: string,
     @Body() dto: EventUpdateDto,
+    @Query() target: EventScopeDto,
   ): Promise<EventDto> {
-    return this.eventService.update(user.id, id, dto);
+    return this.eventService.update(user.id, id, dto, target);
   }
 
   @Delete('events/:id')
@@ -54,8 +61,9 @@ export class EventController {
   remove(
     @CurrentUser() user: User,
     @Param('id', ParseUUIDPipe) id: string,
+    @Query() target: EventScopeDto,
   ): Promise<void> {
-    return this.eventService.remove(user.id, id);
+    return this.eventService.remove(user.id, id, target);
   }
 
   @Post('events/:id/tags/:tagId')

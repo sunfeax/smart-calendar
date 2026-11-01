@@ -1,6 +1,7 @@
 import { PartialType } from '@nestjs/swagger';
 import {
   IsBoolean,
+  IsIn,
   IsISO8601,
   IsOptional,
   IsString,
@@ -51,6 +52,20 @@ export class EventUpdateDto extends PartialType(EventCreateDto, {
   @IsOptional()
   @IsBoolean()
   completed?: boolean;
+}
+
+export const EVENT_SCOPES = ['this', 'following', 'all'] as const;
+
+export type EventScope = (typeof EVENT_SCOPES)[number];
+
+export class EventScopeDto {
+  @IsOptional()
+  @IsIn(EVENT_SCOPES)
+  scope?: EventScope;
+
+  @IsOptional()
+  @IsISO8601({ strict: true })
+  originalStart?: string;
 }
 
 export class EventsRangeDto {

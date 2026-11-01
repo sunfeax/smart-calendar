@@ -34,7 +34,7 @@
 
 - `GET /calendars/:id/events?from=&to=`: одиночные события и развёрнутые повторения серий за диапазон. У повторения `id` серии и `originalStart`, у одиночного события `originalStart = null`.
 - `POST /calendars/:id/events`
-- `PATCH /events/:id`, `DELETE /events/:id`
+- `PATCH /events/:id`, `DELETE /events/:id`. Для повторения серии query `scope` (`this`, `following`, `all`) и `originalStart`; без `scope` запрос меняет саму запись (одиночное событие или серию целиком). `this` создаёт или обновляет `EventException`, `following` делит серию, `all` сдвигает всю серию на ту же разницу в настенном времени её пояса.
 - Ответ события содержит `tagIds: string[]`. Имена и цвета клиент берёт из списка категорий календаря.
 - Теги события по одному: `POST /events/:id/tags/:tagId`, `DELETE /events/:id/tags/:tagId`, оба возвращают событие целиком.
 - Повторы: `PATCH` и `DELETE` для повторяющегося события принимают область `scope=this|following|all` и дату повторения (`occurrence`). `this` пишет `EventException`, `following` делит серию, `all` меняет исходную запись.
