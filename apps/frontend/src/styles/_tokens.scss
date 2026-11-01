@@ -100,7 +100,7 @@
   --z-toast: 1400;
 
   --color-background: #f3eff8;
-  --color-sidebar: var(--color-surface);
+  --color-sidebar: color-mix(in srgb, var(--color-text) 4%, var(--color-background));
   --color-surface: #faf8fd;
   --color-surface-alt: #ece5f5;
   --color-text: #241a32;
@@ -108,8 +108,8 @@
   --color-text-muted: #756783;
   --color-border: #cbbfd9;
   --color-border-soft: #e5ddec;
-  --color-event: #d5d5d5;
-  --color-event-hover: #c9c9c9;
+  --color-event: #c9c9c9;
+  --color-event-hover: #bdbdbd;
   --color-event-text: #262626;
   --color-control-hover: #ededed;
   --color-control-selected: #e3e3e3;
