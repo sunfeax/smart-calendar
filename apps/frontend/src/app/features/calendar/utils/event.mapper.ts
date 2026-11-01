@@ -3,15 +3,25 @@ import { addDays } from 'date-fns';
 import { EventDto, TagDto } from '../../../api/generated';
 import { HOUR_MS } from '../constants/event.constants';
 
+export function toEventKey(event: Pick<EventDto, 'id' | 'originalStart'>): string {
+  return event.originalStart ? `${event.id}:${event.originalStart}` : event.id;
+}
+
 export function toCalendarEvent(event: EventDto, tags: TagDto[]): EventInput {
   const input: EventInput = {
-    id: event.id,
+    id: toEventKey(event),
     title: event.title,
     allDay: event.allDay,
     className: [event.completedAt ? 'is-completed' : '', tags.length ? 'has-tags' : '']
       .filter(Boolean)
       .join(' '),
-    extendedProps: { completed: event.completedAt !== null, tags, icon: event.icon },
+    extendedProps: {
+      eventId: event.id,
+      originalStart: event.originalStart,
+      completed: event.completedAt !== null,
+      tags,
+      icon: event.icon,
+    },
   };
 
   if (event.allDay) {

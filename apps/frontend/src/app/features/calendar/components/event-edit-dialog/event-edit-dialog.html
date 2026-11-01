@@ -160,6 +160,19 @@
 
     <div class="edit__property">
       <span class="edit__property-label">
+        <mat-icon>repeat</mat-icon>
+        {{ 'event.recurrence.title' | transloco }}
+      </span>
+      <app-event-recurrence
+        [rule]="recurrenceRule()"
+        [startAt]="savedStartAt()"
+        [editable]="data.editable"
+        (ruleChange)="setRecurrence($event)"
+      />
+    </div>
+
+    <div class="edit__property">
+      <span class="edit__property-label">
         <mat-icon>task_alt</mat-icon>
         {{ 'event.status' | transloco }}
       </span>

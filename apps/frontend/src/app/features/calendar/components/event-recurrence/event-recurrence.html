@@ -1,0 +1,96 @@
+<div class="recurrence">
+  <div class="recurrence__row">
+    <mat-form-field class="recurrence__field" subscriptSizing="dynamic">
+      <mat-select
+        [attr.aria-label]="'event.recurrence.label' | transloco"
+        [value]="recurrence().preset"
+        [disabled]="!editable()"
+        (selectionChange)="setPreset($event.value)"
+      >
+        @for (preset of presets; track preset) {
+          <mat-option [value]="preset">
+            {{ 'event.recurrence.presets.' + preset | transloco }}
+          </mat-option>
+        }
+      </mat-select>
+    </mat-form-field>
+
+    @if (isRepeating()) {
+      @if (recurrence().preset === 'weeklyDays') {
+        <mat-button-toggle-group
+          class="recurrence__days"
+          multiple
+          hideMultipleSelectionIndicator
+          [value]="recurrence().days"
+          [disabled]="!editable()"
+          [attr.aria-label]="'event.recurrence.presets.weeklyDays' | transloco"
+          (change)="setDays($event.value)"
+        >
+          @for (day of weekdays; track day) {
+            <mat-button-toggle [value]="day">
+              {{ 'event.recurrence.days.' + day | transloco }}
+            </mat-button-toggle>
+          }
+        </mat-button-toggle-group>
+      }
+
+      <mat-form-field class="recurrence__field" subscriptSizing="dynamic">
+        <mat-label>{{ 'event.recurrence.endLabel' | transloco }}</mat-label>
+        <mat-select
+          [value]="recurrence().end"
+          [disabled]="!editable()"
+          (selectionChange)="setEnd($event.value)"
+        >
+          @for (end of ends; track end) {
+            <mat-option [value]="end">
+              {{ 'event.recurrence.ends.' + end | transloco }}
+            </mat-option>
+          }
+        </mat-select>
+      </mat-form-field>
+
+      @switch (recurrence().end) {
+        @case ('until') {
+          <mat-form-field class="recurrence__field" subscriptSizing="dynamic">
+            <mat-label>{{ 'event.recurrence.until' | transloco }}</mat-label>
+            <input
+              matInput
+              [matDatepicker]="untilPicker"
+              [value]="recurrence().until"
+              [min]="untilMin()"
+              [disabled]="!editable()"
+              (dateChange)="setUntil($event.value)"
+            />
+            <mat-datepicker-toggle matIconSuffix [for]="untilPicker" />
+            <mat-datepicker #untilPicker />
+          </mat-form-field>
+        }
+        @case ('count') {
+          <mat-form-field
+            class="recurrence__field recurrence__field--count"
+            subscriptSizing="dynamic"
+          >
+            <mat-label>{{ 'event.recurrence.count' | transloco }}</mat-label>
+            <input
+              matInput
+              type="number"
+              min="1"
+              [max]="countMax"
+              [value]="recurrence().count"
+              [disabled]="!editable()"
+              (change)="setCount($any($event.target).valueAsNumber)"
+            />
+          </mat-form-field>
+        }
+      }
+    }
+  </div>
+
+  @if (summary().length) {
+    <p class="recurrence__summary">
+      @for (text of summary(); track text.key; let last = $last) {
+        {{ text.key | transloco: text.params }}{{ last ? '' : ', ' }}
+      }
+    </p>
+  }
+</div>

@@ -68,6 +68,7 @@ import { EventDialogData } from '../../models/event-dialog';
 import { TagCreateRequest } from '../../models/tag-create-request';
 import { toEventApiDates, toEventFormDates } from '../../utils/event.mapper';
 import { EventIconPicker } from '../event-icon-picker/event-icon-picker';
+import { EventRecurrence } from '../event-recurrence/event-recurrence';
 import { EventTags } from '../event-tags/event-tags';
 
 interface EventFormValidity {
@@ -89,6 +90,7 @@ interface EventFormModel {
 @Component({
   imports: [
     EventIconPicker,
+    EventRecurrence,
     EventTags,
     FormField,
     MatButton,
@@ -155,6 +157,10 @@ export class EventEditDialog {
   readonly icon = computed(() => this.model().icon);
 
   readonly tagIds = computed(() => this.saved().tagIds);
+
+  readonly recurrenceRule = computed(() => this.saved().recurrenceRule);
+
+  readonly savedStartAt = computed(() => this.saved().startAt);
 
   readonly endTimeMin = computed(() => {
     const { startAt, endAt } = this.model();
@@ -259,7 +265,7 @@ export class EventEditDialog {
     this.mutations.next(() =>
       this.data
         .setTag(tagId, !this.saved().tagIds.includes(tagId))
-        .pipe(tap(event => this.saved.set(event))),
+        .pipe(tap(event => this.saveTagIds(event))),
     );
   }
 
@@ -271,7 +277,7 @@ export class EventEditDialog {
         ?.tags.find(tag => tag.name.toLowerCase() === payload.name.toLowerCase());
       return (existing ? of(existing) : this.data.createTag(categoryId, payload)).pipe(
         concatMap(tag => this.data.setTag(tag.id, true)),
-        tap(event => this.saved.set(event)),
+        tap(event => this.saveTagIds(event)),
       );
     });
   }
@@ -285,9 +291,17 @@ export class EventEditDialog {
           .map(tag => tag.id) ?? [];
       return from(tagIds).pipe(
         concatMap(tagId => this.data.setTag(tagId, false)),
-        tap(event => this.saved.set(event)),
+        tap(event => this.saveTagIds(event)),
       );
     });
+  }
+
+  setRecurrence(rule: string | null): void {
+    this.mutations.next(() =>
+      this.data
+        .update({ recurrenceRule: rule }, () => undefined)
+        .pipe(tap(event => this.saved.set(event))),
+    );
   }
 
   setIcon(icon: string | null): void {
@@ -296,6 +310,10 @@ export class EventEditDialog {
 
   close(): void {
     this.dialogRef.close();
+  }
+
+  private saveTagIds(event: EventDto): void {
+    this.saved.update(saved => ({ ...saved, tagIds: event.tagIds }));
   }
 
   private queueFormSave(model: EventFormModel): void {

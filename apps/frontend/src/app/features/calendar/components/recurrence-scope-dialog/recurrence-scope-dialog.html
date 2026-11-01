@@ -1,0 +1,30 @@
+<h2 mat-dialog-title>{{ 'event.scope.title.' + data.action | transloco }}</h2>
+
+<mat-dialog-content>
+  <mat-radio-group
+    class="scope__options"
+    [value]="scope()"
+    [attr.aria-label]="'event.scope.title.' + data.action | transloco"
+    (change)="scope.set($event.value)"
+  >
+    @for (option of scopes; track option) {
+      <mat-radio-button [value]="option">
+        {{ 'event.scope.options.' + option | transloco }}
+      </mat-radio-button>
+    }
+  </mat-radio-group>
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+  <button matButton="text" type="button" mat-dialog-close>
+    {{ 'common.cancel' | transloco }}
+  </button>
+  <button
+    matButton="filled"
+    type="button"
+    [class.scope__accept--danger]="data.action === 'delete'"
+    [mat-dialog-close]="scope()"
+  >
+    {{ 'event.scope.confirm.' + data.action | transloco }}
+  </button>
+</mat-dialog-actions>

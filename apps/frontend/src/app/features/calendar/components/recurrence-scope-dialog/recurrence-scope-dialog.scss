@@ -1,0 +1,10 @@
+.scope__options {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.scope__accept--danger {
+  --mat-button-filled-container-color: var(--color-danger);
+  --mat-button-filled-label-text-color: var(--color-on-danger);
+}

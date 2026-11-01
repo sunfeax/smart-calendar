@@ -125,6 +125,61 @@
       "imageInputLabel": "Emoji o enlace HTTPS a una imagen",
       "imagePlaceholder": "🎉 o https://…/image",
       "imageHint": "Pega un emoji o un enlace HTTPS a una imagen, con o sin extensión"
+    },
+    "recurrence": {
+      "title": "Repetir",
+      "label": "Repetir",
+      "presets": {
+        "none": "No se repite",
+        "daily": "Cada día",
+        "weekdays": "Todos los días laborables",
+        "weekly": "Cada semana",
+        "weeklyDays": "Días de la semana",
+        "monthly": "Cada mes",
+        "yearly": "Cada año"
+      },
+      "endLabel": "Termina",
+      "ends": {
+        "never": "Nunca",
+        "until": "El día",
+        "count": "Después de"
+      },
+      "until": "Fecha de fin",
+      "count": "Repeticiones",
+      "summary": {
+        "daily": "Cada día",
+        "weekdays": "Días laborables (lunes a viernes)",
+        "weekly": "Cada semana el {{day}}",
+        "weeklyDays": "Cada semana: {{days}}",
+        "monthly": "Cada mes el día {{day}}",
+        "yearly": "Cada año el {{date}}",
+        "until": "hasta el {{date}}",
+        "count": "{{count}} veces"
+      },
+      "days": {
+        "MO": "Lu",
+        "TU": "Ma",
+        "WE": "Mi",
+        "TH": "Ju",
+        "FR": "Vi",
+        "SA": "Sá",
+        "SU": "Do"
+      }
+    },
+    "scope": {
+      "title": {
+        "update": "Editar evento periódico",
+        "delete": "Eliminar evento periódico"
+      },
+      "options": {
+        "this": "Este evento",
+        "following": "Este y los siguientes eventos",
+        "all": "Todos los eventos"
+      },
+      "confirm": {
+        "update": "Guardar",
+        "delete": "Eliminar"
+      }
     }
   },
   "tags": {

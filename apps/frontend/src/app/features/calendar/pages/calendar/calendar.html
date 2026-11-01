@@ -98,7 +98,15 @@
             <button
               mat-menu-item
               type="button"
-              (click)="updateEventFromMenu(arg.event.id, { completed: !completed })"
+              (click)="
+                updateEventFromMenu(
+                  arg.event.extendedProps.eventId,
+                  arg.event.extendedProps.originalStart,
+                  {
+                    completed: !completed,
+                  }
+                )
+              "
             >
               <mat-icon>{{ completed ? 'remove_done' : 'done' }}</mat-icon>
               <span>
@@ -111,7 +119,12 @@
             <button
               mat-menu-item
               type="button"
-              (click)="deleteEventFromMenu(arg.event.id)"
+              (click)="
+                deleteEventFromMenu(
+                  arg.event.extendedProps.eventId,
+                  arg.event.extendedProps.originalStart
+                )
+              "
             >
               <mat-icon>delete</mat-icon>
               <span>{{ 'event.delete' | transloco }}</span>

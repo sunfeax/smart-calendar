@@ -125,6 +125,61 @@
       "imageInputLabel": "Emoji or HTTPS image URL",
       "imagePlaceholder": "🎉 or https://…/image",
       "imageHint": "Paste an emoji or an HTTPS image URL, with or without a file extension"
+    },
+    "recurrence": {
+      "title": "Repeat",
+      "label": "Repeat",
+      "presets": {
+        "none": "Does not repeat",
+        "daily": "Every day",
+        "weekdays": "Every weekday",
+        "weekly": "Every week",
+        "weeklyDays": "On days of the week",
+        "monthly": "Every month",
+        "yearly": "Every year"
+      },
+      "endLabel": "Ends",
+      "ends": {
+        "never": "Never",
+        "until": "On date",
+        "count": "After"
+      },
+      "until": "End date",
+      "count": "Occurrences",
+      "summary": {
+        "daily": "Every day",
+        "weekdays": "Every weekday (Monday to Friday)",
+        "weekly": "Every week on {{day}}",
+        "weeklyDays": "Every week on {{days}}",
+        "monthly": "Every month on day {{day}}",
+        "yearly": "Every year on {{date}}",
+        "until": "until {{date}}",
+        "count": "{{count}} times"
+      },
+      "days": {
+        "MO": "Mon",
+        "TU": "Tue",
+        "WE": "Wed",
+        "TH": "Thu",
+        "FR": "Fri",
+        "SA": "Sat",
+        "SU": "Sun"
+      }
+    },
+    "scope": {
+      "title": {
+        "update": "Edit recurring event",
+        "delete": "Delete recurring event"
+      },
+      "options": {
+        "this": "This event",
+        "following": "This and following events",
+        "all": "All events"
+      },
+      "confirm": {
+        "update": "Save",
+        "delete": "Delete"
+      }
     }
   },
   "tags": {
