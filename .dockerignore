@@ -1,0 +1,14 @@
+**/node_modules
+**/dist
+**/.angular
+**/coverage
+**/*.tsbuildinfo
+apps/backend/src/generated
+.git
+.env
+.env.*
+.claude
+.agents
+.vscode
+.idea
+docs

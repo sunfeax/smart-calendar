@@ -12,6 +12,7 @@ Notion-style календарь: Angular + FullCalendar на фронтенде,
 - `docs/05-backend-auth.md`: API, вход через Google, безопасность.
 - `docs/06-roadmap.md`, `docs/07-tasks.md`: этапы и задачи.
 - `docs/08-open-questions.md`: нерешённые вопросы. Не решай их молча, спроси.
+- `docs/09-deploy.md`: выкладка и защита.
 
 ## Как мы работаем
 
@@ -44,7 +45,10 @@ Notion-style календарь: Angular + FullCalendar на фронтенде,
 ├── eslint.config.js      # общий ESLint для обоих приложений
 ├── tsconfig.base.json    # общие флаги строгости TS, его расширяют оба tsconfig
 ├── .prettierrc           # общий Prettier
-├── docker-compose.yaml  # Postgres для разработки, позже весь стек
+├── docker-compose.yaml  # Postgres для разработки
+├── docker-compose.prod.yaml  # прод: Postgres, миграции, Nest, Caddy с фронтом
+├── deploy/             # Caddyfile
+├── .dockerignore
 ├── .env.example        # шаблон .env (сам .env в корне, не коммитится)
 ├── .editorconfig, .gitignore, .vscode/
 ├── CLAUDE.md
