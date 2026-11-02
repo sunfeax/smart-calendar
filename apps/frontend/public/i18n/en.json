@@ -2,7 +2,8 @@
   "common": {
     "cancel": "Cancel",
     "confirm": "Confirm",
-    "close": "Close"
+    "close": "Close",
+    "undo": "Undo"
   },
   "auth": {
     "loginError": "Couldn't sign in with Google",
@@ -79,7 +80,6 @@
     "createError": "Failed to create event",
     "updateSuccess": "Event updated",
     "updateError": "Failed to update event",
-    "deleteSuccess": "Event deleted",
     "deleteError": "Failed to delete event",
     "createTitle": "New event",
     "editTitle": "Edit event",
@@ -97,8 +97,6 @@
     "endTime": "End time",
     "completed": "Completed",
     "delete": "Delete",
-    "deleteTitle": "Delete event",
-    "deleteMessage": "The event will be permanently deleted.",
     "discardTitle": "Discard changes?",
     "discardMessage": "Your changes will be lost.",
     "discard": "Discard",
@@ -171,7 +169,9 @@
         "update": "Save",
         "delete": "Delete"
       }
-    }
+    },
+    "deleted": "Event deleted",
+    "restoreError": "Could not restore the event"
   },
   "tags": {
     "addCategory": "Add category",
@@ -269,6 +269,22 @@
     },
     "yes": "Yes",
     "no": "No"
+  },
+  "archive": {
+    "title": "Archive",
+    "empty": "The archive is empty",
+    "restore": "Restore",
+    "restored": "Event restored",
+    "delete": "Delete forever",
+    "deleteTitle": "Delete forever?",
+    "deleteMessage": "The event will be deleted permanently.",
+    "loadError": "Could not load the archive",
+    "restoreError": "Could not restore the event",
+    "deleteError": "Could not delete the event",
+    "search": "Title, date or description",
+    "notFound": "Nothing found",
+    "archivedAt": "Deleted {{date}}",
+    "recurring": "Recurring"
   },
   "invite": {
     "accepting": "Accepting the invite…",

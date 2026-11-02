@@ -37,6 +37,20 @@ export class EventService {
     });
   }
 
+  listArchived(calendarId: string) {
+    return this.http.get<EventDto[]>(`/api/calendars/${calendarId}/events/archived`);
+  }
+
+  restore(eventId: string, scope?: EventScopeParams) {
+    return this.http.post<EventDto>(`/api/events/${eventId}/restore`, null, {
+      params: scope ? { ...scope } : {},
+    });
+  }
+
+  deleteArchived(eventId: string) {
+    return this.http.delete<void>(`/api/events/${eventId}/archived`);
+  }
+
   addTag(eventId: string, tagId: string) {
     return this.http.post<EventDto>(`/api/events/${eventId}/tags/${tagId}`, null);
   }

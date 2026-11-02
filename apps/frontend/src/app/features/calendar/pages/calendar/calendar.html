@@ -77,6 +77,12 @@
       <mat-icon>download</mat-icon>
       <span>{{ 'export.title' | transloco }}</span>
     </button>
+    @if (canEdit()) {
+      <button mat-menu-item type="button" (click)="openArchive()">
+        <mat-icon>inventory_2</mat-icon>
+        <span>{{ 'archive.title' | transloco }}</span>
+      </button>
+    }
   </mat-menu>
 </header>
 

@@ -1,0 +1,119 @@
+<div class="archive__header">
+  <h1 mat-dialog-title class="archive__title">{{ 'archive.title' | transloco }}</h1>
+  <button
+    matIconButton
+    type="button"
+    [attr.aria-label]="'common.close' | transloco"
+    (click)="close()"
+  >
+    <mat-icon>close</mat-icon>
+  </button>
+</div>
+
+<mat-dialog-content class="archive__content">
+  <mat-form-field class="archive__search" subscriptSizing="dynamic">
+    <mat-icon matPrefix>search</mat-icon>
+    <input
+      matInput
+      type="search"
+      [value]="query()"
+      [placeholder]="'archive.search' | transloco"
+      [attr.aria-label]="'archive.search' | transloco"
+      (input)="query.set($any($event.target).value)"
+    />
+  </mat-form-field>
+
+  @if (events.hasValue() && isEmpty()) {
+    <p class="archive__empty">
+      {{ (query() ? 'archive.notFound' : 'archive.empty') | transloco }}
+    </p>
+  }
+
+  @for (group of groups(); track group.label) {
+    @if (group.label && group.rows.length) {
+      <div class="archive__month">
+        <span class="archive__month-label">{{ group.label }}</span>
+        <span class="archive__month-count">{{ group.rows.length }}</span>
+      </div>
+    }
+
+    <ul class="archive__list">
+      @for (row of group.rows; track row.event.id) {
+        <li class="archive__row">
+          <span class="archive__icon">
+            @if (row.event.icon) {
+              <app-event-icon [icon]="row.event.icon" />
+            } @else {
+              <mat-icon>event</mat-icon>
+            }
+          </span>
+
+          <span class="archive__info">
+            <span class="archive__name" [class.archive__name--empty]="!row.event.title">
+              {{ row.event.title || ('event.untitled' | transloco) }}
+            </span>
+            <span class="archive__meta">
+              <span class="archive__meta-item">
+                <mat-icon>
+                  {{ row.event.allDay ? 'calendar_today' : 'schedule' }}
+                </mat-icon>
+                {{ row.dates }}
+              </span>
+              @if (row.event.recurrenceRule) {
+                <span class="archive__meta-item">
+                  <mat-icon>repeat</mat-icon>
+                  {{ 'archive.recurring' | transloco }}
+                </span>
+              }
+              @if (row.event.completedAt) {
+                <span class="archive__meta-item">
+                  <mat-icon>check_circle</mat-icon>
+                  {{ 'event.completed' | transloco }}
+                </span>
+              }
+              <span class="archive__meta-item">
+                <mat-icon>delete</mat-icon>
+                {{ 'archive.archivedAt' | transloco: { date: row.archivedAt } }}
+              </span>
+            </span>
+            @if (row.event.description) {
+              <span class="archive__description">{{ row.event.description }}</span>
+            }
+            @if (row.tags.length) {
+              <span class="archive__tags">
+                @for (tag of row.tags; track tag.id) {
+                  <span class="archive__tag" [attr.data-tag-color]="tag.color">
+                    {{ tag.name }}
+                  </span>
+                }
+              </span>
+            }
+          </span>
+
+          <span class="archive__actions">
+            <button
+              matButton
+              type="button"
+              [disabled]="pendingId() === row.event.id"
+              (click)="restore(row.event)"
+            >
+              <mat-icon>restore</mat-icon>
+              {{ 'archive.restore' | transloco }}
+            </button>
+            <button
+              matButton
+              type="button"
+              class="archive__danger"
+              [disabled]="pendingId() === row.event.id"
+              [matTooltip]="'archive.delete' | transloco"
+              (click)="deleteForever(row.event)"
+            >
+              <mat-icon>delete</mat-icon>
+              {{ 'event.delete' | transloco }}
+            </button>
+          </span>
+        </li>
+      }
+    </ul>
+  }
+</mat-dialog-content>

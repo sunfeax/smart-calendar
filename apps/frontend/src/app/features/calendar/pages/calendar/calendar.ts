@@ -51,7 +51,6 @@ import {
   TagCreateDto,
 } from '../../../../api/generated';
 import { routePaths } from '../../../../core/constants/routePaths';
-import { ConfirmDialog } from '../../../../shared/components/confirm-dialog/confirm-dialog';
 import { UserMenu } from '../../../../shared/components/user-menu/user-menu';
 import { TruncatePipe } from '../../../../shared/pipes/truncate.pipe';
 import { LanguageService } from '../../../../shared/services/language.service';
@@ -60,6 +59,7 @@ import {
   CalendarShareDialogData,
   CalendarShareDialogResult,
 } from '../../components/calendar-share-dialog/calendar-share-dialog';
+import { CalendarArchiveDialog } from '../../components/calendar-archive-dialog/calendar-archive-dialog';
 import {
   CalendarExportDialog,
   CalendarExportPeriod,
@@ -73,7 +73,7 @@ import { EventDialogData } from '../../models/event-dialog';
 import { EventRange } from '../../models/event-range';
 import { OccurrenceTarget, RecurrenceScope } from '../../models/recurrence';
 import { CalendarService } from '../../services/calendar.service';
-import { EventService } from '../../services/event.service';
+import { EventScopeParams, EventService } from '../../services/event.service';
 import { TagService } from '../../services/tag.service';
 import {
   countEventsByDay,
@@ -338,6 +338,14 @@ export class Calendar {
       });
   }
 
+  openArchive(): void {
+    CalendarArchiveDialog.open(this.dialog, {
+      calendarId: this.id(),
+      tags: this.tagsById,
+      restored: event => this.applyRestored(event),
+    });
+  }
+
   openExport(): void {
     CalendarExportDialog.open(this.dialog)
       .pipe(switchMap(period => this.exportEvents(period)))
@@ -446,8 +454,21 @@ export class Calendar {
     if (!originalStart) return this.deleteEvent(target.id);
 
     return RecurrenceScopeDialog.open(this.dialog, { action: 'delete' }).pipe(
-      switchMap(scope => this.eventService.delete(target.id, { scope, originalStart })),
-      tap(() => this.events.reload()),
+      switchMap(scope =>
+        this.eventService.delete(target.id, { scope, originalStart }).pipe(
+          tap(() => {
+            this.events.reload();
+            if (scope === 'following') {
+              this.snackbarService.success(this.transloco.translate('event.deleted'));
+            } else {
+              this.offerRestore(
+                target.id,
+                scope === 'this' ? { scope, originalStart } : undefined,
+              );
+            }
+          }),
+        ),
+      ),
       catchError(() => {
         this.snackbarService.error(this.transloco.translate('event.deleteError'));
         return EMPTY;
@@ -456,19 +477,38 @@ export class Calendar {
   }
 
   private deleteEvent(eventId: string): Observable<void> {
-    return ConfirmDialog.open(this.dialog, {
-      title: this.transloco.translate('event.deleteTitle'),
-      message: this.transloco.translate('event.deleteMessage'),
-      confirmText: this.transloco.translate('event.delete'),
-      variant: 'danger',
-    }).pipe(
-      switchMap(() => this.eventService.delete(eventId)),
-      tap(() => this.events.update(list => list?.filter(item => item.id !== eventId))),
+    return this.eventService.delete(eventId).pipe(
+      tap(() => {
+        this.events.update(list => list?.filter(item => item.id !== eventId));
+        this.offerRestore(eventId);
+      }),
       catchError(() => {
         this.snackbarService.error(this.transloco.translate('event.deleteError'));
         return EMPTY;
       }),
     );
+  }
+
+  private offerRestore(eventId: string, scope?: EventScopeParams): void {
+    this.snackbarService
+      .withAction(
+        this.transloco.translate('event.deleted'),
+        this.transloco.translate('common.undo'),
+      )
+      .pipe(switchMap(() => this.eventService.restore(eventId, scope)))
+      .subscribe({
+        next: restored => this.applyRestored(restored),
+        error: () =>
+          this.snackbarService.error(this.transloco.translate('event.restoreError')),
+      });
+  }
+
+  private applyRestored(restored: EventDto): void {
+    if (restored.recurrenceRule) {
+      this.events.reload();
+      return;
+    }
+    this.events.update(list => (list ? [...list, restored] : [restored]));
   }
 
   private openEventDialog(event: EventDto): void {

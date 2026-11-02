@@ -2,7 +2,8 @@
   "common": {
     "cancel": "Cancelar",
     "confirm": "Confirmar",
-    "close": "Cerrar"
+    "close": "Cerrar",
+    "undo": "Deshacer"
   },
   "auth": {
     "loginError": "No se pudo iniciar sesión con Google",
@@ -79,7 +80,6 @@
     "createError": "No se pudo crear el evento",
     "updateSuccess": "Evento actualizado",
     "updateError": "No se pudo actualizar el evento",
-    "deleteSuccess": "Evento eliminado",
     "deleteError": "No se pudo eliminar el evento",
     "createTitle": "Nuevo evento",
     "editTitle": "Editar evento",
@@ -97,8 +97,6 @@
     "endTime": "Hora de fin",
     "completed": "Completado",
     "delete": "Eliminar",
-    "deleteTitle": "Eliminar evento",
-    "deleteMessage": "El evento se eliminará de forma permanente.",
     "discardTitle": "¿Descartar los cambios?",
     "discardMessage": "Se perderán todos los cambios sin guardar.",
     "discard": "Descartar",
@@ -171,7 +169,9 @@
         "update": "Guardar",
         "delete": "Eliminar"
       }
-    }
+    },
+    "deleted": "Evento eliminado",
+    "restoreError": "No se pudo restaurar el evento"
   },
   "tags": {
     "addCategory": "Añadir categoría",
@@ -269,6 +269,22 @@
     },
     "yes": "Sí",
     "no": "No"
+  },
+  "archive": {
+    "title": "Archivo",
+    "empty": "El archivo está vacío",
+    "restore": "Restaurar",
+    "restored": "Evento restaurado",
+    "delete": "Eliminar para siempre",
+    "deleteTitle": "¿Eliminar para siempre?",
+    "deleteMessage": "El evento se eliminará de forma permanente.",
+    "loadError": "No se pudo cargar el archivo",
+    "restoreError": "No se pudo restaurar el evento",
+    "deleteError": "No se pudo eliminar el evento",
+    "search": "Título, fecha o descripción",
+    "notFound": "No se encontró nada",
+    "archivedAt": "Eliminado el {{date}}",
+    "recurring": "Se repite"
   },
   "invite": {
     "accepting": "Aceptando la invitación…",
