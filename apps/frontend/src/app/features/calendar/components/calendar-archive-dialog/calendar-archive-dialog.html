@@ -11,21 +11,57 @@
 </div>
 
 <mat-dialog-content class="archive__content">
-  <mat-form-field class="archive__search" subscriptSizing="dynamic">
-    <mat-icon matPrefix>search</mat-icon>
-    <input
-      matInput
-      type="search"
-      [value]="query()"
-      [placeholder]="'archive.search' | transloco"
-      [attr.aria-label]="'archive.search' | transloco"
-      (input)="query.set($any($event.target).value)"
-    />
-  </mat-form-field>
+  <div class="archive__filters">
+    <mat-form-field class="archive__search" subscriptSizing="dynamic">
+      <mat-icon matPrefix>search</mat-icon>
+      <input
+        matInput
+        type="search"
+        [value]="query()"
+        [placeholder]="'archive.search' | transloco"
+        [attr.aria-label]="'archive.search' | transloco"
+        (input)="query.set($any($event.target).value)"
+      />
+    </mat-form-field>
+
+    <mat-form-field class="archive__dates-filter" subscriptSizing="dynamic">
+      <mat-label>{{ 'archive.date' | transloco }}</mat-label>
+      <mat-date-range-input [rangePicker]="datesPicker" (click)="datesPicker.open()">
+        <input
+          matStartDate
+          readonly
+          [value]="from()"
+          [attr.aria-label]="'archive.from' | transloco"
+          (dateChange)="from.set($event.value)"
+        />
+        <input
+          matEndDate
+          readonly
+          [value]="to()"
+          [attr.aria-label]="'archive.to' | transloco"
+          (dateChange)="to.set($event.value)"
+        />
+      </mat-date-range-input>
+      @if (from() || to()) {
+        <button
+          matIconButton
+          matSuffix
+          type="button"
+          [attr.aria-label]="'archive.clearDates' | transloco"
+          (click)="clearDates()"
+        >
+          <mat-icon>close</mat-icon>
+        </button>
+      } @else {
+        <mat-datepicker-toggle matIconSuffix [for]="datesPicker" />
+      }
+      <mat-date-range-picker #datesPicker panelClass="event-date-picker" />
+    </mat-form-field>
+  </div>
 
   @if (events.hasValue() && isEmpty()) {
     <p class="archive__empty">
-      {{ (query() ? 'archive.notFound' : 'archive.empty') | transloco }}
+      {{ (isFiltered() ? 'archive.notFound' : 'archive.empty') | transloco }}
     </p>
   }
 

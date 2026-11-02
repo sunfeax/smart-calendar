@@ -281,10 +281,14 @@
     "loadError": "Could not load the archive",
     "restoreError": "Could not restore the event",
     "deleteError": "Could not delete the event",
-    "search": "Title, date or description",
+    "search": "Title or description",
     "notFound": "Nothing found",
     "archivedAt": "Deleted {{date}}",
-    "recurring": "Recurring"
+    "recurring": "Recurring",
+    "from": "From",
+    "to": "To",
+    "clearDates": "Clear dates",
+    "date": "Date"
   },
   "invite": {
     "accepting": "Accepting the invite…",

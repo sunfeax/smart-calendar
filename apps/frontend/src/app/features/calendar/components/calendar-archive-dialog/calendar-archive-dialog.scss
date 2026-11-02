@@ -17,12 +17,26 @@
   gap: var(--space-2);
 }
 
-.archive__search {
+.archive__filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  margin-bottom: var(--space-2);
+}
+
+.archive__search,
+.archive__dates-filter {
   --mat-form-field-container-height: 40px;
   --mat-form-field-container-vertical-padding: 8px;
+}
 
-  width: 100%;
-  margin-bottom: var(--space-2);
+.archive__search {
+  flex: 2 1 16rem;
+}
+
+.archive__dates-filter {
+  flex: 1 1 14rem;
+  cursor: pointer;
 }
 
 .archive__empty {
@@ -35,17 +49,32 @@
 .archive__month {
   display: flex;
   align-items: center;
-  gap: var(--space-2);
-  padding-block: var(--space-3) var(--space-1);
-  border-bottom: var(--border-width-sm) solid var(--color-border-soft);
+  gap: var(--space-3);
+  padding-block: var(--space-4) var(--space-1);
   color: var(--color-text-soft);
-  font-size: var(--font-size-xs);
+  font-size: var(--font-size-sm);
   font-weight: var(--font-weight-semibold);
+
+  &::before,
+  &::after {
+    content: '';
+    flex: 1;
+    border-top: var(--border-width-sm) solid var(--color-border-soft);
+  }
 }
 
 .archive__month-count {
-  margin-left: auto;
-  color: var(--color-text-muted);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: var(--space-6);
+  height: var(--space-6);
+  margin-left: calc(-1 * var(--space-1));
+  padding-inline: var(--space-1-5);
+  border-radius: var(--radius-full);
+  background: var(--color-primary-soft);
+  color: var(--color-primary-text);
+  font-size: var(--font-size-sm);
   font-variant-numeric: tabular-nums;
 }
 
@@ -77,8 +106,6 @@
   justify-content: center;
   width: var(--space-10);
   height: var(--space-10);
-  border-radius: var(--radius-full);
-  background: var(--color-surface-alt);
   color: var(--color-text-soft);
   font-size: var(--font-size-2xl);
 }

@@ -9,10 +9,23 @@ import {
   MatDialogTitle,
 } from '@angular/material/dialog';
 import { MatIcon } from '@angular/material/icon';
-import { MatFormField, MatInput, MatPrefix } from '@angular/material/input';
+import {
+  MatDateRangeInput,
+  MatDateRangePicker,
+  MatDatepickerToggle,
+  MatEndDate,
+  MatStartDate,
+} from '@angular/material/datepicker';
+import {
+  MatFormField,
+  MatInput,
+  MatLabel,
+  MatPrefix,
+  MatSuffix,
+} from '@angular/material/input';
 import { MatTooltip } from '@angular/material/tooltip';
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
-import { format } from 'date-fns';
+import { differenceInCalendarDays } from 'date-fns';
 import { catchError, EMPTY, finalize, switchMap, tap } from 'rxjs';
 import { EventDto, TagDto } from '../../../../api/generated';
 import { ConfirmDialog } from '../../../../shared/components/confirm-dialog/confirm-dialog';
@@ -32,6 +45,8 @@ interface ArchiveRow {
   dates: string;
   archivedAt: string;
   tags: TagDto[];
+  start: Date;
+  end: Date;
   search: string;
 }
 
@@ -45,13 +60,20 @@ interface ArchiveGroup {
   imports: [
     EventIcon,
     MatButton,
+    MatDateRangeInput,
+    MatDateRangePicker,
+    MatDatepickerToggle,
     MatDialogContent,
     MatDialogTitle,
+    MatEndDate,
     MatFormField,
     MatIcon,
     MatIconButton,
     MatInput,
+    MatLabel,
     MatPrefix,
+    MatStartDate,
+    MatSuffix,
     MatTooltip,
     TranslocoPipe,
   ],
@@ -82,6 +104,8 @@ export class CalendarArchiveDialog {
   // STATE
   readonly pendingId = signal<string | null>(null);
   readonly query = signal('');
+  readonly from = signal<Date | null>(null);
+  readonly to = signal<Date | null>(null);
 
   // DATA
   readonly events = rxResource({
@@ -97,11 +121,25 @@ export class CalendarArchiveDialog {
       .sort((a, b) => b.event.startAt.localeCompare(a.event.startAt));
   });
 
+  readonly isFiltered = computed(
+    () => !!this.query().trim() || !!this.from() || !!this.to(),
+  );
+
   readonly groups = computed<ArchiveGroup[]>(() => {
-    const query = this.query().trim().toLocaleLowerCase();
-    if (query) {
+    if (this.isFiltered()) {
+      const query = this.query().trim().toLocaleLowerCase();
+      const from = this.from();
+      const to = this.to() ?? from;
       return [
-        { label: null, rows: this.rows().filter(row => row.search.includes(query)) },
+        {
+          label: null,
+          rows: this.rows().filter(
+            row =>
+              row.search.includes(query) &&
+              (!from || differenceInCalendarDays(row.end, from) >= 0) &&
+              (!to || differenceInCalendarDays(row.start, to) <= 0),
+          ),
+        },
       ];
     }
 
@@ -168,6 +206,11 @@ export class CalendarArchiveDialog {
       .subscribe();
   }
 
+  clearDates(): void {
+    this.from.set(null);
+    this.to.set(null);
+  }
+
   close(): void {
     this.dialogRef.close();
   }
@@ -178,25 +221,20 @@ export class CalendarArchiveDialog {
 
   // HELPERS
   private toRow(event: EventDto, tagsById: Map<string, TagDto>): ArchiveRow {
-    const dates = this.toDatesText(event);
     const start = this.toLocalDate(event.startAt, event.allDay);
+    const end = this.toLocalDate(event.endAt, event.allDay);
+    if (event.allDay) end.setDate(end.getDate() - 1);
     return {
       event,
-      dates,
+      dates: this.toDatesText(event),
       archivedAt: new Intl.DateTimeFormat(this.languageService.lang(), {
         day: 'numeric',
         month: 'short',
       }).format(new Date(event.archivedAt ?? event.updatedAt)),
       tags: event.tagIds.flatMap(id => tagsById.get(id) ?? []),
-      search: [
-        event.title,
-        event.description ?? '',
-        dates,
-        format(start, 'dd.MM.yyyy'),
-        format(start, 'yyyy-MM-dd'),
-      ]
-        .join(' ')
-        .toLocaleLowerCase(),
+      start,
+      end,
+      search: `${event.title} ${event.description ?? ''}`.toLocaleLowerCase(),
     };
   }
 

@@ -281,10 +281,14 @@
     "loadError": "No se pudo cargar el archivo",
     "restoreError": "No se pudo restaurar el evento",
     "deleteError": "No se pudo eliminar el evento",
-    "search": "Título, fecha o descripción",
+    "search": "Título o descripción",
     "notFound": "No se encontró nada",
     "archivedAt": "Eliminado el {{date}}",
-    "recurring": "Se repite"
+    "recurring": "Se repite",
+    "from": "Desde",
+    "to": "Hasta",
+    "clearDates": "Borrar fechas",
+    "date": "Fecha"
   },
   "invite": {
     "accepting": "Aceptando la invitación…",
