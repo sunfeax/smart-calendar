@@ -22,7 +22,7 @@ import {
   Series,
   toWallClock,
 } from './event-recurrence.js';
-import { RANGE_MAX_DAYS, RANGE_MAX_ITEMS } from './event.constants.js';
+import { ARCHIVE_MAX_ITEMS, RANGE_MAX_DAYS, RANGE_MAX_ITEMS } from './event.constants.js';
 import {
   EventCreateDto,
   EventDto,
@@ -79,6 +79,7 @@ export class EventService {
     const events = await this.prisma.event.findMany({
       where: {
         calendarId,
+        archivedAt: null,
         OR: [
           { recurrenceRule: null, startAt: { lt: to }, endAt: { gt: from } },
           { recurrenceRule: { not: null }, startAt: { lt: to } },
@@ -180,7 +181,7 @@ export class EventService {
     const event = await this.getAuthorizedEvent(userId, id, CalendarRole.EDITOR);
 
     if (!this.isSeries(event) || !target.scope || target.scope === 'all') {
-      await this.prisma.event.deleteMany({ where: { id } });
+      await this.archive(id);
       return;
     }
 
@@ -196,7 +197,7 @@ export class EventService {
     }
 
     if (countBefore(event, originalStart) === 0) {
-      await this.prisma.event.deleteMany({ where: { id } });
+      await this.archive(id);
       return;
     }
 
@@ -208,6 +209,49 @@ export class EventService {
         where: { eventId: id, originalStart: { gte: originalStart } },
       });
     });
+  }
+
+  async listArchived(userId: string, calendarId: string): Promise<EventDto[]> {
+    await this.access.assertRole(userId, calendarId, CalendarRole.EDITOR);
+
+    const events = await this.prisma.event.findMany({
+      where: { calendarId, archivedAt: { not: null } },
+      include: EVENT_INCLUDE,
+      orderBy: { archivedAt: 'desc' },
+      take: ARCHIVE_MAX_ITEMS,
+    });
+
+    return events.map(event => this.toEventDto(event));
+  }
+
+  async restore(userId: string, id: string, target: EventScopeDto): Promise<EventDto> {
+    if (target.scope === 'this') {
+      const event = await this.getAuthorizedEvent(userId, id, CalendarRole.EDITOR);
+      if (!this.isSeries(event))
+        throw new BadRequestException('The event is not a series');
+
+      const originalStart = this.toOriginalStart(event, target.originalStart);
+      await this.prisma.eventException.deleteMany({
+        where: { eventId: id, originalStart, cancelled: true },
+      });
+
+      return this.toEventDto(await this.findEventWithTags(id));
+    }
+
+    await this.getAuthorizedEvent(userId, id, CalendarRole.EDITOR, true);
+
+    const restored = await this.prisma.event.update({
+      where: { id },
+      data: { archivedAt: null },
+      include: EVENT_INCLUDE,
+    });
+
+    return this.toEventDto(restored);
+  }
+
+  async removeArchived(userId: string, id: string): Promise<void> {
+    await this.getAuthorizedEvent(userId, id, CalendarRole.EDITOR, true);
+    await this.prisma.event.delete({ where: { id } });
   }
 
   async addTag(userId: string, id: string, tagId: string): Promise<EventDto> {
@@ -556,13 +600,18 @@ export class EventService {
       : this.toEventDto(created);
   }
 
+  private async archive(id: string): Promise<void> {
+    await this.prisma.event.update({ where: { id }, data: { archivedAt: new Date() } });
+  }
+
   private async getAuthorizedEvent(
     userId: string,
     eventId: string,
     minRole: CalendarRole,
+    archived = false,
   ): Promise<Event> {
-    const event = await this.prisma.event.findUnique({
-      where: { id: eventId },
+    const event = await this.prisma.event.findFirst({
+      where: { id: eventId, archivedAt: archived ? { not: null } : null },
     });
 
     if (!event) throw new NotFoundException();
@@ -764,6 +813,7 @@ export class EventService {
       endAt: endAt.toISOString(),
       originalStart: occurrence ? occurrence.startAt.toISOString() : null,
       completedAt: event.completedAt ? event.completedAt.toISOString() : null,
+      archivedAt: event.archivedAt ? event.archivedAt.toISOString() : null,
       createdAt: event.createdAt.toISOString(),
       updatedAt: event.updatedAt.toISOString(),
     };

@@ -37,6 +37,14 @@ export class EventController {
     return this.eventService.listRange(user.id, calendarId, range);
   }
 
+  @Get('calendars/:calendarId/events/archived')
+  listArchived(
+    @CurrentUser() user: User,
+    @Param('calendarId', ParseUUIDPipe) calendarId: string,
+  ): Promise<EventDto[]> {
+    return this.eventService.listArchived(user.id, calendarId);
+  }
+
   @Post('calendars/:calendarId/events')
   create(
     @CurrentUser() user: User,
@@ -64,6 +72,24 @@ export class EventController {
     @Query() target: EventScopeDto,
   ): Promise<void> {
     return this.eventService.remove(user.id, id, target);
+  }
+
+  @Post('events/:id/restore')
+  restore(
+    @CurrentUser() user: User,
+    @Param('id', ParseUUIDPipe) id: string,
+    @Query() target: EventScopeDto,
+  ): Promise<EventDto> {
+    return this.eventService.restore(user.id, id, target);
+  }
+
+  @Delete('events/:id/archived')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  removeArchived(
+    @CurrentUser() user: User,
+    @Param('id', ParseUUIDPipe) id: string,
+  ): Promise<void> {
+    return this.eventService.removeArchived(user.id, id);
   }
 
   @Post('events/:id/tags/:tagId')

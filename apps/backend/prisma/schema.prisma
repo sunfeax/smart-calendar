@@ -89,6 +89,7 @@ model Event {
   endAt          DateTime         @db.Timestamptz(3)
   allDay         Boolean          @default(true)
   completedAt    DateTime?        @db.Timestamptz(3)
+  archivedAt     DateTime?        @db.Timestamptz(3)
   recurrenceRule String?
   timeZone       String?
   createdAt      DateTime         @default(now()) @db.Timestamptz(3)
@@ -98,6 +99,7 @@ model Event {
   exceptions     EventException[]
 
   @@index([calendarId, startAt])
+  @@index([calendarId, archivedAt])
 }
 
 model EventException {

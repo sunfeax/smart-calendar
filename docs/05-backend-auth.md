@@ -36,6 +36,7 @@
 - `POST /calendars/:id/events`
 - `PATCH /events/:id`, `DELETE /events/:id`. Для повторения серии query `scope` (`this`, `following`, `all`) и `originalStart`; без `scope` запрос меняет саму запись (одиночное событие или серию целиком). `this` создаёт или обновляет `EventException`, `following` делит серию, `all` сдвигает всю серию на ту же разницу в настенном времени её пояса.
 - Ответ события содержит `tagIds: string[]`. Имена и цвета клиент берёт из списка категорий календаря.
+- Архив (EDITOR): `DELETE /events/:id` переносит в архив; `GET /calendars/:id/events/archived` (последние 100); `POST /events/:id/restore` возвращает из архива или с `scope=this&originalStart=` снимает отмену одного повторения; `DELETE /events/:id/archived` удаляет навсегда, только архивное.
 - Теги события по одному: `POST /events/:id/tags/:tagId`, `DELETE /events/:id/tags/:tagId`, оба возвращают событие целиком.
 - Повторы: `PATCH` и `DELETE` для повторяющегося события принимают область `scope=this|following|all` и дату повторения (`occurrence`). `this` пишет `EventException`, `following` делит серию, `all` меняет исходную запись.
 
