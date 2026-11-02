@@ -253,6 +253,20 @@
     "retry": "Reintentar",
     "noActiveLinks": "No hay enlaces activos"
   },
+  "export": {
+    "title": "Exportar a Excel",
+    "period": "Periodo",
+    "download": "Descargar",
+    "allDay": "Todo el día",
+    "error": "No se pudieron exportar los eventos",
+    "errors": {
+      "required": "Indica el inicio y el fin del periodo",
+      "endBeforeStart": "El fin es anterior al inicio",
+      "periodTooLong": "El periodo no puede superar un año"
+    },
+    "yes": "Sí",
+    "no": "No"
+  },
   "invite": {
     "accepting": "Aceptando la invitación…",
     "joined": "Te has unido al calendario",

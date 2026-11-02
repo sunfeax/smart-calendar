@@ -1,0 +1,45 @@
+<div class="export__header">
+  <h1 mat-dialog-title>{{ 'export.title' | transloco }}</h1>
+  <button matIconButton [attr.aria-label]="'common.close' | transloco" (click)="close()">
+    <mat-icon>close</mat-icon>
+  </button>
+</div>
+
+<mat-dialog-content>
+  <mat-form-field class="export__field">
+    <mat-label>{{ 'export.period' | transloco }}</mat-label>
+    <mat-date-range-input [rangePicker]="periodPicker">
+      <input
+        matStartDate
+        [formField]="periodForm.start"
+        [attr.aria-label]="'event.startAt' | transloco"
+        [placeholder]="'event.startAt' | transloco"
+      />
+      <input
+        matEndDate
+        [formField]="periodForm.end"
+        [attr.aria-label]="'event.endAt' | transloco"
+        [placeholder]="'event.endAt' | transloco"
+      />
+    </mat-date-range-input>
+    <mat-datepicker-toggle matIconSuffix [for]="periodPicker" />
+    <mat-date-range-picker #periodPicker [startAt]="today" />
+    @if (periodForm.start().errors()[0] ?? periodForm.end().errors()[0]; as error) {
+      <mat-error>{{ 'export.errors.' + error.kind | transloco }}</mat-error>
+    }
+  </mat-form-field>
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+  <button matButton type="button" (click)="close()">
+    {{ 'common.cancel' | transloco }}
+  </button>
+  <button
+    matButton="filled"
+    type="button"
+    [disabled]="periodForm().invalid()"
+    (click)="download()"
+  >
+    {{ 'export.download' | transloco }}
+  </button>
+</mat-dialog-actions>

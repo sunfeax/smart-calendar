@@ -31,7 +31,7 @@ import allLocales from '@fullcalendar/angular/locales-all';
 import multiMonthPlugin from '@fullcalendar/angular/multimonth';
 import themePlugin from '@fullcalendar/angular/themes/monarch';
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
-import { addDays } from 'date-fns';
+import { addDays, format } from 'date-fns';
 import { catchError, defaultIfEmpty, EMPTY, Observable, of, switchMap, tap } from 'rxjs';
 import {
   EventCreateDto,
@@ -49,6 +49,10 @@ import {
   CalendarShareDialogData,
   CalendarShareDialogResult,
 } from '../../components/calendar-share-dialog/calendar-share-dialog';
+import {
+  CalendarExportDialog,
+  CalendarExportPeriod,
+} from '../../components/calendar-export-dialog/calendar-export-dialog';
 import { EventEditDialog } from '../../components/event-edit-dialog/event-edit-dialog';
 import { EventIcon } from '../../components/event-icon/event-icon';
 import { RecurrenceScopeDialog } from '../../components/recurrence-scope-dialog/recurrence-scope-dialog';
@@ -66,6 +70,7 @@ import {
   toEventDates,
 } from '../../utils/calendar-layout';
 import { toCalendarEvent, toEventApiDates, toEventKey } from '../../utils/event.mapper';
+import { EventsXlsxLabels } from '../../utils/events-xlsx';
 import { SnackbarService } from './../../../../shared/services/snackbar.service';
 
 @Component({
@@ -297,6 +302,12 @@ export class Calendar {
       });
   }
 
+  openExport(): void {
+    CalendarExportDialog.open(this.dialog)
+      .pipe(switchMap(period => this.exportEvents(period)))
+      .subscribe();
+  }
+
   navigate(action: 'prev' | 'next' | 'today'): void {
     this.fullCalendar().getApi()[action]();
   }
@@ -366,6 +377,27 @@ export class Calendar {
     return RecurrenceScopeDialog.open(this.dialog, { action }).pipe(
       tap(scope => (target.scope = scope)),
       defaultIfEmpty(null),
+    );
+  }
+
+  private exportEvents({ start, end }: CalendarExportPeriod): Observable<void> {
+    const range = { from: start.toISOString(), to: addDays(end, 1).toISOString() };
+
+    return this.eventService.getListRange(this.id(), range).pipe(
+      switchMap(events =>
+        import('../../utils/events-xlsx').then(({ downloadEventsXlsx }) =>
+          downloadEventsXlsx(
+            events,
+            this.tagCategories.value() ?? [],
+            this.toExportLabels(),
+            this.toExportFileName(start, end),
+          ),
+        ),
+      ),
+      catchError(() => {
+        this.snackbarService.error(this.transloco.translate('export.error'));
+        return EMPTY;
+      }),
     );
   }
 
@@ -531,6 +563,28 @@ export class Calendar {
   }
 
   // HELPERS
+  private toExportLabels(): EventsXlsxLabels {
+    const t = (key: string) => this.transloco.translate(key);
+    return {
+      title: t('event.title'),
+      untitled: t('event.untitled'),
+      description: t('event.description'),
+      startAt: t('event.startAt'),
+      endAt: t('event.endAt'),
+      allDay: t('export.allDay'),
+      completed: t('event.completed'),
+      tags: t('tags.tags'),
+      yes: t('export.yes'),
+      no: t('export.no'),
+    };
+  }
+
+  private toExportFileName(start: Date, end: Date): string {
+    const name =
+      this.calendar.value()?.name || this.transloco.translate('calendars.unnamed');
+    return `${name} ${format(start, 'yyyy-MM-dd')} – ${format(end, 'yyyy-MM-dd')}.xlsx`;
+  }
+
   private withTimeZone(
     payload: EventUpdateDto,
     scope: RecurrenceScope | undefined,
