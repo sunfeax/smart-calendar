@@ -66,7 +66,9 @@
     "nextYear": "Next year",
     "eventsError": "Failed to load events",
     "loadError": "Failed to open the calendar",
-    "more": "Calendar actions"
+    "more": "Calendar actions",
+    "noEvents": "No events this year",
+    "addEvent": "New event"
   },
   "event": {
     "toggleCompleted": "Mark as completed",

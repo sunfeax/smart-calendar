@@ -265,3 +265,7 @@ button mat-progress-spinner {
   --snack-bar-accent: var(--color-warning);
   --snack-bar-accent-soft: var(--color-warning-soft);
 }
+
+.app-dialog-fullscreen {
+  --mat-dialog-container-shape: 0;
+}

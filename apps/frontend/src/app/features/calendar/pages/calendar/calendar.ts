@@ -9,8 +9,9 @@ import {
   signal,
   viewChild,
 } from '@angular/core';
-import { rxResource } from '@angular/core/rxjs-interop';
-import { MatButton, MatIconButton } from '@angular/material/button';
+import { BreakpointObserver } from '@angular/cdk/layout';
+import { rxResource, toSignal } from '@angular/core/rxjs-interop';
+import { MatButton, MatFabButton, MatIconButton } from '@angular/material/button';
 import { MatDialog } from '@angular/material/dialog';
 import { MatIcon } from '@angular/material/icon';
 import { MatMenu, MatMenuItem, MatMenuTrigger } from '@angular/material/menu';
@@ -18,7 +19,6 @@ import { MatTooltip } from '@angular/material/tooltip';
 import { Router, RouterLink } from '@angular/router';
 import {
   CalendarOptions,
-  DateClickInfo,
   DatesSetInfo,
   EventApi,
   EventChangeInfo,
@@ -27,12 +27,22 @@ import {
 } from '@fullcalendar/angular';
 import dayGridPlugin from '@fullcalendar/angular/daygrid';
 import interactionPlugin from '@fullcalendar/angular/interaction';
+import listPlugin from '@fullcalendar/angular/list';
 import allLocales from '@fullcalendar/angular/locales-all';
 import multiMonthPlugin from '@fullcalendar/angular/multimonth';
 import themePlugin from '@fullcalendar/angular/themes/monarch';
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import { addDays, format } from 'date-fns';
-import { catchError, defaultIfEmpty, EMPTY, Observable, of, switchMap, tap } from 'rxjs';
+import {
+  catchError,
+  defaultIfEmpty,
+  EMPTY,
+  map,
+  Observable,
+  of,
+  switchMap,
+  tap,
+} from 'rxjs';
 import {
   EventCreateDto,
   EventDto,
@@ -57,6 +67,7 @@ import {
 import { EventEditDialog } from '../../components/event-edit-dialog/event-edit-dialog';
 import { EventIcon } from '../../components/event-icon/event-icon';
 import { RecurrenceScopeDialog } from '../../components/recurrence-scope-dialog/recurrence-scope-dialog';
+import { MOBILE_QUERY } from '../../../../core/constants/breakpoints';
 import { TAG_CARD_NAME_MAX } from '../../constants/tag.constants';
 import { EventDialogData } from '../../models/event-dialog';
 import { EventRange } from '../../models/event-range';
@@ -80,6 +91,7 @@ import { SnackbarService } from './../../../../shared/services/snackbar.service'
     EventIcon,
     FullCalendarModule,
     MatButton,
+    MatFabButton,
     MatIcon,
     MatIconButton,
     MatMenu,
@@ -105,6 +117,7 @@ export class Calendar {
   private readonly languageService = inject(LanguageService);
   private readonly router = inject(Router);
   private readonly host = inject<ElementRef<HTMLElement>>(ElementRef);
+  private readonly breakpointObserver = inject(BreakpointObserver);
 
   // INPUTS
   readonly id = input.required<string>();
@@ -116,6 +129,10 @@ export class Calendar {
   private readonly fullCalendar = viewChild.required(FullCalendarComponent);
   private readonly range = signal<EventRange | null>(null);
   private readonly renderedEvents = signal<EventDates[]>([]);
+  readonly isMobile = toSignal(
+    this.breakpointObserver.observe(MOBILE_QUERY).pipe(map(state => state.matches)),
+    { initialValue: this.breakpointObserver.isMatched(MOBILE_QUERY) },
+  );
 
   // DATA
   readonly calendar = rxResource({
@@ -148,7 +165,7 @@ export class Calendar {
   });
 
   readonly options = computed<CalendarOptions>(() => ({
-    initialView: 'multiMonthYear',
+    initialView: this.isMobile() ? 'listYear' : 'multiMonthYear',
     multiMonthMaxColumns: 1,
     locales: allLocales,
     locale: this.languageService.lang(),
@@ -157,7 +174,9 @@ export class Calendar {
     fixedWeekCount: false,
     headerToolbar: false,
     borderless: true,
-    viewClass: 'app-year-view',
+    viewClass: ({ view }) =>
+      view.type === 'listYear' ? 'app-list-view' : 'app-year-view',
+    noEventsText: this.transloco.translate('calendar.noEvents'),
     dayHeaderInnerClass: 'app-weekday',
     dayCellTopInnerClass: 'app-day-number',
     eventInnerClass: 'app-event-content',
@@ -178,13 +197,19 @@ export class Calendar {
       fitWeekRow(info.el.closest<HTMLElement>('.app-week-row'), this.eventsByDay()),
     dayCellClass: () => (this.canEdit() ? 'app-day-editable' : ''),
     dayCellTopClass: () => (this.canEdit() ? 'app-day-top' : ''),
-    plugins: [themePlugin, dayGridPlugin, multiMonthPlugin, interactionPlugin],
+    plugins: [
+      themePlugin,
+      dayGridPlugin,
+      multiMonthPlugin,
+      listPlugin,
+      interactionPlugin,
+    ],
     events: this.calendarEvents(),
     eventsSet: events => this.syncRenderedEvents(events),
     editable: this.canEdit(),
     eventDrop: info => this.saveEventDates(info),
     eventResize: info => this.saveEventDates(info),
-    dateClick: info => this.createEvent(info),
+    dateClick: info => this.createEvent(info.date),
     eventClick: info => this.openEvent(info.event.id),
     datesSet: info => this.changeDates(info),
   }));
@@ -214,6 +239,7 @@ export class Calendar {
   // LIFECYCLE
   constructor() {
     this.fitWeekRows();
+    this.syncViewWithScreen();
     this.showEventsError();
     this.showTagsError();
     this.leaveOnCalendarError();
@@ -227,6 +253,14 @@ export class Calendar {
       )) {
         fitWeekRow(row, this.eventsByDay());
       }
+    });
+  }
+
+  private syncViewWithScreen(): void {
+    afterRenderEffect(() => {
+      const view = this.isMobile() ? 'listYear' : 'multiMonthYear';
+      const api = this.fullCalendar().getApi();
+      if (api.view.type !== view) api.changeView(view);
     });
   }
 
@@ -308,6 +342,10 @@ export class Calendar {
     CalendarExportDialog.open(this.dialog)
       .pipe(switchMap(period => this.exportEvents(period)))
       .subscribe();
+  }
+
+  createEventToday(): void {
+    this.createEvent(new Date());
   }
 
   navigate(action: 'prev' | 'next' | 'today'): void {
@@ -450,10 +488,20 @@ export class Calendar {
         createTag: (categoryId, payload) => this.createTag(categoryId, payload),
         setTag: (tagId, assigned) => this.setEventTag(target.id, tagId, assigned),
       },
-      width: 'min(40rem, calc(100vw - 2rem))',
-      height: 'min(44rem, calc(100dvh - 2rem))',
-      maxWidth: 'calc(100vw - 2rem)',
-      maxHeight: 'calc(100dvh - 2rem)',
+      ...(this.isMobile()
+        ? {
+            width: '100vw',
+            height: '100dvh',
+            maxWidth: '100vw',
+            maxHeight: '100dvh',
+            panelClass: 'app-dialog-fullscreen',
+          }
+        : {
+            width: 'min(40rem, calc(100vw - 2rem))',
+            height: 'min(44rem, calc(100dvh - 2rem))',
+            maxWidth: 'calc(100vw - 2rem)',
+            maxHeight: 'calc(100dvh - 2rem)',
+          }),
     });
   }
 
@@ -538,7 +586,7 @@ export class Calendar {
     ).subscribe();
   }
 
-  private createEvent({ date }: DateClickInfo): void {
+  private createEvent(date: Date): void {
     if (!this.canEdit()) return;
     this.saveNewEvent(
       toEventApiDates({ allDay: true, startAt: date, endAt: null }),

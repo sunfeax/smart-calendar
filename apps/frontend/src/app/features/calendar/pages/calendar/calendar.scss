@@ -120,12 +120,32 @@ full-calendar {
 
 @container (max-width: 540px) {
   .calendar__header {
+    grid-template-columns: minmax(0, 1fr) auto;
     grid-template-areas:
-      'identity year .'
-      'controls controls controls';
-    gap: var(--space-1);
-    padding-inline: var(--space-2);
+      'identity identity'
+      'year controls';
+    gap: var(--space-2);
+    padding: var(--space-2) var(--space-3);
   }
+
+  .calendar__year {
+    justify-self: start;
+  }
+
+  .calendar__year-label {
+    font-size: var(--font-size-xl);
+  }
+
+  .calendar__controls {
+    gap: var(--space-2);
+  }
+}
+
+.calendar__add {
+  position: fixed;
+  right: calc(var(--space-4) + env(safe-area-inset-right));
+  bottom: calc(var(--space-4) + env(safe-area-inset-bottom));
+  z-index: 1;
 }
 
 .calendar__event {

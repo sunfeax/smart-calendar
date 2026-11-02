@@ -164,3 +164,15 @@
     </span>
   </ng-template>
 </full-calendar>
+
+@if (isMobile() && canEdit()) {
+  <button
+    matFab
+    class="calendar__add"
+    type="button"
+    [attr.aria-label]="'calendar.addEvent' | transloco"
+    (click)="createEventToday()"
+  >
+    <mat-icon>add</mat-icon>
+  </button>
+}
