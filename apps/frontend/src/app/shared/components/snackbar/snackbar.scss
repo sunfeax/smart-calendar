@@ -54,3 +54,60 @@
     --mat-icon-button-icon-color: var(--color-text);
   }
 }
+
+.snackbar__action {
+  --mat-snack-bar-button-color: var(--color-primary-text);
+  --mat-button-text-label-text-color: var(--color-primary-text);
+
+  font-weight: var(--font-weight-semibold);
+}
+
+@property --snackbar-progress {
+  syntax: '<percentage>';
+  inherits: false;
+  initial-value: 100%;
+}
+
+.snackbar__countdown {
+  position: relative;
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  width: var(--space-6);
+  height: var(--space-6);
+  padding-top: var(--space-1);
+  color: var(--color-text-soft);
+  font-size: var(--font-size-xs);
+  font-variant-numeric: tabular-nums;
+
+  &::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: var(--radius-full);
+    background: conic-gradient(
+      var(--color-primary-text) var(--snackbar-progress),
+      var(--color-border-soft) 0
+    );
+    mask: radial-gradient(
+      farthest-side,
+      transparent calc(100% - var(--border-width-md)),
+      #000 calc(100% - var(--border-width-md))
+    );
+    animation: snackbar-countdown var(--snackbar-countdown) linear forwards;
+  }
+}
+
+@keyframes snackbar-countdown {
+  to {
+    --snackbar-progress: 0%;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .snackbar__countdown::before {
+    animation: none;
+  }
+}

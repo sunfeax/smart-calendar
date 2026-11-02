@@ -1,5 +1,6 @@
-import { Component, computed, inject } from '@angular/core';
-import { MatIconButton } from '@angular/material/button';
+import { Component, computed, inject, signal } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { MatButton, MatIconButton } from '@angular/material/button';
 import { MatIcon } from '@angular/material/icon';
 import {
   MAT_SNACK_BAR_DATA,
@@ -9,12 +10,15 @@ import {
   MatSnackBarRef,
 } from '@angular/material/snack-bar';
 import { TranslocoPipe } from '@jsverse/transloco';
+import { interval, take } from 'rxjs';
 
 export type SnackbarType = 'success' | 'error' | 'info' | 'warning';
 
 export interface SnackbarData {
   message: string;
   type: SnackbarType;
+  action?: string;
+  countdown?: number;
 }
 
 const ICONS: Record<SnackbarType, string> = {
@@ -27,6 +31,7 @@ const ICONS: Record<SnackbarType, string> = {
 @Component({
   selector: 'app-snackbar',
   imports: [
+    MatButton,
     MatIcon,
     MatIconButton,
     MatSnackBarAction,
@@ -43,10 +48,29 @@ export class Snackbar {
 
   readonly data = inject<SnackbarData>(MAT_SNACK_BAR_DATA);
 
+  // STATE
+  readonly secondsLeft = signal(Math.ceil((this.data.countdown ?? 0) / 1000));
+
   // COMPUTED
   readonly icon = computed(() => ICONS[this.data.type]);
 
+  // LIFECYCLE
+  constructor() {
+    this.startCountdown();
+  }
+
+  // EFFECTS
+  private startCountdown(): void {
+    interval(1000)
+      .pipe(take(this.secondsLeft()), takeUntilDestroyed())
+      .subscribe(() => this.secondsLeft.update(seconds => seconds - 1));
+  }
+
   // ACTIONS
+  runAction(): void {
+    this.snackBarRef.dismissWithAction();
+  }
+
   close(): void {
     this.snackBarRef.dismiss();
   }

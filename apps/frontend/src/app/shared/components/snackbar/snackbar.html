@@ -3,6 +3,26 @@
 </span>
 <div matSnackBarLabel class="snackbar__message">{{ data.message }}</div>
 <div matSnackBarActions>
+  @if (data.countdown) {
+    <span
+      class="snackbar__countdown"
+      aria-hidden="true"
+      [style.--snackbar-countdown.ms]="data.countdown"
+    >
+      {{ secondsLeft() }}
+    </span>
+  }
+  @if (data.action) {
+    <button
+      matButton
+      matSnackBarAction
+      type="button"
+      class="snackbar__action"
+      (click)="runAction()"
+    >
+      {{ data.action }}
+    </button>
+  }
   <button
     matIconButton
     matSnackBarAction
