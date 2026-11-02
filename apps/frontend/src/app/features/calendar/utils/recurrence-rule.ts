@@ -3,7 +3,6 @@ import {
   EMPTY_RECURRENCE,
   RECURRENCE_COUNT_DEFAULT,
   WEEKDAYS,
-  WORKDAYS,
 } from '../constants/recurrence.constants';
 import { RecurrenceForm, RecurrencePreset, Weekday } from '../models/recurrence';
 
@@ -16,13 +15,7 @@ export function toRecurrenceRule(form: RecurrenceForm): string | null {
     case 'daily':
       parts.push('FREQ=DAILY');
       break;
-    case 'weekdays':
-      parts.push('FREQ=WEEKLY', `BYDAY=${WORKDAYS.join(',')}`);
-      break;
-    case 'weekly':
-      parts.push('FREQ=WEEKLY');
-      break;
-    case 'weeklyDays': {
+    case 'weekly': {
       const days = WEEKDAYS.filter(day => form.days.includes(day));
       parts.push('FREQ=WEEKLY', ...(days.length ? [`BYDAY=${days.join(',')}`] : []));
       break;
@@ -50,26 +43,25 @@ export function fromRecurrenceRule(rule: string | null): RecurrenceForm {
     rule.split(';').map(part => part.split('=') as [string, string | undefined]),
   );
   const days = (parts.get('BYDAY')?.split(',') ?? []).filter(isWeekday);
-  const preset = toPreset(parts.get('FREQ'), days);
+  const preset = toPreset(parts.get('FREQ'));
   const count = parts.get('COUNT');
   const until = parts.get('UNTIL');
 
   return {
     preset,
-    days: preset === 'weeklyDays' ? days : [],
+    days: preset === 'weekly' ? days : [],
     end: count ? 'count' : until ? 'until' : 'never',
     until: until ? parse(until.slice(0, 8), 'yyyyMMdd', new Date()) : null,
     count: count ? Number(count) : RECURRENCE_COUNT_DEFAULT,
   };
 }
 
-function toPreset(freq: string | undefined, days: Weekday[]): RecurrencePreset {
+function toPreset(freq: string | undefined): RecurrencePreset {
   switch (freq) {
     case 'DAILY':
       return 'daily';
     case 'WEEKLY':
-      if (!days.length) return 'weekly';
-      return days.join(',') === WORKDAYS.join(',') ? 'weekdays' : 'weeklyDays';
+      return 'weekly';
     case 'MONTHLY':
       return 'monthly';
     case 'YEARLY':

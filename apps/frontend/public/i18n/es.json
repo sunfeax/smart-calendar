@@ -132,9 +132,7 @@
       "presets": {
         "none": "No se repite",
         "daily": "Cada día",
-        "weekdays": "Todos los días laborables",
         "weekly": "Cada semana",
-        "weeklyDays": "Días de la semana",
         "monthly": "Cada mes",
         "yearly": "Cada año"
       },
@@ -142,20 +140,10 @@
       "ends": {
         "never": "Nunca",
         "until": "El día",
-        "count": "Después de"
+        "count": "Después de N repeticiones"
       },
       "until": "Fecha de fin",
       "count": "Repeticiones",
-      "summary": {
-        "daily": "Cada día",
-        "weekdays": "Días laborables (lunes a viernes)",
-        "weekly": "Cada semana el {{day}}",
-        "weeklyDays": "Cada semana: {{days}}",
-        "monthly": "Cada mes el día {{day}}",
-        "yearly": "Cada año el {{date}}",
-        "until": "hasta el {{date}}",
-        "count": "{{count}} veces"
-      },
       "days": {
         "MO": "Lu",
         "TU": "Ma",

@@ -16,14 +16,14 @@
     </mat-form-field>
 
     @if (isRepeating()) {
-      @if (recurrence().preset === 'weeklyDays') {
+      @if (recurrence().preset === 'weekly') {
         <mat-button-toggle-group
           class="recurrence__days"
           multiple
           hideMultipleSelectionIndicator
           [value]="recurrence().days"
           [disabled]="!editable()"
-          [attr.aria-label]="'event.recurrence.presets.weeklyDays' | transloco"
+          [attr.aria-label]="'event.recurrence.presets.weekly' | transloco"
           (change)="setDays($event.value)"
         >
           @for (day of weekdays; track day) {
@@ -85,12 +85,4 @@
       }
     }
   </div>
-
-  @if (summary().length) {
-    <p class="recurrence__summary">
-      @for (text of summary(); track text.key; let last = $last) {
-        {{ text.key | transloco: text.params }}{{ last ? '' : ', ' }}
-      }
-    </p>
-  }
 </div>

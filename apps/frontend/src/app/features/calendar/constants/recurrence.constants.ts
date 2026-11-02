@@ -9,16 +9,12 @@ import {
 export const RECURRENCE_PRESETS: readonly RecurrencePreset[] = [
   'none',
   'daily',
-  'weekdays',
   'weekly',
-  'weeklyDays',
   'monthly',
   'yearly',
 ];
 
 export const WEEKDAYS: readonly Weekday[] = ['MO', 'TU', 'WE', 'TH', 'FR', 'SA', 'SU'];
-
-export const WORKDAYS: readonly Weekday[] = ['MO', 'TU', 'WE', 'TH', 'FR'];
 
 export const RECURRENCE_ENDS: readonly RecurrenceEnd[] = ['never', 'until', 'count'];
 

@@ -1,5 +1,4 @@
-export type RecurrencePreset =
-  'none' | 'daily' | 'weekdays' | 'weekly' | 'weeklyDays' | 'monthly' | 'yearly';
+export type RecurrencePreset = 'none' | 'daily' | 'weekly' | 'monthly' | 'yearly';
 
 export type Weekday = 'MO' | 'TU' | 'WE' | 'TH' | 'FR' | 'SA' | 'SU';
 

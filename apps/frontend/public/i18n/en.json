@@ -132,9 +132,7 @@
       "presets": {
         "none": "Does not repeat",
         "daily": "Every day",
-        "weekdays": "Every weekday",
         "weekly": "Every week",
-        "weeklyDays": "On days of the week",
         "monthly": "Every month",
         "yearly": "Every year"
       },
@@ -142,20 +140,10 @@
       "ends": {
         "never": "Never",
         "until": "On date",
-        "count": "After"
+        "count": "After N occurrences"
       },
       "until": "End date",
       "count": "Occurrences",
-      "summary": {
-        "daily": "Every day",
-        "weekdays": "Every weekday (Monday to Friday)",
-        "weekly": "Every week on {{day}}",
-        "weeklyDays": "Every week on {{days}}",
-        "monthly": "Every month on day {{day}}",
-        "yearly": "Every year on {{date}}",
-        "until": "until {{date}}",
-        "count": "{{count}} times"
-      },
       "days": {
         "MO": "Mon",
         "TU": "Tue",
