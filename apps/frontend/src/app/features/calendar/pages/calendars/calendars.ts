@@ -2,7 +2,7 @@ import { Component, effect, inject } from '@angular/core';
 import { rxResource, takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { MatDialog } from '@angular/material/dialog';
 import { Router } from '@angular/router';
-import { TranslocoService } from '@jsverse/transloco';
+import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import {
   catchError,
   EMPTY,
@@ -17,6 +17,7 @@ import { CalendarDto, CalendarUpdateDto } from '../../../../api/generated';
 import { routePaths } from '../../../../core/constants/routePaths';
 import { AuthService } from '../../../auth/service/auth.service';
 import { ConfirmDialog } from '../../../../shared/components/confirm-dialog/confirm-dialog';
+import { UserMenu } from '../../../../shared/components/user-menu/user-menu';
 import { CalendarAddCard } from '../../components/calendar-add-card/calendar-add-card';
 import { CalendarCard } from '../../components/calendar-card/calendar-card';
 import { CalendarEditDialog } from '../../components/calendar-edit-dialog/calendar-edit-dialog';
@@ -26,7 +27,7 @@ import { MemberService } from '../../services/member.service';
 import { SnackbarService } from './../../../../shared/services/snackbar.service';
 
 @Component({
-  imports: [CalendarCard, CalendarAddCard],
+  imports: [CalendarCard, CalendarAddCard, TranslocoPipe, UserMenu],
   selector: 'app-calendars',
   styleUrl: './calendars.scss',
   templateUrl: './calendars.html',

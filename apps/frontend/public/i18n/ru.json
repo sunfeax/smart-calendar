@@ -29,8 +29,8 @@
   "app": {
     "name": "Smart Calendar"
   },
-  "sidebar": {
-    "userMenu": "Меню пользователя",
+  "userMenu": {
+    "label": "Меню пользователя",
     "lightTheme": "Светлая тема",
     "darkTheme": "Тёмная тема",
     "logout": "Выйти",
@@ -65,7 +65,8 @@
     "previousYear": "Предыдущий год",
     "nextYear": "Следующий год",
     "eventsError": "Не удалось загрузить события",
-    "loadError": "Не удалось открыть календарь"
+    "loadError": "Не удалось открыть календарь",
+    "more": "Действия календаря"
   },
   "event": {
     "toggleCompleted": "Отметить выполненным",

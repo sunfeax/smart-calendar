@@ -29,8 +29,8 @@
   "app": {
     "name": "Smart Calendar"
   },
-  "sidebar": {
-    "userMenu": "Menú de usuario",
+  "userMenu": {
+    "label": "Menú de usuario",
     "lightTheme": "Tema claro",
     "darkTheme": "Tema oscuro",
     "logout": "Cerrar sesión",
@@ -65,7 +65,8 @@
     "previousYear": "Año anterior",
     "nextYear": "Año siguiente",
     "eventsError": "No se pudieron cargar los eventos",
-    "loadError": "No se pudo abrir el calendario"
+    "loadError": "No se pudo abrir el calendario",
+    "more": "Acciones del calendario"
   },
   "event": {
     "toggleCompleted": "Marcar como completado",

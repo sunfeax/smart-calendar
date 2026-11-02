@@ -1,10 +1,8 @@
 import { Component, computed, inject } from '@angular/core';
-import { MatIconButton } from '@angular/material/button';
 import { MatDialog } from '@angular/material/dialog';
 import { MatIcon } from '@angular/material/icon';
 import { MatMenu, MatMenuItem, MatMenuTrigger } from '@angular/material/menu';
-import { MatTooltip } from '@angular/material/tooltip';
-import { Router, RouterLink } from '@angular/router';
+import { Router } from '@angular/router';
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import { catchError, of, switchMap } from 'rxjs';
 import { routePaths } from '../../../core/constants/routePaths';
@@ -15,21 +13,12 @@ import { ThemeService } from '../../services/theme.service';
 import { ConfirmDialog } from '../confirm-dialog/confirm-dialog';
 
 @Component({
-  selector: 'app-sidebar',
-  imports: [
-    MatIcon,
-    MatIconButton,
-    MatMenu,
-    MatMenuItem,
-    MatMenuTrigger,
-    MatTooltip,
-    RouterLink,
-    TranslocoPipe,
-  ],
-  templateUrl: './sidebar.html',
-  styleUrl: './sidebar.scss',
+  selector: 'app-user-menu',
+  imports: [MatIcon, MatMenu, MatMenuItem, MatMenuTrigger, TranslocoPipe],
+  templateUrl: './user-menu.html',
+  styleUrl: './user-menu.scss',
 })
-export class Sidebar {
+export class UserMenu {
   // DEPENDENCIES
   private readonly authService = inject(AuthService);
   private readonly dialog = inject(MatDialog);
@@ -42,11 +31,10 @@ export class Sidebar {
   protected readonly languages = LANGUAGES;
   protected readonly languageNames = LANGUAGE_NAMES;
   protected readonly user = this.authService.user;
-  protected readonly routePaths = routePaths;
 
   // COMPUTED
   protected readonly themeLabel = computed(() =>
-    this.themeService.theme() === 'dark' ? 'sidebar.lightTheme' : 'sidebar.darkTheme',
+    this.themeService.theme() === 'dark' ? 'userMenu.lightTheme' : 'userMenu.darkTheme',
   );
 
   // ACTIONS
@@ -60,9 +48,9 @@ export class Sidebar {
 
   protected logout(): void {
     ConfirmDialog.open(this.dialog, {
-      title: this.transloco.translate('sidebar.logoutTitle'),
-      message: this.transloco.translate('sidebar.logoutMessage'),
-      confirmText: this.transloco.translate('sidebar.logout'),
+      title: this.transloco.translate('userMenu.logoutTitle'),
+      message: this.transloco.translate('userMenu.logoutMessage'),
+      confirmText: this.transloco.translate('userMenu.logout'),
       variant: 'danger',
     })
       .pipe(

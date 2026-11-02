@@ -42,6 +42,7 @@ import {
 } from '../../../../api/generated';
 import { routePaths } from '../../../../core/constants/routePaths';
 import { ConfirmDialog } from '../../../../shared/components/confirm-dialog/confirm-dialog';
+import { UserMenu } from '../../../../shared/components/user-menu/user-menu';
 import { TruncatePipe } from '../../../../shared/pipes/truncate.pipe';
 import { LanguageService } from '../../../../shared/services/language.service';
 import {
@@ -88,6 +89,7 @@ import { SnackbarService } from './../../../../shared/services/snackbar.service'
     RouterLink,
     TranslocoPipe,
     TruncatePipe,
+    UserMenu,
   ],
   templateUrl: './calendar.html',
   styleUrl: './calendar.scss',

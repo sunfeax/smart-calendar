@@ -29,18 +29,7 @@
     }
   </div>
 
-  <h2 class="calendar__year" aria-live="polite" aria-atomic="true">{{ year() }}</h2>
-
-  <div class="calendar__controls">
-    @if (calendar.hasValue()) {
-      <button matButton type="button" (click)="openShare()">
-        <mat-icon>group</mat-icon>
-        {{ 'share.button' | transloco }}
-      </button>
-    }
-    <button matButton="filled" type="button" (click)="navigate('today')">
-      {{ 'calendar.today' | transloco }}
-    </button>
+  <div class="calendar__year">
     <button
       matIconButton
       type="button"
@@ -49,6 +38,9 @@
     >
       <mat-icon>chevron_left</mat-icon>
     </button>
+    <h2 class="calendar__year-label" aria-live="polite" aria-atomic="true">
+      {{ year() }}
+    </h2>
     <button
       matIconButton
       type="button"
@@ -58,6 +50,34 @@
       <mat-icon>chevron_right</mat-icon>
     </button>
   </div>
+
+  <div class="calendar__controls">
+    <button matButton="filled" type="button" (click)="navigate('today')">
+      {{ 'calendar.today' | transloco }}
+    </button>
+    <button
+      matIconButton
+      type="button"
+      [matMenuTriggerFor]="moreMenu"
+      [attr.aria-label]="'calendar.more' | transloco"
+    >
+      <mat-icon>menu</mat-icon>
+    </button>
+    <app-user-menu />
+  </div>
+
+  <mat-menu #moreMenu="matMenu" xPosition="before">
+    @if (calendar.hasValue()) {
+      <button mat-menu-item type="button" (click)="openShare()">
+        <mat-icon>group</mat-icon>
+        <span>{{ 'share.button' | transloco }}</span>
+      </button>
+    }
+    <button mat-menu-item type="button" (click)="openExport()">
+      <mat-icon>download</mat-icon>
+      <span>{{ 'export.title' | transloco }}</span>
+    </button>
+  </mat-menu>
 </header>
 
 <full-calendar [options]="options()">

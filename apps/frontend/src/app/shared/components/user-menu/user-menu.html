@@ -1,0 +1,54 @@
+<button
+  type="button"
+  class="user-menu__avatar"
+  [matMenuTriggerFor]="menu"
+  [attr.aria-label]="'userMenu.label' | transloco"
+>
+  @if (user()?.avatarUrl; as avatarUrl) {
+    <img
+      class="user-menu__avatar-img"
+      [src]="avatarUrl"
+      [alt]="user()?.name ?? ''"
+      referrerpolicy="no-referrer"
+    />
+  } @else {
+    {{ user()?.name?.charAt(0) }}
+  }
+</button>
+
+<mat-menu #langMenu="matMenu" xPosition="before">
+  @for (lang of languages; track lang) {
+    <button mat-menu-item type="button" (click)="setLanguage(lang)">
+      @if (language.lang() === lang) {
+        <mat-icon>check</mat-icon>
+      }
+      <span>{{ languageNames[lang] }}</span>
+    </button>
+  }
+</mat-menu>
+
+<mat-menu #menu="matMenu" xPosition="before">
+  @if (user(); as currentUser) {
+    <div class="user-menu__user">
+      <span>{{ currentUser.name }}</span>
+      <span>{{ currentUser.email }}</span>
+    </div>
+  }
+
+  <button mat-menu-item type="button" (click)="toggleTheme()">
+    <mat-icon>
+      {{ themeService.theme() === 'dark' ? 'light_mode' : 'dark_mode' }}
+    </mat-icon>
+    <span>{{ themeLabel() | transloco }}</span>
+  </button>
+
+  <button mat-menu-item type="button" [matMenuTriggerFor]="langMenu">
+    <mat-icon>translate</mat-icon>
+    <span>{{ 'userMenu.language' | transloco }}</span>
+  </button>
+
+  <button mat-menu-item type="button" (click)="logout()">
+    <mat-icon>logout</mat-icon>
+    <span>{{ 'userMenu.logout' | transloco }}</span>
+  </button>
+</mat-menu>

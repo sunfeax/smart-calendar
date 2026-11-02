@@ -29,8 +29,8 @@
   "app": {
     "name": "Smart Calendar"
   },
-  "sidebar": {
-    "userMenu": "User menu",
+  "userMenu": {
+    "label": "User menu",
     "lightTheme": "Light theme",
     "darkTheme": "Dark theme",
     "logout": "Sign out",
@@ -65,7 +65,8 @@
     "previousYear": "Previous year",
     "nextYear": "Next year",
     "eventsError": "Failed to load events",
-    "loadError": "Failed to open the calendar"
+    "loadError": "Failed to open the calendar",
+    "more": "Calendar actions"
   },
   "event": {
     "toggleCompleted": "Mark as completed",

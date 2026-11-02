@@ -1,10 +1,40 @@
 :host {
   display: block;
-  padding: var(--space-4);
+  padding: var(--space-4) var(--space-8) var(--space-8);
+}
+
+.calendars__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--gap-md);
+  margin-bottom: var(--space-6);
+}
+
+.calendars__brand {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-width: 0;
+}
+
+.calendars__logo {
+  width: var(--space-8);
+  height: var(--space-8);
+  flex-shrink: 0;
+}
+
+.calendars__title {
+  margin: 0;
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-semibold);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 section {
   display: grid;
   grid-template-columns: 1fr;
-  gap: var(--space-3);
+  gap: var(--space-5);
 }

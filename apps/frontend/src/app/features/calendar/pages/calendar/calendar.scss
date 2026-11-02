@@ -32,7 +32,7 @@ full-calendar {
   flex-shrink: 0;
   align-items: center;
   gap: var(--gap-md);
-  padding: var(--space-2) var(--space-4);
+  padding: var(--space-4) var(--space-8);
   background: var(--color-background);
 }
 
@@ -96,7 +96,14 @@ full-calendar {
 
 .calendar__year {
   grid-area: year;
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+}
+
+.calendar__year-label {
   margin: 0;
+  min-width: 4ch;
   color: inherit;
   font-size: var(--font-size-2xl);
   font-weight: var(--font-weight-semibold);
@@ -108,7 +115,7 @@ full-calendar {
   display: flex;
   align-items: center;
   justify-self: end;
-  gap: var(--space-1);
+  gap: var(--space-3);
 }
 
 @container (max-width: 540px) {

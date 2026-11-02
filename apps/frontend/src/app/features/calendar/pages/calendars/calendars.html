@@ -1,3 +1,17 @@
+<header class="calendars__header">
+  <div class="calendars__brand">
+    <img
+      class="calendars__logo"
+      src="brand/smart-calendar.svg"
+      alt=""
+      width="32"
+      height="32"
+    />
+    <h1 class="calendars__title">{{ 'app.name' | transloco }}</h1>
+  </div>
+  <app-user-menu />
+</header>
+
 <section>
   @for (calendar of calendars.hasValue() ? calendars.value() : []; track calendar.id) {
     <app-calendar-card
