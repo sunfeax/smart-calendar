@@ -136,6 +136,8 @@
 - [ ] Экспорт JSON и ICS.
 - [ ] Перенос Google OAuth на прод-домен.
 - [ ] Прогон чек-листа безопасности из `05-backend-auth.md`.
+- [ ] CI в GitHub Actions: на пуш и pull request lint, сборка бэкенда и фронтенда (позже тесты): `.github/workflows/ci.yml`.
+- [ ] CD в GitHub Actions после первого ручного деплоя: сборка образов на машинах GitHub, публикация в GHCR с тегом коммита, на сервере `docker compose pull && up -d`; откат на предыдущий тег.
 
 ## Позже
 
