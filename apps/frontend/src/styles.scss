@@ -199,6 +199,11 @@ mat-form-field {
   --mat-form-field-outlined-focus-outline-color: var(--color-primary-text);
 }
 
+.mat-mdc-select .mat-mdc-select-arrow {
+  width: 20px;
+  height: 20px;
+}
+
 .event-date-picker {
   max-width: calc(100vw - var(--space-8));
   max-height: calc(100dvh - var(--space-8));
