@@ -184,42 +184,6 @@ full-calendar {
   white-space: nowrap;
 }
 
-.calendar__more {
-  display: flex;
-  flex: none;
-  align-items: center;
-  justify-content: center;
-  padding: 0;
-  border: none;
-  margin-inline: auto calc(-1 * var(--space-1-5));
-  background: none;
-  color: inherit;
-  cursor: pointer;
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity var(--duration-fast) var(--ease-standard);
-
-  mat-icon {
-    width: var(--font-size-xl);
-    height: var(--font-size-xl);
-    font-size: var(--font-size-xl);
-  }
-}
-
-.calendar__event:hover .calendar__more,
-.calendar__event:focus-within .calendar__more,
-.calendar__more[aria-expanded='true'] {
-  opacity: 1;
-  pointer-events: auto;
-}
-
-@media (hover: none) {
-  .calendar__more {
-    opacity: 1;
-    pointer-events: auto;
-  }
-}
-
 .calendar__time-icon {
   flex: none;
   width: var(--font-size-sm);
@@ -246,4 +210,62 @@ full-calendar {
 
 .calendar__event-title--empty {
   opacity: 0.7;
+}
+
+.calendar__trash {
+  --trash-glow: color-mix(in srgb, var(--color-danger-strong) 22%, transparent);
+  --trash-edge: color-mix(in srgb, var(--color-danger-strong) 55%, transparent);
+
+  position: fixed;
+  inset-inline: 0;
+  bottom: 0;
+  z-index: 10;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  gap: var(--space-2);
+  height: calc(var(--space-16) * 2);
+  padding-bottom: var(--space-6);
+  box-sizing: border-box;
+  background: radial-gradient(120% 100% at 50% 100%, var(--trash-glow), transparent 75%);
+  box-shadow:
+    inset 0 calc(-1 * var(--border-width-md)) 0 var(--trash-edge),
+    inset 0 calc(-1 * var(--space-6)) var(--space-8) calc(-1 * var(--space-4))
+      var(--trash-edge);
+  color: var(--color-danger);
+  font-weight: var(--font-weight-medium);
+  mask-image: linear-gradient(to top, #000 35%, transparent);
+  opacity: 0;
+  pointer-events: none;
+  transition:
+    opacity var(--duration-fast) var(--ease-standard),
+    --trash-glow var(--duration-fast) var(--ease-standard),
+    --trash-edge var(--duration-fast) var(--ease-standard);
+}
+
+.calendar__trash--visible {
+  opacity: 1;
+}
+
+.calendar__trash--active {
+  --trash-glow: color-mix(in srgb, var(--color-danger-strong) 40%, transparent);
+  --trash-edge: color-mix(in srgb, var(--color-danger-strong) 85%, transparent);
+}
+
+@property --trash-glow {
+  syntax: '<color>';
+  inherits: false;
+  initial-value: transparent;
+}
+
+@property --trash-edge {
+  syntax: '<color>';
+  inherits: false;
+  initial-value: transparent;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .calendar__trash {
+    transition: none;
+  }
 }

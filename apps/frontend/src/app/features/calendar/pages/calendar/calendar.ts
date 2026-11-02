@@ -22,6 +22,8 @@ import {
   DatesSetInfo,
   EventApi,
   EventChangeInfo,
+  EventDragStopInfo,
+  EventDropInfo,
   FullCalendarComponent,
   FullCalendarModule,
 } from '@fullcalendar/angular';
@@ -129,6 +131,10 @@ export class Calendar {
   private readonly fullCalendar = viewChild.required(FullCalendarComponent);
   private readonly range = signal<EventRange | null>(null);
   private readonly renderedEvents = signal<EventDates[]>([]);
+  private readonly trash = viewChild<ElementRef<HTMLElement>>('trash');
+  readonly dragging = signal(false);
+  readonly overTrash = signal(false);
+  private droppedOnTrash = false;
   readonly isMobile = toSignal(
     this.breakpointObserver.observe(MOBILE_QUERY).pipe(map(state => state.matches)),
     { initialValue: this.breakpointObserver.isMatched(MOBILE_QUERY) },
@@ -193,6 +199,7 @@ export class Calendar {
     dayRowClass: 'app-week-row',
     tableBodyClass: 'app-month-body',
     moreLinkClass: 'app-more-link',
+    highlightClass: 'app-drop-highlight',
     dayCellDidMount: info =>
       fitWeekRow(info.el.closest<HTMLElement>('.app-week-row'), this.eventsByDay()),
     dayCellClass: () => (this.canEdit() ? 'app-day-editable' : ''),
@@ -207,7 +214,9 @@ export class Calendar {
     events: this.calendarEvents(),
     eventsSet: events => this.syncRenderedEvents(events),
     editable: this.canEdit(),
-    eventDrop: info => this.saveEventDates(info),
+    eventDragStart: () => this.startDrag(),
+    eventDragStop: info => this.stopDrag(info),
+    eventDrop: info => this.dropEvent(info),
     eventResize: info => this.saveEventDates(info),
     dateClick: info => this.createEvent(info.date),
     eventClick: info => this.openEvent(info.event.id),
@@ -287,21 +296,6 @@ export class Calendar {
   }
 
   // ACTIONS
-  updateEventFromMenu(
-    eventId: string,
-    originalStart: string | null,
-    payload: EventUpdateDto,
-  ): void {
-    this.updateTarget(
-      { id: eventId, originalStart, scope: originalStart ? 'this' : null },
-      payload,
-    ).subscribe();
-  }
-
-  deleteEventFromMenu(eventId: string, originalStart: string | null): void {
-    this.deleteTarget({ id: eventId, originalStart, scope: null }).subscribe();
-  }
-
   updateCalendarTitle(title: string): void {
     const name = title.trim();
     if (name === this.calendar.value()?.name) return;
@@ -604,6 +598,46 @@ export class Calendar {
   }
 
   // HANDLERS
+  private startDrag(): void {
+    this.droppedOnTrash = false;
+    this.dragging.set(true);
+    document.addEventListener('pointermove', this.trackTrash);
+  }
+
+  private stopDrag({ event }: EventDragStopInfo): void {
+    document.removeEventListener('pointermove', this.trackTrash);
+    this.droppedOnTrash = this.overTrash();
+    this.dragging.set(false);
+    this.overTrash.set(false);
+    if (!this.droppedOnTrash) return;
+
+    const target: OccurrenceTarget = {
+      id: event.extendedProps['eventId'] as string,
+      originalStart: event.extendedProps['originalStart'] as string | null,
+      scope: null,
+    };
+    setTimeout(() => this.deleteTarget(target).subscribe());
+  }
+
+  private dropEvent(info: EventDropInfo): void {
+    if (this.droppedOnTrash) {
+      info.revert();
+      return;
+    }
+    this.saveEventDates(info);
+  }
+
+  private readonly trackTrash = ({ clientX, clientY }: PointerEvent): void => {
+    const rect = this.trash()?.nativeElement.getBoundingClientRect();
+    this.overTrash.set(
+      !!rect &&
+        clientX >= rect.left &&
+        clientX <= rect.right &&
+        clientY >= rect.top &&
+        clientY <= rect.bottom,
+    );
+  };
+
   private saveEventDates({ event, revert }: EventChangeInfo): void {
     const { allDay, start, end } = event;
     if (!start) {

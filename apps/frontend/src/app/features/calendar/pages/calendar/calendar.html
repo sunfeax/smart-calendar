@@ -86,7 +86,11 @@
   </mat-menu>
 </header>
 
-<full-calendar [options]="options()">
+<full-calendar
+  [options]="options()"
+  [class.calendar--dragging]="dragging()"
+  [class.calendar--over-trash]="overTrash()"
+>
   <ng-template #eventContent let-arg>
     <span class="calendar__event">
       <span class="calendar__event-main">
@@ -109,54 +113,6 @@
         >
           {{ arg.event.title || ('event.untitled' | transloco) }}
         </span>
-        @if (canEdit()) {
-          <button
-            type="button"
-            class="calendar__more"
-            [matMenuTriggerFor]="eventMenu"
-            [attr.aria-label]="'event.actions' | transloco"
-            (click)="$event.stopPropagation()"
-          >
-            <mat-icon aria-hidden="true">more_vert</mat-icon>
-          </button>
-          <mat-menu #eventMenu="matMenu" xPosition="before">
-            @let completed = arg.event.extendedProps.completed;
-            <button
-              mat-menu-item
-              type="button"
-              (click)="
-                updateEventFromMenu(
-                  arg.event.extendedProps.eventId,
-                  arg.event.extendedProps.originalStart,
-                  {
-                    completed: !completed,
-                  }
-                )
-              "
-            >
-              <mat-icon>{{ completed ? 'remove_done' : 'done' }}</mat-icon>
-              <span>
-                {{
-                  (completed ? 'event.markNotCompleted' : 'event.toggleCompleted')
-                    | transloco
-                }}
-              </span>
-            </button>
-            <button
-              mat-menu-item
-              type="button"
-              (click)="
-                deleteEventFromMenu(
-                  arg.event.extendedProps.eventId,
-                  arg.event.extendedProps.originalStart
-                )
-              "
-            >
-              <mat-icon>delete</mat-icon>
-              <span>{{ 'event.delete' | transloco }}</span>
-            </button>
-          </mat-menu>
-        }
       </span>
       @if (arg.event.extendedProps.tags.length) {
         <span class="calendar__event-tags">
@@ -181,4 +137,21 @@
   >
     <mat-icon>add</mat-icon>
   </button>
+}
+
+@if (canEdit() && !isMobile()) {
+  <div
+    #trash
+    class="calendar__trash"
+    aria-hidden="true"
+    [class.calendar__trash--visible]="dragging()"
+    [class.calendar__trash--active]="overTrash()"
+  >
+    <mat-icon>delete</mat-icon>
+    <span>
+      {{
+        (overTrash() ? 'calendar.releaseToDelete' : 'calendar.dropToDelete') | transloco
+      }}
+    </span>
+  </div>
 }

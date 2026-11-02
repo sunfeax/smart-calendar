@@ -69,12 +69,11 @@
     "loadError": "No se pudo abrir el calendario",
     "more": "Acciones del calendario",
     "noEvents": "No hay eventos este año",
-    "addEvent": "Nuevo evento"
+    "addEvent": "Nuevo evento",
+    "dropToDelete": "Arrastra aquí para eliminar",
+    "releaseToDelete": "Suelta para eliminar"
   },
   "event": {
-    "toggleCompleted": "Marcar como completado",
-    "markNotCompleted": "Marcar como no completado",
-    "actions": "Acciones",
     "untitled": "Sin título",
     "createSuccess": "Evento creado",
     "createError": "No se pudo crear el evento",
