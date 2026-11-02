@@ -1,4 +1,9 @@
-import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  ConflictException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { ONE_DAY_MS } from '../../../common/constants.js';
 import { Event, EventException, Prisma } from '../../../generated/prisma/client.js';
 import { CalendarRole } from '../../../generated/prisma/enums.js';
@@ -9,6 +14,8 @@ import {
   expandSeries,
   fromWallClock,
   isOccurrence,
+  moveSeries,
+  nextOccurrence,
   Occurrence,
   ruleEndingBefore,
   ruleStartingAt,
@@ -25,6 +32,7 @@ import {
 } from './event.dto.js';
 
 const EVENT_INCLUDE = { tags: { select: { tagId: true } } } satisfies Prisma.EventInclude;
+const BOUNDARY_CANCELLATION = { seriesBoundary: true };
 
 type EventWithTags = Event & { tags: { tagId: string }[] };
 
@@ -74,6 +82,18 @@ export class EventService {
         OR: [
           { recurrenceRule: null, startAt: { lt: to }, endAt: { gt: from } },
           { recurrenceRule: { not: null }, startAt: { lt: to } },
+          {
+            recurrenceRule: { not: null },
+            exceptions: {
+              some: {
+                cancelled: false,
+                originalStart: {
+                  gte: new Date(from.getTime() - exceptionWindow),
+                  lt: new Date(to.getTime() + exceptionWindow),
+                },
+              },
+            },
+          },
         ],
       },
       include: {
@@ -180,15 +200,14 @@ export class EventService {
       return;
     }
 
-    await this.prisma.$transaction([
-      this.prisma.event.update({
-        where: { id },
-        data: { recurrenceRule: ruleEndingBefore(event, originalStart) },
-      }),
-      this.prisma.eventException.deleteMany({
+    await this.prisma.$transaction(async tx => {
+      await this.updateUnchanged(tx, event, {
+        recurrenceRule: ruleEndingBefore(event, originalStart),
+      });
+      await tx.eventException.deleteMany({
         where: { eventId: id, originalStart: { gte: originalStart } },
-      }),
-    ]);
+      });
+    });
   }
 
   async addTag(userId: string, id: string, tagId: string): Promise<EventDto> {
@@ -299,6 +318,14 @@ export class EventService {
       ...(dto.description !== undefined && { description: dto.description }),
       ...(dto.icon !== undefined && { icon: dto.icon }),
       ...(dto.startAt !== undefined && { startAt: new Date(dto.startAt).toISOString() }),
+      ...(dto.startAt !== undefined &&
+        dto.endAt === undefined && {
+          endAt: new Date(
+            +new Date(dto.startAt) +
+              +new Date(current.endAt) -
+              +new Date(current.startAt),
+          ).toISOString(),
+        }),
       ...(dto.endAt !== undefined && { endAt: new Date(dto.endAt).toISOString() }),
       ...(dto.allDay !== undefined && { allDay: dto.allDay }),
       ...(dto.completed !== undefined && {
@@ -335,35 +362,51 @@ export class EventService {
     dto: EventUpdateDto,
   ): Promise<EventDto> {
     const allDay = dto.allDay ?? event.allDay;
-    const recurrenceRule =
+    let recurrenceRule =
       dto.recurrenceRule !== undefined ? dto.recurrenceRule : event.recurrenceRule;
     const timeZone = this.resolveTimeZone(
       recurrenceRule,
       allDay,
       dto.timeZone !== undefined ? dto.timeZone : event.timeZone,
     );
-    const originalEnd = new Date(
-      originalStart.getTime() + event.endAt.getTime() - event.startAt.getTime(),
-    );
-
-    const shift = (base: Date, from: Date, to: Date) =>
-      fromWallClock(
-        new Date(
-          toWallClock(base, event.timeZone).getTime() +
-            toWallClock(to, timeZone).getTime() -
-            toWallClock(from, event.timeZone).getTime(),
-        ),
-        timeZone,
-      );
-
-    const startAt = dto.startAt
-      ? shift(event.startAt, originalStart, new Date(dto.startAt))
+    const selectedStart = dto.startAt ? new Date(dto.startAt) : originalStart;
+    const duration = dto.endAt
+      ? +new Date(dto.endAt) - +selectedStart
+      : +event.endAt - +event.startAt;
+    const wallShift =
+      +toWallClock(selectedStart, timeZone) - +toWallClock(originalStart, event.timeZone);
+    let startAt = dto.startAt
+      ? fromWallClock(
+          new Date(+toWallClock(event.startAt, event.timeZone) + wallShift),
+          timeZone,
+        )
       : event.startAt;
-    const endAt = dto.endAt
-      ? shift(event.endAt, originalEnd, new Date(dto.endAt))
-      : event.endAt;
+    let endAt = new Date(+startAt + duration);
+    const boundaryStarts = await this.boundaryCancellations(event.id);
+    let cancelledStarts = boundaryStarts.map(date =>
+      fromWallClock(new Date(+toWallClock(date, event.timeZone) + wallShift), timeZone),
+    );
+    if (dto.startAt && dto.recurrenceRule === undefined) {
+      const moved = moveSeries(
+        event,
+        originalStart,
+        selectedStart,
+        duration,
+        timeZone,
+        boundaryStarts,
+      );
+      ({ startAt, endAt, recurrenceRule, cancelledStarts } = moved);
+    }
 
     this.assertDates(startAt, endAt, allDay);
+
+    const responseStart = recurrenceRule
+      ? this.responseStart(
+          { startAt, endAt, recurrenceRule, timeZone },
+          selectedStart,
+          cancelledStarts,
+        )
+      : null;
 
     const data = {
       title: dto.title,
@@ -378,16 +421,29 @@ export class EventService {
     };
     const patternChanged = this.isPatternChanged(event, data);
 
-    const [updated] = await this.prisma.$transaction([
-      this.prisma.event.update({ where: { id: event.id }, data, include: EVENT_INCLUDE }),
-      ...(patternChanged
-        ? [this.prisma.eventException.deleteMany({ where: { eventId: event.id } })]
-        : []),
-    ]);
+    const updated = await this.prisma.$transaction(async tx => {
+      await this.updateUnchanged(tx, event, data);
+      if (patternChanged) {
+        await tx.eventException.deleteMany({ where: { eventId: event.id } });
+        if (cancelledStarts.length)
+          await tx.eventException.createMany({
+            data: cancelledStarts.map(originalStart => ({
+              eventId: event.id,
+              originalStart,
+              cancelled: true,
+              overrides: BOUNDARY_CANCELLATION,
+            })),
+          });
+      }
+      return tx.event.findUniqueOrThrow({
+        where: { id: event.id },
+        include: EVENT_INCLUDE,
+      });
+    });
 
     if (!recurrenceRule) return this.toEventDto(updated);
 
-    const nextOriginalStart = dto.startAt ? new Date(dto.startAt) : originalStart;
+    const nextOriginalStart = responseStart!;
     const exception = patternChanged
       ? null
       : await this.prisma.eventException.findUnique({
@@ -408,12 +464,10 @@ export class EventService {
     dto: EventUpdateDto,
   ): Promise<EventDto> {
     const duration = event.endAt.getTime() - event.startAt.getTime();
-    const startAt = dto.startAt ? new Date(dto.startAt) : originalStart;
-    const endAt = dto.endAt
-      ? new Date(dto.endAt)
-      : new Date(startAt.getTime() + duration);
+    let startAt = dto.startAt ? new Date(dto.startAt) : originalStart;
+    let endAt = dto.endAt ? new Date(dto.endAt) : new Date(startAt.getTime() + duration);
     const allDay = dto.allDay ?? event.allDay;
-    const recurrenceRule =
+    let recurrenceRule =
       dto.recurrenceRule !== undefined
         ? dto.recurrenceRule
         : ruleStartingAt(event, originalStart);
@@ -423,7 +477,38 @@ export class EventService {
       dto.timeZone !== undefined ? dto.timeZone : event.timeZone,
     );
 
+    const boundaryStarts = await this.boundaryCancellations(event.id, originalStart);
+    const wallShift =
+      +toWallClock(startAt, timeZone) - +toWallClock(originalStart, event.timeZone);
+    let cancelledStarts = boundaryStarts.map(date =>
+      fromWallClock(new Date(+toWallClock(date, event.timeZone) + wallShift), timeZone),
+    );
+    if (dto.recurrenceRule === undefined) {
+      const moved = moveSeries(
+        {
+          ...event,
+          startAt: originalStart,
+          endAt: new Date(+originalStart + duration),
+          recurrenceRule: ruleStartingAt(event, originalStart),
+        },
+        originalStart,
+        startAt,
+        +endAt - +startAt,
+        timeZone,
+        boundaryStarts,
+      );
+      ({ startAt, endAt, recurrenceRule, cancelledStarts } = moved);
+    }
+
     this.assertDates(startAt, endAt, allDay);
+
+    const responseStart = recurrenceRule
+      ? this.responseStart(
+          { startAt, endAt, recurrenceRule, timeZone },
+          dto.startAt ? new Date(dto.startAt) : originalStart,
+          cancelledStarts,
+        )
+      : null;
 
     const tags = await this.prisma.eventTag.findMany({
       where: { eventId: event.id },
@@ -431,9 +516,8 @@ export class EventService {
     });
 
     const created = await this.prisma.$transaction(async tx => {
-      await tx.event.update({
-        where: { id: event.id },
-        data: { recurrenceRule: ruleEndingBefore(event, originalStart) },
+      await this.updateUnchanged(tx, event, {
+        recurrenceRule: ruleEndingBefore(event, originalStart),
       });
       await tx.eventException.deleteMany({
         where: { eventId: event.id, originalStart: { gte: originalStart } },
@@ -453,13 +537,22 @@ export class EventService {
           recurrenceRule,
           timeZone,
           tags: { createMany: { data: tags } },
+          exceptions: {
+            createMany: {
+              data: cancelledStarts.map(originalStart => ({
+                originalStart,
+                cancelled: true,
+                overrides: BOUNDARY_CANCELLATION,
+              })),
+            },
+          },
         },
         include: EVENT_INCLUDE,
       });
     });
 
     return recurrenceRule
-      ? this.toOccurrenceDto(created, startAt, null)
+      ? this.toOccurrenceDto(created, responseStart!, null)
       : this.toEventDto(created);
   }
 
@@ -501,6 +594,50 @@ export class EventService {
     }
 
     return originalStart;
+  }
+
+  private async updateUnchanged(
+    tx: Prisma.TransactionClient,
+    event: Event,
+    data: Prisma.EventUpdateManyMutationInput,
+  ): Promise<void> {
+    const result = await tx.event.updateMany({
+      where: {
+        id: event.id,
+        updatedAt: event.updatedAt,
+        recurrenceRule: event.recurrenceRule,
+        startAt: event.startAt,
+      },
+      data,
+    });
+    if (!result.count)
+      throw new ConflictException('The event has changed; reload it before retrying');
+  }
+
+  private async boundaryCancellations(eventId: string, from?: Date): Promise<Date[]> {
+    const exceptions = await this.prisma.eventException.findMany({
+      where: {
+        eventId,
+        cancelled: true,
+        overrides: { path: ['seriesBoundary'], equals: true },
+        ...(from && { originalStart: { gte: from } }),
+      },
+    });
+    return exceptions.map(exception => exception.originalStart);
+  }
+
+  private responseStart(
+    series: Series,
+    selectedStart: Date,
+    cancelledStarts: Date[],
+  ): Date {
+    const cancelled = new Set(cancelledStarts.map(Number));
+    let next =
+      nextOccurrence(series, selectedStart) ?? nextOccurrence(series, series.startAt);
+    while (next && cancelled.has(+next))
+      next = nextOccurrence(series, new Date(+next + 1));
+    if (!next) throw new BadRequestException('The recurrence rule has no occurrences');
+    return next;
   }
 
   private isPatternChanged(
