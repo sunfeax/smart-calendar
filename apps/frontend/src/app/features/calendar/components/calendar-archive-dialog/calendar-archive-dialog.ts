@@ -1,6 +1,6 @@
 import { Component, computed, effect, inject, signal, Signal } from '@angular/core';
 import { rxResource } from '@angular/core/rxjs-interop';
-import { MatButton, MatIconButton } from '@angular/material/button';
+import { MatIconButton } from '@angular/material/button';
 import {
   MAT_DIALOG_DATA,
   MatDialog,
@@ -56,7 +56,6 @@ interface ArchiveGroup {
   selector: 'app-calendar-archive-dialog',
   imports: [
     EventRow,
-    MatButton,
     MatDateRangeInput,
     MatDateRangePicker,
     MatDatepickerToggle,

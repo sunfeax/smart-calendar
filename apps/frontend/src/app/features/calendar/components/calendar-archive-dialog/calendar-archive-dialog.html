@@ -79,24 +79,25 @@
           <app-event-row [event]="row.event" [tagsById]="data.tags()">
             <span class="archive__actions">
               <button
-                matButton
+                matIconButton
                 type="button"
                 [disabled]="pendingId() === row.event.id"
+                [matTooltip]="'archive.restore' | transloco"
+                [attr.aria-label]="'archive.restore' | transloco"
                 (click)="restore(row.event)"
               >
                 <mat-icon>restore</mat-icon>
-                {{ 'archive.restore' | transloco }}
               </button>
               <button
-                matButton
+                matIconButton
                 type="button"
                 class="archive__danger"
                 [disabled]="pendingId() === row.event.id"
                 [matTooltip]="'archive.delete' | transloco"
+                [attr.aria-label]="'archive.delete' | transloco"
                 (click)="deleteForever(row.event)"
               >
-                <mat-icon>delete</mat-icon>
-                {{ 'event.delete' | transloco }}
+                <mat-icon>delete_forever</mat-icon>
               </button>
             </span>
           </app-event-row>

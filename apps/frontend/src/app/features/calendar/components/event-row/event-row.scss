@@ -1,6 +1,5 @@
 :host {
   display: flex;
-  flex-wrap: wrap;
   align-items: flex-start;
   gap: var(--space-3);
   padding-block: var(--space-3);
@@ -19,7 +18,7 @@
 
 .event-row__info {
   display: flex;
-  flex: 1 1 16rem;
+  flex: 1 1 auto;
   flex-direction: column;
   gap: var(--space-1);
   min-width: 0;

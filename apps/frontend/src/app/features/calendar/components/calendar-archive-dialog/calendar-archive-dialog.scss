@@ -92,6 +92,8 @@
 }
 
 .archive__actions {
+  --mat-icon-button-state-layer-size: var(--space-8);
+
   display: flex;
   flex: none;
   gap: var(--space-1);
@@ -99,5 +101,5 @@
 }
 
 .archive__danger {
-  --mat-button-text-label-text-color: var(--color-danger);
+  --mat-icon-button-icon-color: var(--color-danger);
 }
