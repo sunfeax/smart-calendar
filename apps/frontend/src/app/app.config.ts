@@ -28,7 +28,10 @@ export const appConfig: ApplicationConfig = {
     provideDateFnsAdapter(),
     {
       provide: MAT_DIALOG_DEFAULT_OPTIONS,
-      useValue: { width: 'min(28rem, calc(100vw - 2rem))' },
+      useValue: {
+        width: 'min(28rem, calc(100vw - 2rem))',
+        maxWidth: 'calc(100vw - 2rem)',
+      },
     },
     {
       provide: MAT_ICON_DEFAULT_OPTIONS,

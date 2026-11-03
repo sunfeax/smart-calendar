@@ -63,11 +63,15 @@
   --mat-button-toggle-shape: var(--radius-control);
   --mat-button-toggle-height: calc(var(--space-10) - 2 * var(--border-width-sm));
 
-  flex: 1;
+  flex: 1 1 16rem;
 
   mat-button-toggle {
     flex: 1;
   }
+}
+
+.share__create {
+  flex: 1 1 auto;
 }
 
 .share__link {

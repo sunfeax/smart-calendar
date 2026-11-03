@@ -5,6 +5,11 @@
   padding-right: var(--space-2);
 }
 
+.edit__title {
+  min-width: 0;
+  margin: 0;
+}
+
 .edit__field {
   width: 100%;
 }
