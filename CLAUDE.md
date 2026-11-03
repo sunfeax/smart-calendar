@@ -47,7 +47,6 @@ Notion-style календарь: Angular + FullCalendar на фронтенде,
 ├── .prettierrc           # общий Prettier
 ├── docker-compose.yaml  # Postgres для разработки
 ├── docker-compose.prod.yaml  # прод: Postgres, миграции, Nest, Caddy с фронтом
-├── deploy/             # Caddyfile
 ├── .dockerignore
 ├── .env.example        # шаблон .env (сам .env в корне, не коммитится)
 ├── .editorconfig, .gitignore, .vscode/

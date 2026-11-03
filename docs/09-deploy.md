@@ -7,7 +7,7 @@
 - `backend`: Nest, стартует после успешных миграций, наружу не открыт.
 - `web`: Caddy с собранным фронтом. Отдаёт статику, проксирует `/api/*` в `backend`, сам получает и продлевает HTTPS-сертификат Let's Encrypt. Открыты только порты 80 и 443.
 
-Образы: `apps/backend/Dockerfile` (стадия `build` нужна для миграций, `runtime` только с прод-зависимостями), `apps/frontend/Dockerfile` (сборка Angular, затем образ Caddy). Контекст сборки: корень репозитория, лишнее отсекает `.dockerignore`. Конфиг Caddy: `deploy/Caddyfile`.
+Образы: `apps/backend/Dockerfile` (стадия `build` нужна для миграций, `runtime` только с прод-зависимостями), `apps/frontend/Dockerfile` (сборка Angular, затем образ Caddy). Контекст сборки: корень репозитория, лишнее отсекает `.dockerignore`. Конфиг Caddy: `apps/frontend/Caddyfile`.
 
 ## Что нужно заранее
 

@@ -8,5 +8,5 @@ COPY apps/frontend/ ./
 RUN npx ng build
 
 FROM caddy:2-alpine
-COPY deploy/Caddyfile /etc/caddy/Caddyfile
+COPY apps/frontend/Caddyfile /etc/caddy/Caddyfile
 COPY --from=build /app/apps/frontend/dist/frontend/browser /srv
