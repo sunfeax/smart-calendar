@@ -195,6 +195,15 @@ export function nextOccurrence(series: Series, from: Date): Date | null {
   return next ? fromWallClock(next, series.timeZone) : null;
 }
 
+export function previousOccurrence(series: Series, before: Date): Date | null {
+  const rule = new RRule({
+    ...RRule.parseString(series.recurrenceRule),
+    dtstart: toWallClock(series.startAt, series.timeZone),
+  });
+  const previous = rule.before(toWallClock(before, series.timeZone), true);
+  return previous ? fromWallClock(previous, series.timeZone) : null;
+}
+
 export function countBefore(series: Series, originalStart: Date): number {
   return expandSeries(series, series.startAt, originalStart, Number.MAX_SAFE_INTEGER)
     .length;

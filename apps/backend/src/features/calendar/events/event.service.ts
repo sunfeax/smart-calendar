@@ -17,17 +17,24 @@ import {
   moveSeries,
   nextOccurrence,
   Occurrence,
+  previousOccurrence,
   ruleEndingBefore,
   ruleStartingAt,
   Series,
   toWallClock,
 } from './event-recurrence.js';
-import { ARCHIVE_MAX_ITEMS, RANGE_MAX_DAYS, RANGE_MAX_ITEMS } from './event.constants.js';
+import {
+  ARCHIVE_MAX_ITEMS,
+  RANGE_MAX_DAYS,
+  RANGE_MAX_ITEMS,
+  SEARCH_MAX_ITEMS,
+} from './event.constants.js';
 import {
   EventCreateDto,
   EventDto,
   EventScopeDto,
   EventsRangeDto,
+  EventsSearchDto,
   EventUpdateDto,
 } from './event.dto.js';
 
@@ -118,6 +125,37 @@ export class EventService {
       .flatMap(event => this.toRangeDtos(event, from, to))
       .sort((a, b) => a.startAt.localeCompare(b.startAt))
       .slice(0, RANGE_MAX_ITEMS);
+  }
+
+  async search(
+    userId: string,
+    calendarId: string,
+    { q }: EventsSearchDto,
+  ): Promise<EventDto[]> {
+    await this.access.assertRole(userId, calendarId, CalendarRole.VIEWER);
+
+    const contains = { contains: q, mode: 'insensitive' } as const;
+
+    const events = await this.prisma.event.findMany({
+      where: {
+        calendarId,
+        archivedAt: null,
+        OR: [
+          { title: contains },
+          { description: contains },
+          { tags: { some: { tag: { name: contains } } } },
+        ],
+      },
+      include: { ...EVENT_INCLUDE, exceptions: true },
+      orderBy: { startAt: 'desc' },
+      take: SEARCH_MAX_ITEMS,
+    });
+
+    const now = new Date();
+
+    return events
+      .flatMap(event => this.toSearchDto(event, now))
+      .sort((a, b) => b.startAt.localeCompare(a.startAt));
   }
 
   async create(
@@ -786,6 +824,35 @@ export class EventService {
     return [...regular, ...movedIn].filter(
       dto => new Date(dto.startAt) < to && new Date(dto.endAt) > from,
     );
+  }
+
+  private toSearchDto(event: EventWithExceptions, now: Date): EventDto[] {
+    const { exceptions, ...rest } = event;
+    const { recurrenceRule } = event;
+
+    if (!recurrenceRule) return [this.toEventDto(rest)];
+
+    const series = { ...event, recurrenceRule };
+    const byStart = new Map(
+      exceptions.map(exception => [exception.originalStart.getTime(), exception]),
+    );
+    const isCancelled = (date: Date) => byStart.get(date.getTime())?.cancelled;
+
+    let start = nextOccurrence(series, now);
+    while (start && isCancelled(start))
+      start = nextOccurrence(series, new Date(+start + 1));
+
+    if (!start) {
+      start = previousOccurrence(series, now);
+      while (start && isCancelled(start))
+        start = previousOccurrence(series, new Date(+start - 1));
+    }
+
+    if (!start) return [];
+
+    return [
+      this.toOccurrenceDto(rest, start, this.toOverrides(byStart.get(+start) ?? null)),
+    ];
   }
 
   private toOccurrenceDto(

@@ -32,7 +32,7 @@ import { ConfirmDialog } from '../../../../shared/components/confirm-dialog/conf
 import { LanguageService } from '../../../../shared/services/language.service';
 import { SnackbarService } from '../../../../shared/services/snackbar.service';
 import { EventService } from '../../services/event.service';
-import { EventIcon } from '../event-icon/event-icon';
+import { EventRow } from '../event-row/event-row';
 
 export interface CalendarArchiveDialogData {
   calendarId: string;
@@ -42,9 +42,6 @@ export interface CalendarArchiveDialogData {
 
 interface ArchiveRow {
   event: EventDto;
-  dates: string;
-  archivedAt: string;
-  tags: TagDto[];
   start: Date;
   end: Date;
   search: string;
@@ -58,7 +55,7 @@ interface ArchiveGroup {
 @Component({
   selector: 'app-calendar-archive-dialog',
   imports: [
-    EventIcon,
+    EventRow,
     MatButton,
     MatDateRangeInput,
     MatDateRangePicker,
@@ -115,9 +112,8 @@ export class CalendarArchiveDialog {
 
   // COMPUTED
   private readonly rows = computed(() => {
-    const tags = this.data.tags();
     return (this.events.hasValue() ? this.events.value() : [])
-      .map(event => this.toRow(event, tags))
+      .map(event => this.toRow(event))
       .sort((a, b) => b.event.startAt.localeCompare(a.event.startAt));
   });
 
@@ -220,18 +216,12 @@ export class CalendarArchiveDialog {
   }
 
   // HELPERS
-  private toRow(event: EventDto, tagsById: Map<string, TagDto>): ArchiveRow {
+  private toRow(event: EventDto): ArchiveRow {
     const start = this.toLocalDate(event.startAt, event.allDay);
     const end = this.toLocalDate(event.endAt, event.allDay);
     if (event.allDay) end.setDate(end.getDate() - 1);
     return {
       event,
-      dates: this.toDatesText(event),
-      archivedAt: new Intl.DateTimeFormat(this.languageService.lang(), {
-        day: 'numeric',
-        month: 'short',
-      }).format(new Date(event.archivedAt ?? event.updatedAt)),
-      tags: event.tagIds.flatMap(id => tagsById.get(id) ?? []),
       start,
       end,
       search: `${event.title} ${event.description ?? ''}`.toLocaleLowerCase(),
@@ -244,21 +234,6 @@ export class CalendarArchiveDialog {
       year: 'numeric',
     }).format(this.toLocalDate(event.startAt, event.allDay));
     return label.charAt(0).toLocaleUpperCase() + label.slice(1);
-  }
-
-  private toDatesText(event: EventDto): string {
-    const formatter = new Intl.DateTimeFormat(this.languageService.lang(), {
-      day: 'numeric',
-      month: 'short',
-      year: 'numeric',
-      ...(event.allDay ? { timeZone: 'UTC' } : { hour: '2-digit', minute: '2-digit' }),
-    });
-    const start = new Date(event.startAt);
-    const end = new Date(event.endAt);
-    if (event.allDay) end.setUTCDate(end.getUTCDate() - 1);
-    return start.getTime() === end.getTime()
-      ? formatter.format(start)
-      : formatter.formatRange(start, end);
   }
 
   private toLocalDate(value: string, allDay: boolean): Date {

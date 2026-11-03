@@ -1,0 +1,51 @@
+<span class="event-row__icon">
+  @if (event().icon; as icon) {
+    <app-event-icon [icon]="icon" />
+  } @else {
+    <mat-icon>event</mat-icon>
+  }
+</span>
+
+<span class="event-row__info">
+  <span class="event-row__name" [class.event-row__name--empty]="!event().title">
+    {{ event().title || ('event.untitled' | transloco) }}
+  </span>
+  <span class="event-row__meta">
+    <span class="event-row__meta-item">
+      <mat-icon>{{ event().allDay ? 'calendar_today' : 'schedule' }}</mat-icon>
+      {{ dates() }}
+    </span>
+    @if (event().recurrenceRule) {
+      <span class="event-row__meta-item">
+        <mat-icon>repeat</mat-icon>
+        {{ 'archive.recurring' | transloco }}
+      </span>
+    }
+    @if (event().completedAt) {
+      <span class="event-row__meta-item">
+        <mat-icon>check_circle</mat-icon>
+        {{ 'event.completed' | transloco }}
+      </span>
+    }
+    @if (archivedAt(); as date) {
+      <span class="event-row__meta-item">
+        <mat-icon>delete</mat-icon>
+        {{ 'archive.archivedAt' | transloco: { date } }}
+      </span>
+    }
+  </span>
+  @if (event().description) {
+    <span class="event-row__description">{{ event().description }}</span>
+  }
+  @if (tags().length) {
+    <span class="event-row__tags">
+      @for (tag of tags(); track tag.id) {
+        <span class="event-row__tag" [attr.data-tag-color]="tag.color">
+          {{ tag.name }}
+        </span>
+      }
+    </span>
+  }
+</span>
+
+<ng-content />

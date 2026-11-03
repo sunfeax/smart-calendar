@@ -37,6 +37,12 @@ export class EventService {
     });
   }
 
+  search(calendarId: string, query: string) {
+    return this.http.get<EventDto[]>(`/api/calendars/${calendarId}/events/search`, {
+      params: { q: query },
+    });
+  }
+
   listArchived(calendarId: string) {
     return this.http.get<EventDto[]>(`/api/calendars/${calendarId}/events/archived`);
   }

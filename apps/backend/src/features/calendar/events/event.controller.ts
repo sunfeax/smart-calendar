@@ -18,6 +18,7 @@ import {
   EventDto,
   EventScopeDto,
   EventsRangeDto,
+  EventsSearchDto,
   EventUpdateDto,
 } from './event.dto.js';
 import { EventService } from './event.service.js';
@@ -43,6 +44,15 @@ export class EventController {
     @Param('calendarId', ParseUUIDPipe) calendarId: string,
   ): Promise<EventDto[]> {
     return this.eventService.listArchived(user.id, calendarId);
+  }
+
+  @Get('calendars/:calendarId/events/search')
+  search(
+    @CurrentUser() user: User,
+    @Param('calendarId', ParseUUIDPipe) calendarId: string,
+    @Query() query: EventsSearchDto,
+  ): Promise<EventDto[]> {
+    return this.eventService.search(user.id, calendarId, query);
   }
 
   @Post('calendars/:calendarId/events')

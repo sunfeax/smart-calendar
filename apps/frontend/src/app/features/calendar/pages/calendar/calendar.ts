@@ -68,6 +68,7 @@ import {
 } from '../../components/calendar-export-dialog/calendar-export-dialog';
 import { EventEditDialog } from '../../components/event-edit-dialog/event-edit-dialog';
 import { EventIcon } from '../../components/event-icon/event-icon';
+import { EventSearchDialog } from '../../components/event-search-dialog/event-search-dialog';
 import { RecurrenceScopeDialog } from '../../components/recurrence-scope-dialog/recurrence-scope-dialog';
 import { MOBILE_QUERY } from '../../../../core/constants/breakpoints';
 import { TAG_CARD_NAME_MAX } from '../../constants/tag.constants';
@@ -338,6 +339,13 @@ export class Calendar {
       tags: this.tagsById,
       restored: event => this.applyRestored(event),
     });
+  }
+
+  openSearch(): void {
+    EventSearchDialog.open(this.dialog, {
+      calendarId: this.id(),
+      tags: this.tagsById,
+    }).subscribe(event => this.openEventDialog(event));
   }
 
   openExport(): void {

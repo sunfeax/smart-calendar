@@ -52,6 +52,15 @@
   </div>
 
   <div class="calendar__controls">
+    <button
+      matIconButton
+      type="button"
+      [matTooltip]="'search.title' | transloco"
+      [attr.aria-label]="'search.title' | transloco"
+      (click)="openSearch()"
+    >
+      <mat-icon>search</mat-icon>
+    </button>
     <button matButton="filled" type="button" (click)="navigate('today')">
       {{ 'calendar.today' | transloco }}
     </button>

@@ -7,10 +7,16 @@ import {
   IsString,
   IsTimeZone,
   MaxLength,
+  MinLength,
 } from 'class-validator';
 import { Trim } from '../../../common/trim.decorator.js';
 import { IsEventIcon } from './event-icon.decorator.js';
-import { DESCRIPTION_MAX, TITLE_MAX } from './event.constants.js';
+import {
+  DESCRIPTION_MAX,
+  SEARCH_MAX_LENGTH,
+  SEARCH_MIN_LENGTH,
+  TITLE_MAX,
+} from './event.constants.js';
 import { IsRecurrenceRule } from './recurrence-rule.decorator.js';
 
 export class EventCreateDto {
@@ -74,6 +80,14 @@ export class EventsRangeDto {
 
   @IsISO8601({ strict: true })
   to!: string;
+}
+
+export class EventsSearchDto {
+  @IsString()
+  @Trim()
+  @MinLength(SEARCH_MIN_LENGTH)
+  @MaxLength(SEARCH_MAX_LENGTH)
+  q!: string;
 }
 
 export class EventDto {

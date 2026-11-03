@@ -269,6 +269,13 @@
     "yes": "Sí",
     "no": "No"
   },
+  "search": {
+    "title": "Buscar",
+    "placeholder": "Título, descripción o etiqueta",
+    "hint": "Escribe al menos dos caracteres",
+    "notFound": "No se encontró nada",
+    "error": "No se pudo buscar"
+  },
   "archive": {
     "title": "Archivo",
     "empty": "El archivo está vacío",

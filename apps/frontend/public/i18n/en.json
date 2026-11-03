@@ -269,6 +269,13 @@
     "yes": "Yes",
     "no": "No"
   },
+  "search": {
+    "title": "Search",
+    "placeholder": "Title, description or tag",
+    "hint": "Type at least two characters",
+    "notFound": "Nothing found",
+    "error": "Search failed"
+  },
   "archive": {
     "title": "Archive",
     "empty": "The archive is empty",
