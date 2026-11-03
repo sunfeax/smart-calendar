@@ -84,15 +84,15 @@ full-calendar .app-year-view .app-calendar-event {
   }
 }
 
-full-calendar .app-month-body {
+full-calendar .app-year-view .app-month-body {
   aspect-ratio: auto !important;
 }
 
-full-calendar .app-month-body > [role='rowgroup'] {
+full-calendar .app-year-view .app-month-body > [role='rowgroup'] {
   position: relative !important;
 }
 
-full-calendar .app-week-row {
+full-calendar .app-year-view .app-week-row {
   min-height: max(
     var(--calendar-week-min-height),
     calc(
@@ -105,13 +105,38 @@ full-calendar .app-week-row {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  full-calendar .app-week-row {
+  full-calendar .app-year-view .app-week-row {
     transition: none;
   }
 }
 
-full-calendar .app-more-link {
+full-calendar .app-year-view .app-more-link {
   display: none !important;
+}
+
+full-calendar .app-mobile-month-view {
+  .app-day-top-center {
+    justify-content: center;
+  }
+
+  .app-day-number {
+    font-size: var(--font-size-xs);
+    translate: none;
+  }
+
+  .app-weekday > div {
+    font-size: var(--font-size-xs);
+  }
+
+  .app-calendar-event {
+    margin-inline: 1px;
+    margin-bottom: 2px;
+    border-radius: var(--radius-sm);
+  }
+
+  .app-more-link {
+    font-size: var(--font-size-2xs);
+  }
 }
 
 full-calendar .app-day-top::after {

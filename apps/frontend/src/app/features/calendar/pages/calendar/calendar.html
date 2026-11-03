@@ -1,13 +1,36 @@
 <header class="calendar__header">
-  <div class="calendar__identity">
-    <a
-      class="calendar__back"
-      matIconButton
-      [routerLink]="routePaths.calendars"
-      [attr.aria-label]="'calendar.back' | transloco"
+  @if (isMobile()) {
+    <button
+      class="calendar__today"
+      matButton="filled"
+      type="button"
+      (click)="navigate('today')"
     >
-      <mat-icon>arrow_back</mat-icon>
-    </a>
+      {{ 'calendar.today' | transloco }}
+    </button>
+  }
+
+  <div class="calendar__identity">
+    @if (isMobile() && isDayView()) {
+      <button
+        class="calendar__back"
+        matIconButton
+        type="button"
+        [attr.aria-label]="'calendar.backToMonth' | transloco"
+        (click)="showMonth()"
+      >
+        <mat-icon>arrow_back</mat-icon>
+      </button>
+    } @else {
+      <a
+        class="calendar__back"
+        matIconButton
+        [routerLink]="routePaths.calendars"
+        [attr.aria-label]="'calendar.back' | transloco"
+      >
+        <mat-icon>arrow_back</mat-icon>
+      </a>
+    }
 
     @if (calendar.hasValue()) {
       @let calendarName = calendar.value().name || ('calendars.unnamed' | transloco);
@@ -33,18 +56,46 @@
     <button
       matIconButton
       type="button"
-      [attr.aria-label]="'calendar.previousYear' | transloco"
+      [attr.aria-label]="previousPeriodKey() | transloco"
       (click)="navigate('prev')"
     >
       <mat-icon>chevron_left</mat-icon>
     </button>
-    <h2 class="calendar__year-label" aria-live="polite" aria-atomic="true">
-      {{ year() }}
+    <h2
+      class="calendar__year-label"
+      aria-live="polite"
+      aria-atomic="true"
+      [attr.aria-label]="periodLabel()"
+    >
+      @if (isMobile()) {
+        @if (isDayView()) {
+          <span class="calendar__day-label">{{ dayLabel() }}</span>
+        }
+        <button
+          class="calendar__period-trigger"
+          type="button"
+          [matMenuTriggerFor]="monthMenu"
+          [attr.aria-label]="'calendar.chooseMonth' | transloco"
+          (menuOpened)="openMobilePeriodPicker()"
+        >
+          {{ monthLabel() }}
+        </button>
+      } @else {
+        <button
+          class="calendar__period-trigger"
+          type="button"
+          [matMenuTriggerFor]="yearMenu"
+          [attr.aria-label]="'calendar.chooseYear' | transloco"
+          (menuOpened)="focusSelectedYear()"
+        >
+          {{ selectedYear() }}
+        </button>
+      }
     </h2>
     <button
       matIconButton
       type="button"
-      [attr.aria-label]="'calendar.nextYear' | transloco"
+      [attr.aria-label]="nextPeriodKey() | transloco"
       (click)="navigate('next')"
     >
       <mat-icon>chevron_right</mat-icon>
@@ -53,6 +104,7 @@
 
   <div class="calendar__controls">
     <button
+      class="calendar__search"
       matIconButton
       type="button"
       [matTooltip]="'search.title' | transloco"
@@ -61,9 +113,11 @@
     >
       <mat-icon>search</mat-icon>
     </button>
-    <button matButton="filled" type="button" (click)="navigate('today')">
-      {{ 'calendar.today' | transloco }}
-    </button>
+    @if (!isMobile()) {
+      <button matButton="filled" type="button" (click)="navigate('today')">
+        {{ 'calendar.today' | transloco }}
+      </button>
+    }
     <button
       matIconButton
       type="button"
@@ -75,7 +129,105 @@
     <app-user-menu />
   </div>
 
+  <mat-menu
+    #yearMenu="matMenu"
+    class="calendar-period-menu"
+    [aria-label]="'calendar.chooseYear' | transloco"
+  >
+    @for (year of yearOptions(); track year) {
+      <button
+        #desktopYearOption="matMenuItem"
+        mat-menu-item
+        type="button"
+        [id]="'calendar-year-' + year"
+        [attr.aria-current]="year === selectedYear() ? 'date' : null"
+        (click)="selectYear(year)"
+      >
+        <mat-icon [style.visibility]="year === selectedYear() ? 'visible' : 'hidden'">
+          check
+        </mat-icon>
+        <span>{{ year }}</span>
+      </button>
+    }
+  </mat-menu>
+
+  <mat-menu
+    #monthMenu="matMenu"
+    [class]="
+      'calendar-period-menu calendar-period-menu--month ' +
+      (mobilePeriodMode() === 'months'
+        ? 'calendar-period-menu--months'
+        : 'calendar-period-menu--years')
+    "
+    [aria-label]="'calendar.chooseMonth' | transloco"
+  >
+    @if (mobilePeriodMode() === 'months') {
+      <button
+        class="calendar__year-item"
+        mat-menu-item
+        type="button"
+        [attr.aria-label]="'calendar.chooseYear' | transloco"
+        (click)="showMobilePeriod('years', $event)"
+      >
+        <mat-icon>calendar_today</mat-icon>
+        <span>{{ selectedYear() }}</span>
+      </button>
+      @for (month of monthOptions(); track month.value) {
+        <button
+          #monthOption="matMenuItem"
+          mat-menu-item
+          type="button"
+          [id]="'calendar-mobile-month-' + month.value"
+          [attr.aria-current]="month.value === selectedMonth() ? 'date' : null"
+          (click)="selectMonth(month.value)"
+        >
+          <mat-icon
+            [style.visibility]="month.value === selectedMonth() ? 'visible' : 'hidden'"
+          >
+            check
+          </mat-icon>
+          <span>{{ month.label }}</span>
+        </button>
+      }
+    } @else {
+      <button
+        class="calendar__year-item"
+        mat-menu-item
+        type="button"
+        [attr.aria-label]="'calendar.chooseMonth' | transloco"
+        (click)="showMobilePeriod('months', $event)"
+      >
+        <mat-icon>arrow_back</mat-icon>
+        <span>{{ 'calendar.chooseYear' | transloco }}</span>
+      </button>
+      @for (year of yearOptions(); track year) {
+        <button
+          #mobileYearOption="matMenuItem"
+          mat-menu-item
+          type="button"
+          [id]="'calendar-mobile-year-' + year"
+          [attr.aria-current]="year === selectedYear() ? 'date' : null"
+          (click)="selectMobileYear(year, $event)"
+        >
+          <mat-icon [style.visibility]="year === selectedYear() ? 'visible' : 'hidden'">
+            check
+          </mat-icon>
+          <span>{{ year }}</span>
+        </button>
+      }
+    }
+  </mat-menu>
+
   <mat-menu #moreMenu="matMenu" xPosition="before">
+    <button
+      class="calendar__search-item"
+      mat-menu-item
+      type="button"
+      (click)="openSearch()"
+    >
+      <mat-icon>search</mat-icon>
+      <span>{{ 'search.title' | transloco }}</span>
+    </button>
     @if (calendar.hasValue()) {
       <button mat-menu-item type="button" (click)="openShare()">
         <mat-icon>group</mat-icon>
@@ -97,12 +249,19 @@
 
 <full-calendar
   [options]="options()"
+  [appCalendarSwipe]="isMobile()"
+  (swipe)="!isDayView() && navigate($event)"
+  [class.calendar--mobile-month]="isMobile() && !isDayView()"
+  [class.calendar--mobile-day]="isMobile() && isDayView()"
   [class.calendar--dragging]="dragging()"
   [class.calendar--over-trash]="overTrash()"
 >
   <ng-template #eventContent let-arg>
     <span class="calendar__event">
       <span class="calendar__event-main">
+        @if (isMobile() && isDayView() && !arg.event.allDay) {
+          <span class="calendar__event-time">{{ arg.timeText }}</span>
+        }
         @if (!arg.event.allDay) {
           <mat-icon
             class="calendar__time-icon"
@@ -142,7 +301,7 @@
     class="calendar__add"
     type="button"
     [attr.aria-label]="'calendar.addEvent' | transloco"
-    (click)="createEventToday()"
+    (click)="createEventInView()"
   >
     <mat-icon>add</mat-icon>
   </button>

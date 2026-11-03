@@ -87,6 +87,34 @@ html {
   --mat-menu-item-trailing-spacing: var(--space-3);
 }
 
+.calendar-period-menu.mat-mdc-menu-panel {
+  max-height: min(20rem, calc(100dvh - var(--space-8)));
+}
+
+.calendar-period-menu--month.mat-mdc-menu-panel {
+  height: min(33.5rem, calc(100dvh - var(--space-8)));
+  width: min(14rem, calc(100vw - 2rem));
+  max-width: none;
+  max-height: calc(100dvh - var(--space-8));
+}
+
+.calendar-period-menu--month .mat-mdc-menu-item {
+  min-height: var(--space-10);
+}
+
+.calendar-period-menu--month .calendar__year-item {
+  border-radius: 0;
+}
+
+.calendar-period-menu--months.mat-mdc-menu-panel {
+  overflow-y: hidden;
+}
+
+.calendar-period-menu--years.mat-mdc-menu-panel {
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
 .tags-menu--categories.mat-mdc-menu-panel,
 .tags-menu--picker.mat-mdc-menu-panel {
   width: min(22rem, calc(100vw - 2rem));

@@ -1,13 +1,16 @@
 import {
+  afterNextRender,
   afterRenderEffect,
   Component,
   computed,
   effect,
   ElementRef,
   inject,
+  Injector,
   input,
   signal,
   viewChild,
+  viewChildren,
 } from '@angular/core';
 import { BreakpointObserver } from '@angular/cdk/layout';
 import { rxResource, toSignal } from '@angular/core/rxjs-interop';
@@ -29,12 +32,12 @@ import {
 } from '@fullcalendar/angular';
 import dayGridPlugin from '@fullcalendar/angular/daygrid';
 import interactionPlugin from '@fullcalendar/angular/interaction';
-import listPlugin from '@fullcalendar/angular/list';
 import allLocales from '@fullcalendar/angular/locales-all';
 import multiMonthPlugin from '@fullcalendar/angular/multimonth';
+import timeGridPlugin from '@fullcalendar/angular/timegrid';
 import themePlugin from '@fullcalendar/angular/themes/monarch';
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
-import { addDays, format } from 'date-fns';
+import { addDays, addYears, format, isToday, setMonth } from 'date-fns';
 import {
   catchError,
   defaultIfEmpty,
@@ -70,6 +73,7 @@ import { EventEditDialog } from '../../components/event-edit-dialog/event-edit-d
 import { EventIcon } from '../../components/event-icon/event-icon';
 import { EventSearchDialog } from '../../components/event-search-dialog/event-search-dialog';
 import { RecurrenceScopeDialog } from '../../components/recurrence-scope-dialog/recurrence-scope-dialog';
+import { CalendarSwipe } from '../../directives/calendar-swipe';
 import { MOBILE_QUERY } from '../../../../core/constants/breakpoints';
 import { TAG_CARD_NAME_MAX } from '../../constants/tag.constants';
 import { EventDialogData } from '../../models/event-dialog';
@@ -101,6 +105,7 @@ import { SnackbarService } from './../../../../shared/services/snackbar.service'
     MatMenuItem,
     MatMenuTrigger,
     MatTooltip,
+    CalendarSwipe,
     RouterLink,
     TranslocoPipe,
     TruncatePipe,
@@ -121,6 +126,7 @@ export class Calendar {
   private readonly router = inject(Router);
   private readonly host = inject<ElementRef<HTMLElement>>(ElementRef);
   private readonly breakpointObserver = inject(BreakpointObserver);
+  private readonly injector = inject(Injector);
 
   // INPUTS
   readonly id = input.required<string>();
@@ -128,8 +134,14 @@ export class Calendar {
   // STATE
   readonly routePaths = routePaths;
   readonly tagNameMax = TAG_CARD_NAME_MAX;
-  readonly year = signal(new Date().getFullYear());
+  private readonly viewDate = signal(new Date());
+  readonly mobilePeriodMode = signal<'months' | 'years'>('months');
+  readonly isDayView = signal(false);
   private readonly fullCalendar = viewChild.required(FullCalendarComponent);
+  private readonly calendarSwipe = viewChild.required(CalendarSwipe);
+  private readonly desktopYearMenuItems = viewChildren<MatMenuItem>('desktopYearOption');
+  private readonly mobileYearMenuItems = viewChildren<MatMenuItem>('mobileYearOption');
+  private readonly monthMenuItems = viewChildren<MatMenuItem>('monthOption');
   private readonly range = signal<EventRange | null>(null);
   private readonly renderedEvents = signal<EventDates[]>([]);
   private readonly trash = viewChild<ElementRef<HTMLElement>>('trash');
@@ -162,6 +174,60 @@ export class Calendar {
   });
 
   // COMPUTED
+  readonly selectedYear = computed(() => this.viewDate().getFullYear());
+  readonly yearOptions = computed(() =>
+    Array.from({ length: 21 }, (_, index) => this.selectedYear() + index - 10),
+  );
+  readonly selectedMonth = computed(() => this.viewDate().getMonth());
+  readonly monthOptions = computed(() => {
+    const formatter = new Intl.DateTimeFormat(this.languageService.lang(), {
+      month: 'long',
+    });
+    return Array.from({ length: 12 }, (_, month) => ({
+      value: month,
+      label: formatter.format(new Date(2000, month, 1)),
+    }));
+  });
+  readonly monthLabel = computed(() =>
+    new Intl.DateTimeFormat(this.languageService.lang(), {
+      month: this.isDayView() ? 'short' : 'long',
+    }).format(this.viewDate()),
+  );
+  readonly dayLabel = computed(() =>
+    new Intl.DateTimeFormat(this.languageService.lang(), {
+      weekday: 'short',
+      day: 'numeric',
+    }).format(this.viewDate()),
+  );
+
+  readonly periodLabel = computed(() => {
+    const mobile = this.isMobile();
+    return new Intl.DateTimeFormat(
+      this.languageService.lang(),
+      mobile
+        ? this.isDayView()
+          ? { weekday: 'short', day: 'numeric', month: 'short' }
+          : { month: 'long', year: 'numeric' }
+        : { year: 'numeric' },
+    ).format(this.viewDate());
+  });
+
+  readonly previousPeriodKey = computed(() =>
+    !this.isMobile()
+      ? 'calendar.previousYear'
+      : this.isDayView()
+        ? 'calendar.previousDay'
+        : 'calendar.previousMonth',
+  );
+
+  readonly nextPeriodKey = computed(() =>
+    !this.isMobile()
+      ? 'calendar.nextYear'
+      : this.isDayView()
+        ? 'calendar.nextDay'
+        : 'calendar.nextMonth',
+  );
+
   readonly isOwner = computed(
     () => this.calendar.hasValue() && this.calendar.value().role === 'OWNER',
   );
@@ -171,8 +237,17 @@ export class Calendar {
     return role === 'OWNER' || role === 'EDITOR';
   });
 
+  private readonly hasAllDayEvents = computed(() => {
+    const day = format(this.viewDate(), 'yyyy-MM-dd');
+    return this.renderedEvents().some(event => {
+      const start = event.startAt.slice(0, 10);
+      const end = event.endAt.slice(0, 10);
+      return event.allDay && start <= day && (day < end || day === start);
+    });
+  });
+
   readonly options = computed<CalendarOptions>(() => ({
-    initialView: this.isMobile() ? 'listYear' : 'multiMonthYear',
+    initialView: this.isMobile() ? 'dayGridMonth' : 'multiMonthYear',
     multiMonthMaxColumns: 1,
     locales: allLocales,
     locale: this.languageService.lang(),
@@ -182,7 +257,30 @@ export class Calendar {
     headerToolbar: false,
     borderless: true,
     viewClass: ({ view }) =>
-      view.type === 'listYear' ? 'app-list-view' : 'app-year-view',
+      view.type === 'multiMonthYear'
+        ? 'app-year-view'
+        : view.type === 'dayGridMonth'
+          ? 'app-mobile-month-view'
+          : 'app-mobile-day-view',
+    views: {
+      dayGridMonth: {
+        dayHeaderFormat: { weekday: 'narrow' },
+        dayMaxEventRows: true,
+        moreLinkClick: 'timeGridDay',
+        displayEventEnd: false,
+        expandRows: true,
+      },
+      timeGridDay: {
+        dayHeaders: false,
+        dayMaxEventRows: 4,
+        slotDuration: '00:30:00',
+        slotHeaderInterval: '01:00:00',
+        slotHeaderFormat: { hour: '2-digit', minute: '2-digit', hour12: false },
+        scrollTime: '00:00:00',
+        allDaySlot: this.hasAllDayEvents(),
+        nowIndicator: true,
+      },
+    },
     noEventsText: this.transloco.translate('calendar.noEvents'),
     dayHeaderInnerClass: 'app-weekday',
     dayCellTopInnerClass: 'app-day-number',
@@ -201,26 +299,39 @@ export class Calendar {
     tableBodyClass: 'app-month-body',
     moreLinkClass: 'app-more-link',
     highlightClass: 'app-drop-highlight',
-    dayCellDidMount: info =>
-      fitWeekRow(info.el.closest<HTMLElement>('.app-week-row'), this.eventsByDay()),
-    dayCellClass: () => (this.canEdit() ? 'app-day-editable' : ''),
-    dayCellTopClass: () => (this.canEdit() ? 'app-day-top' : ''),
+    dayCellDidMount: info => {
+      if (!this.isMobile()) {
+        fitWeekRow(info.el.closest<HTMLElement>('.app-week-row'), this.eventsByDay());
+      }
+    },
+    dayCellClass: () => (this.canEdit() || this.isMobile() ? 'app-day-editable' : ''),
+    dayCellTopClass: () =>
+      this.isMobile() ? 'app-day-top-center' : this.canEdit() ? 'app-day-top' : '',
     plugins: [
       themePlugin,
       dayGridPlugin,
       multiMonthPlugin,
-      listPlugin,
+      timeGridPlugin,
       interactionPlugin,
     ],
     events: this.calendarEvents(),
     eventsSet: events => this.syncRenderedEvents(events),
-    editable: this.canEdit(),
+    editable: this.canEdit() && !this.isMobile(),
     eventDragStart: () => this.startDrag(),
     eventDragStop: info => this.stopDrag(info),
     eventDrop: info => this.dropEvent(info),
     eventResize: info => this.saveEventDates(info),
-    dateClick: info => this.createEvent(info.date),
-    eventClick: info => this.openEvent(info.event.id),
+    dateClick: info => {
+      if (this.calendarSwipe().ignoreTap()) return;
+      if (this.isMobile() && info.view.type === 'dayGridMonth') {
+        this.fullCalendar().getApi().changeView('timeGridDay', info.date);
+      } else {
+        this.createEvent(info.date, info.allDay);
+      }
+    },
+    eventClick: info => {
+      if (!this.calendarSwipe().ignoreTap()) this.openEvent(info.event.id);
+    },
     datesSet: info => this.changeDates(info),
   }));
 
@@ -258,6 +369,7 @@ export class Calendar {
   // EFFECTS
   private fitWeekRows(): void {
     afterRenderEffect(() => {
+      if (this.isMobile()) return;
       for (const row of this.host.nativeElement.querySelectorAll<HTMLElement>(
         '.app-week-row',
       )) {
@@ -268,9 +380,13 @@ export class Calendar {
 
   private syncViewWithScreen(): void {
     afterRenderEffect(() => {
-      const view = this.isMobile() ? 'listYear' : 'multiMonthYear';
+      const mobile = this.isMobile();
       const api = this.fullCalendar().getApi();
-      if (api.view.type !== view) api.changeView(view);
+      if (mobile && api.view.type === 'multiMonthYear') {
+        api.changeView('dayGridMonth');
+      } else if (!mobile && api.view.type !== 'multiMonthYear') {
+        api.changeView('multiMonthYear');
+      }
     });
   }
 
@@ -354,12 +470,76 @@ export class Calendar {
       .subscribe();
   }
 
-  createEventToday(): void {
-    this.createEvent(new Date());
+  createEventInView(): void {
+    this.createEvent(this.fullCalendar().getApi().getDate());
+  }
+
+  showMonth(): void {
+    this.fullCalendar().getApi().changeView('dayGridMonth');
   }
 
   navigate(action: 'prev' | 'next' | 'today'): void {
-    this.fullCalendar().getApi()[action]();
+    const api = this.fullCalendar().getApi();
+    if (action === 'today' && this.isDayView() && !isToday(api.getDate())) {
+      api.changeView('dayGridMonth', new Date());
+      return;
+    }
+    api[action]();
+  }
+
+  selectYear(year: number): void {
+    const api = this.fullCalendar().getApi();
+    const date = api.getDate();
+    api.gotoDate(addYears(date, year - date.getFullYear()));
+  }
+
+  selectMobileYear(year: number, event: Event): void {
+    event.stopPropagation();
+    const january = new Date(this.fullCalendar().getApi().getDate());
+    january.setFullYear(year, 0, 1);
+    this.viewDate.set(january);
+    this.fullCalendar().getApi().gotoDate(january);
+    this.mobilePeriodMode.set('months');
+    this.focusMobilePeriod('months');
+  }
+
+  selectMonth(month: number): void {
+    const api = this.fullCalendar().getApi();
+    api.gotoDate(setMonth(api.getDate(), month));
+  }
+
+  openMobilePeriodPicker(): void {
+    this.mobilePeriodMode.set('months');
+    this.focusMobilePeriod('months');
+  }
+
+  showMobilePeriod(period: 'months' | 'years', event: Event): void {
+    event.stopPropagation();
+    this.mobilePeriodMode.set(period);
+    this.focusMobilePeriod(period);
+  }
+
+  focusSelectedYear(): void {
+    afterNextRender(
+      () =>
+        this.desktopYearMenuItems()[
+          this.yearOptions().indexOf(this.selectedYear())
+        ]?.focus('program'),
+      { injector: this.injector },
+    );
+  }
+
+  private focusMobilePeriod(period: 'months' | 'years'): void {
+    afterNextRender(
+      () => {
+        const item =
+          period === 'years'
+            ? this.mobileYearMenuItems()[this.yearOptions().indexOf(this.selectedYear())]
+            : this.monthMenuItems()[this.selectedMonth()];
+        item?.focus('program');
+      },
+      { injector: this.injector },
+    );
   }
 
   private updateTarget(
@@ -668,11 +848,11 @@ export class Calendar {
     ).subscribe();
   }
 
-  private createEvent(date: Date): void {
+  private createEvent(date: Date, allDay = true): void {
     if (!this.canEdit()) return;
-    this.saveNewEvent(
-      toEventApiDates({ allDay: true, startAt: date, endAt: null }),
-    ).subscribe(event => this.openEventDialog(event));
+    this.saveNewEvent(toEventApiDates({ allDay, startAt: date, endAt: null })).subscribe(
+      event => this.openEventDialog(event),
+    );
   }
 
   private openEvent(eventKey: string): void {
@@ -682,7 +862,8 @@ export class Calendar {
   }
 
   private changeDates({ view, start, end }: DatesSetInfo): void {
-    this.year.set(view.currentStart.getFullYear());
+    this.viewDate.set(view.currentStart);
+    this.isDayView.set(view.type === 'timeGridDay');
     const from = start.toISOString();
     const to = end.toISOString();
     const current = this.range();
