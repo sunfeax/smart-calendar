@@ -12,6 +12,17 @@ export const routes: Routes = [
     canActivate: [guestGuard],
     children: [{ path: '', component: Login }],
   },
+  {
+    path: 'offline',
+    component: AuthLayout,
+    children: [
+      {
+        path: '',
+        loadComponent: () =>
+          import('./features/auth/pages/offline/offline').then(m => m.Offline),
+      },
+    ],
+  },
   { path: '', pathMatch: 'full', redirectTo: 'calendars' },
   {
     path: '',

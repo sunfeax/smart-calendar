@@ -9,11 +9,11 @@ import {
 import { ActivatedRoute, Router } from '@angular/router';
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import { environment } from '../../../../../environments/environment.development';
-import { routePaths } from '../../../../core/constants/routePaths';
 import { LanguageService } from '../../../../shared/services/language.service';
 import { SnackbarService } from '../../../../shared/services/snackbar.service';
 import { AuthService } from '../../service/auth.service';
 import { loadGoogleScript } from '../../utils/google-script';
+import { toSafeReturnUrl } from '../../utils/return-url';
 
 const GOOGLE_FRAME_TIMEOUT_MS = 3000;
 
@@ -73,8 +73,7 @@ export class Login {
 
   // HELPERS
   private returnUrl(): string {
-    const url = this.route.snapshot.queryParamMap.get('returnUrl');
-    return url?.startsWith('/') && !url.startsWith('//') ? url : routePaths.calendars;
+    return toSafeReturnUrl(this.route.snapshot.queryParamMap.get('returnUrl'));
   }
 
   private waitForGoogleFrame(host: HTMLElement): Promise<void> {

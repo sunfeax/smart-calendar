@@ -1,4 +1,4 @@
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { computed, inject, Service, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Router } from '@angular/router';
@@ -18,6 +18,8 @@ export class AuthService {
   private readonly authPath = '/api/auth';
   private readonly _user = signal<UserProfileDto | null>(null);
   readonly user = this._user.asReadonly();
+  private readonly _unreachable = signal(false);
+  readonly unreachable = this._unreachable.asReadonly();
 
   // COMPUTED
   readonly isAuthenticated = computed(() => !!this._user());
@@ -57,9 +59,14 @@ export class AuthService {
 
   me(): Observable<UserProfileDto | null> {
     return this.http.get<UserProfileDto>(`${this.authPath}/me`).pipe(
-      tap(user => this._user.set(user)),
-      catchError(() => {
-        this._user.set(null);
+      tap(user => {
+        this._user.set(user);
+        this._unreachable.set(false);
+      }),
+      catchError((error: unknown) => {
+        const unauthorized = error instanceof HttpErrorResponse && error.status === 401;
+        this._unreachable.set(!unauthorized);
+        if (unauthorized) this._user.set(null);
         return of(null);
       }),
     );

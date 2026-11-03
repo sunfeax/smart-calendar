@@ -27,6 +27,11 @@
       "focus": "Tiempo para concentrarte",
       "break": "Una pequeña pausa",
       "personal": "Tiempo para ti"
+    },
+    "offline": {
+      "title": "Sin conexión",
+      "description": "No se puede conectar con el servidor. Comprueba tu conexión a internet e inténtalo de nuevo.",
+      "retry": "Reintentar"
     }
   },
   "app": {

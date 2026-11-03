@@ -1,0 +1,17 @@
+<section class="offline" aria-labelledby="offline-heading">
+  <mat-icon class="offline__icon">cloud_off</mat-icon>
+  <h2 id="offline-heading" class="offline__heading">
+    {{ 'auth.offline.title' | transloco }}
+  </h2>
+  <p class="offline__description">{{ 'auth.offline.description' | transloco }}</p>
+  <button
+    class="offline__retry"
+    matButton="filled"
+    type="button"
+    [disabled]="pending()"
+    (click)="retry()"
+  >
+    <mat-icon>refresh</mat-icon>
+    {{ 'auth.offline.retry' | transloco }}
+  </button>
+</section>

@@ -27,6 +27,11 @@
       "focus": "Time to focus",
       "break": "A little break",
       "personal": "Time for yourself"
+    },
+    "offline": {
+      "title": "No connection",
+      "description": "Can't reach the server. Check your internet connection and try again.",
+      "retry": "Retry"
     }
   },
   "app": {
