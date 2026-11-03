@@ -2,6 +2,7 @@ import { provideHttpClient } from '@angular/common/http';
 import {
   ApplicationConfig,
   inject,
+  isDevMode,
   provideAppInitializer,
   provideBrowserGlobalErrorListeners,
 } from '@angular/core';
@@ -11,11 +12,13 @@ import { MAT_FORM_FIELD_DEFAULT_OPTIONS } from '@angular/material/form-field';
 import { MAT_ICON_DEFAULT_OPTIONS } from '@angular/material/icon';
 import { provideDateFnsAdapter } from '@angular/material-date-fns-adapter';
 import { provideRouter, withComponentInputBinding } from '@angular/router';
+import { provideServiceWorker } from '@angular/service-worker';
 import { routes } from './app.routes';
 import { provideLanguage } from './core/config/language.config';
 import { DATE_LOCALES } from './core/constants/date-locales';
 import { DEFAULT_LANGUAGE } from './core/constants/languages';
 import { AuthService } from './features/auth/service/auth.service';
+import { AppUpdateService } from './shared/services/app-update.service';
 import { ThemeService } from './shared/services/theme.service';
 
 export const appConfig: ApplicationConfig = {
@@ -43,5 +46,10 @@ export const appConfig: ApplicationConfig = {
     },
     provideAppInitializer(() => void inject(ThemeService)),
     provideAppInitializer(() => inject(AuthService).me()),
+    provideServiceWorker('ngsw-worker.js', {
+      enabled: !isDevMode(),
+      registrationStrategy: 'registerWhenStable:30000',
+    }),
+    provideAppInitializer(() => void inject(AppUpdateService)),
   ],
 };

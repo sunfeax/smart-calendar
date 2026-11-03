@@ -3,7 +3,9 @@
     "cancel": "Cancel",
     "confirm": "Confirm",
     "close": "Close",
-    "undo": "Undo"
+    "undo": "Undo",
+    "updateReady": "A new version is available",
+    "reload": "Reload"
   },
   "auth": {
     "loginError": "Couldn't sign in with Google",
