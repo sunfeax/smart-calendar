@@ -14,5 +14,6 @@
   "js/ts.autoClosingTags.enabled": true,
   "editor.stickyScroll.enabled": true,
   "editor.bracketPairColorization.enabled": true,
-  "js/ts.preferences.includePackageJsonAutoImports": "on"
+  "js/ts.preferences.includePackageJsonAutoImports": "on",
+  "vsicons.presets.angular": true
 }

@@ -1,4 +1,11 @@
-{$DOMAIN} {
+{
+	auto_https off
+	servers {
+		trusted_proxies static private_ranges
+	}
+}
+
+:80 {
 	encode zstd gzip
 
 	request_body /api/* {
@@ -6,7 +13,7 @@
 	}
 
 	handle /api/* {
-		reverse_proxy backend:3000
+		reverse_proxy smart-calendar-backend:3000
 	}
 
 	handle {

@@ -1,9 +1,9 @@
 name: smart-calendar-prod
 
-x-database-url: &database-url postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB}?schema=public
+x-database-url: &database-url postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@smart-calendar-db:5432/${POSTGRES_DB}?schema=public
 
 services:
-  db:
+  smart-calendar-db:
     image: postgres:18
     restart: unless-stopped
     environment:
@@ -18,7 +18,7 @@ services:
       timeout: 5s
       retries: 10
 
-  migrate:
+  smart-calendar-migrate:
     build:
       context: .
       dockerfile: apps/backend/Dockerfile
@@ -27,11 +27,11 @@ services:
       DATABASE_URL: *database-url
     command: ['npx', 'prisma', 'migrate', 'deploy']
     depends_on:
-      db:
+      smart-calendar-db:
         condition: service_healthy
     restart: 'no'
 
-  backend:
+  smart-calendar-backend:
     build:
       context: .
       dockerfile: apps/backend/Dockerfile
@@ -41,27 +41,23 @@ services:
       GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID}
       PORT: 3000
     depends_on:
-      migrate:
+      smart-calendar-migrate:
         condition: service_completed_successfully
 
-  web:
+  smart-calendar-web:
     build:
       context: .
       dockerfile: apps/frontend/Dockerfile
     restart: unless-stopped
-    environment:
-      DOMAIN: ${DOMAIN}
-    ports:
-      - '80:80'
-      - '443:443'
-      - '443:443/udp'
-    volumes:
-      - caddy-data:/data
-      - caddy-config:/config
     depends_on:
-      - backend
+      - smart-calendar-backend
+    networks:
+      - default
+      - web
+
+networks:
+  web:
+    external: true
 
 volumes:
   db-data:
-  caddy-data:
-  caddy-config:
