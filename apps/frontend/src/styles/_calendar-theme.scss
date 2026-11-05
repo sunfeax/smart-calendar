@@ -38,7 +38,7 @@ full-calendar {
 }
 
 full-calendar .app-year-view > :first-child {
-  scrollbar-gutter: stable;
+  scrollbar-gutter: stable both-edges;
 }
 
 full-calendar .app-day-editable {

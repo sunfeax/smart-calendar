@@ -306,9 +306,12 @@ full-calendar {
     font-size: var(--font-size-2xs);
   }
 
-  .calendar__event-tags,
-  .calendar__time-icon,
   .calendar__icon {
+    font-size: var(--font-size-xs);
+  }
+
+  .calendar__event-tags,
+  .calendar__time-icon {
     display: none;
   }
 
