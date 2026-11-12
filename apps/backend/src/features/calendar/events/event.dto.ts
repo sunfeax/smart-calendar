@@ -9,15 +9,15 @@ import {
   MaxLength,
   MinLength,
 } from 'class-validator';
-import { Trim } from '../../../common/trim.decorator.js';
-import { IsEventIcon } from './event-icon.decorator.js';
+import { Trim } from '../../../common/decorators/trim.decorator.js';
+import { IsEventIcon } from './decorators/event-icon.decorator.js';
 import {
   DESCRIPTION_MAX,
   SEARCH_MAX_LENGTH,
   SEARCH_MIN_LENGTH,
   TITLE_MAX,
 } from './event.constants.js';
-import { IsRecurrenceRule } from './recurrence-rule.decorator.js';
+import { IsRecurrenceRule } from './decorators/recurrence-rule.decorator.js';
 
 export class EventCreateDto {
   @IsOptional()

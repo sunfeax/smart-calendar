@@ -5,7 +5,7 @@ import {
   RECURRENCE_KEYS,
   RECURRENCE_NUMBER_MAX,
   RECURRENCE_RULE_MAX,
-} from './event.constants.js';
+} from '../event.constants.js';
 
 const { RRule } = rrule;
 

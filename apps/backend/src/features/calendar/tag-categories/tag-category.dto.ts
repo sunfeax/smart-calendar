@@ -1,6 +1,6 @@
 import { PartialType } from '@nestjs/swagger';
 import { IsBoolean, MaxLength } from 'class-validator';
-import { IsNotBlank } from '../../../common/is-not-blank.decorator.js';
+import { IsNotBlank } from '../../../common/decorators/is-not-blank.decorator.js';
 import { TagDto } from '../tags/tag.dto.js';
 import { NAME_MAX } from './tag-category.constants.js';
 

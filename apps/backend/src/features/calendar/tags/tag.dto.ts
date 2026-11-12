@@ -1,6 +1,6 @@
 import { PartialType } from '@nestjs/swagger';
 import { IsEnum, MaxLength } from 'class-validator';
-import { IsNotBlank } from '../../../common/is-not-blank.decorator.js';
+import { IsNotBlank } from '../../../common/decorators/is-not-blank.decorator.js';
 import { TagColor } from '../../../generated/prisma/enums.js';
 import { NAME_MAX } from './tag.constants.js';
 

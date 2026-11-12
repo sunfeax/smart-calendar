@@ -4,7 +4,7 @@ import {
   ICON_EMOJI_MAX,
   ICON_EMOJI_PATTERN,
   ICON_URL_MAX,
-} from './event.constants.js';
+} from '../event.constants.js';
 
 export function isEventIcon(value: unknown): boolean {
   if (typeof value !== 'string') return false;

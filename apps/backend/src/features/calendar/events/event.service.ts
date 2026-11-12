@@ -7,12 +7,13 @@ import {
 import { ONE_DAY_MS } from '../../../common/constants.js';
 import { Event, EventException, Prisma } from '../../../generated/prisma/client.js';
 import { CalendarRole } from '../../../generated/prisma/enums.js';
+import { fromWallClock, toWallClock } from '../../../common/wall-clock.js';
 import { PrismaService } from '../../../prisma/prisma.service.js';
 import { CalendarAccessService } from '../calendars/calendar-access.service.js';
+import { assertEventDates, resolveEventTimeZone } from './event-validation.js';
 import {
   countBefore,
   expandSeries,
-  fromWallClock,
   isOccurrence,
   moveSeries,
   nextOccurrence,
@@ -21,7 +22,6 @@ import {
   ruleEndingBefore,
   ruleStartingAt,
   Series,
-  toWallClock,
 } from './event-recurrence.js';
 import {
   ARCHIVE_MAX_ITEMS,
@@ -169,9 +169,9 @@ export class EventService {
     const endAt = new Date(dto.endAt);
     const { allDay } = dto;
     const recurrenceRule = dto.recurrenceRule ?? null;
-    const timeZone = this.resolveTimeZone(recurrenceRule, allDay, dto.timeZone ?? null);
+    const timeZone = resolveEventTimeZone(recurrenceRule, allDay, dto.timeZone ?? null);
 
-    this.assertDates(startAt, endAt, allDay);
+    assertEventDates(startAt, endAt, allDay);
 
     const event = await this.prisma.event.create({
       data: {
@@ -343,13 +343,13 @@ export class EventService {
     const allDay = dto.allDay ?? event.allDay;
     const recurrenceRule =
       dto.recurrenceRule !== undefined ? dto.recurrenceRule : event.recurrenceRule;
-    const timeZone = this.resolveTimeZone(
+    const timeZone = resolveEventTimeZone(
       recurrenceRule,
       allDay,
       dto.timeZone !== undefined ? dto.timeZone : event.timeZone,
     );
 
-    this.assertDates(startAt, endAt, allDay);
+    assertEventDates(startAt, endAt, allDay);
 
     const data = {
       title: dto.title,
@@ -419,7 +419,7 @@ export class EventService {
       }),
     };
 
-    this.assertDates(
+    assertEventDates(
       new Date(overrides.startAt ?? current.startAt),
       new Date(overrides.endAt ?? current.endAt),
       overrides.allDay ?? current.allDay,
@@ -446,7 +446,7 @@ export class EventService {
     const allDay = dto.allDay ?? event.allDay;
     let recurrenceRule =
       dto.recurrenceRule !== undefined ? dto.recurrenceRule : event.recurrenceRule;
-    const timeZone = this.resolveTimeZone(
+    const timeZone = resolveEventTimeZone(
       recurrenceRule,
       allDay,
       dto.timeZone !== undefined ? dto.timeZone : event.timeZone,
@@ -480,7 +480,7 @@ export class EventService {
       ({ startAt, endAt, recurrenceRule, cancelledStarts } = moved);
     }
 
-    this.assertDates(startAt, endAt, allDay);
+    assertEventDates(startAt, endAt, allDay);
 
     const responseStart = recurrenceRule
       ? this.responseStart(
@@ -553,7 +553,7 @@ export class EventService {
       dto.recurrenceRule !== undefined
         ? dto.recurrenceRule
         : ruleStartingAt(event, originalStart);
-    const timeZone = this.resolveTimeZone(
+    const timeZone = resolveEventTimeZone(
       recurrenceRule,
       allDay,
       dto.timeZone !== undefined ? dto.timeZone : event.timeZone,
@@ -582,7 +582,7 @@ export class EventService {
       ({ startAt, endAt, recurrenceRule, cancelledStarts } = moved);
     }
 
-    this.assertDates(startAt, endAt, allDay);
+    assertEventDates(startAt, endAt, allDay);
 
     const responseStart = recurrenceRule
       ? this.responseStart(
@@ -746,36 +746,6 @@ export class EventService {
     if (completed === false) return null;
     if (completed && !current) return new Date();
     return current;
-  }
-
-  private assertDates(startAt: Date, endAt: Date, allDay: boolean): void {
-    if (endAt <= startAt) {
-      throw new BadRequestException('endAt must be later than startAt');
-    }
-
-    if (allDay) {
-      const isUtcMidnight = (date: Date) => date.getTime() % ONE_DAY_MS === 0;
-
-      if (!isUtcMidnight(startAt) || !isUtcMidnight(endAt)) {
-        throw new BadRequestException(
-          'All-day events must start and end at 00:00:00 UTC',
-        );
-      }
-    }
-  }
-
-  private resolveTimeZone(
-    recurrenceRule: string | null,
-    allDay: boolean,
-    timeZone: string | null,
-  ): string | null {
-    if (!recurrenceRule || allDay) return null;
-
-    if (!timeZone) {
-      throw new BadRequestException('timeZone is required for timed recurring events');
-    }
-
-    return timeZone;
   }
 
   private toOverrides(exception: EventException | null): EventOverrides | null {
