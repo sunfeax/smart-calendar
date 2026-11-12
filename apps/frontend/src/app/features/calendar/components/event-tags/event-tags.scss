@@ -227,7 +227,7 @@ button.tags__value {
 .tags__chip-toggle {
   gap: var(--space-1);
   min-width: 0;
-  padding: var(--space-1) var(--space-0) var(--space-1) var(--space-2);
+  padding: var(--space-2) var(--space-1) var(--space-2) var(--space-3);
 }
 
 .tags__chip-name {
@@ -237,7 +237,8 @@ button.tags__value {
 }
 
 .tags__chip-edit {
-  padding: var(--space-1) var(--space-1-5) var(--space-1) var(--space-1);
+  align-self: stretch;
+  padding: var(--space-1) var(--space-3) var(--space-1) var(--space-2);
   opacity: 0.85;
   transition: opacity var(--duration-fast) var(--ease-standard);
 

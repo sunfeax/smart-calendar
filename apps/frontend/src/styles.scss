@@ -242,6 +242,10 @@ mat-form-field {
   }
 }
 
+.mat-datepicker-content .mat-calendar.event-date-picker {
+  height: auto;
+}
+
 button.mat-mdc-outlined-button,
 button.mat-mdc-button {
   --mat-button-outlined-label-text-color: var(--color-primary-text);

@@ -175,6 +175,10 @@
   min-width: 0;
 }
 
+.edit__remove-time--text {
+  display: none;
+}
+
 .edit__completed {
   justify-self: start;
 }
@@ -208,6 +212,14 @@
 
     button {
       justify-self: end;
+    }
+
+    .edit__remove-time--icon {
+      display: none;
+    }
+
+    .edit__remove-time--text {
+      display: inline-flex;
     }
   }
 

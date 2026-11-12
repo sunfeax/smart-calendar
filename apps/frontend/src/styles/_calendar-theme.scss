@@ -139,6 +139,26 @@ full-calendar .app-mobile-month-view {
   }
 }
 
+full-calendar .app-mobile-day-view {
+  .app-day-lane-inner {
+    margin-inline: 0;
+  }
+
+  .app-touch-resizer {
+    border-color: var(--color-primary);
+    background: var(--color-primary);
+  }
+
+  .app-slot-tick {
+    border-color: transparent;
+    background: transparent;
+  }
+
+  .app-calendar-event {
+    margin-bottom: 0;
+  }
+}
+
 full-calendar .app-day-top::after {
   content: 'add';
   position: absolute;

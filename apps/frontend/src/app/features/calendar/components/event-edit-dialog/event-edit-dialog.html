@@ -145,12 +145,22 @@
             @if (data.editable) {
               <button
                 matIconButton
+                class="edit__remove-time edit__remove-time--icon"
                 type="button"
                 [attr.aria-label]="'event.removeTime' | transloco"
                 [matTooltip]="'event.removeTime' | transloco"
                 (click)="removeTime()"
               >
                 <mat-icon>timer_off</mat-icon>
+              </button>
+              <button
+                matButton
+                class="edit__remove-time edit__remove-time--text"
+                type="button"
+                (click)="removeTime()"
+              >
+                <mat-icon>timer_off</mat-icon>
+                {{ 'event.removeTime' | transloco }}
               </button>
             }
           </div>

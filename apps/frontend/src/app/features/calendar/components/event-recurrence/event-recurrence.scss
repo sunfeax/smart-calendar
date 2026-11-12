@@ -38,3 +38,9 @@
 .recurrence__field--count {
   flex: 0 1 8rem;
 }
+
+@media (max-width: 540px) {
+  .recurrence__field--count {
+    flex-basis: 100%;
+  }
+}
