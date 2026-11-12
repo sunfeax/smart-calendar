@@ -1,0 +1,20 @@
+<button
+  type="button"
+  class="language-switch__trigger"
+  [matMenuTriggerFor]="menu"
+  [attr.aria-label]="'userMenu.language' | transloco"
+>
+  <mat-icon>translate</mat-icon>
+  <span>{{ language.lang().toUpperCase() }}</span>
+</button>
+
+<mat-menu #menu="matMenu" xPosition="before">
+  @for (lang of languages; track lang) {
+    <button mat-menu-item type="button" (click)="language.setLang(lang)">
+      @if (language.lang() === lang) {
+        <mat-icon>check</mat-icon>
+      }
+      <span>{{ languageNames[lang] }}</span>
+    </button>
+  }
+</mat-menu>

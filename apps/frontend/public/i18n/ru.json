@@ -16,7 +16,7 @@
     "welcome": "Добро пожаловать",
     "signInTitle": "Войти в календарь",
     "signInDescription": "Продолжите с аккаунтом Google, чтобы открыть свой календарь.",
-    "googleLoading": "Загружаем кнопку Google…",
+    "continueWithGoogle": "Продолжить с Google",
     "preview": {
       "title": "Ваша неделя",
       "monday": "Пн",

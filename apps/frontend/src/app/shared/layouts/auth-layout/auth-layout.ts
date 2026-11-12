@@ -1,10 +1,11 @@
 import { Component } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
 import { TranslocoPipe } from '@jsverse/transloco';
+import { LanguageSwitch } from '../../components/language-switch/language-switch';
 
 @Component({
   selector: 'app-auth-layout',
-  imports: [RouterOutlet, TranslocoPipe],
+  imports: [LanguageSwitch, RouterOutlet, TranslocoPipe],
   templateUrl: './auth-layout.html',
   styleUrl: './auth-layout.scss',
 })

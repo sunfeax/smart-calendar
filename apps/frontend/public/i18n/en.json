@@ -16,7 +16,7 @@
     "welcome": "Welcome",
     "signInTitle": "Sign in to your calendar",
     "signInDescription": "Continue with your Google account to open your calendar.",
-    "googleLoading": "Loading the Google button…",
+    "continueWithGoogle": "Continue with Google",
     "preview": {
       "title": "Your week",
       "monday": "Mon",

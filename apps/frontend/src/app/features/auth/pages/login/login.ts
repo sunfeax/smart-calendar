@@ -15,7 +15,7 @@ import { AuthService } from '../../service/auth.service';
 import { loadGoogleScript } from '../../utils/google-script';
 import { toSafeReturnUrl } from '../../utils/return-url';
 
-const GOOGLE_FRAME_TIMEOUT_MS = 3000;
+const MAX_BUTTON_WIDTH = 400;
 
 @Component({
   imports: [TranslocoPipe],
@@ -34,7 +34,7 @@ export class Login {
 
   // STATE
   private readonly button = viewChild.required<ElementRef<HTMLElement>>('googleButton');
-  protected readonly googleButtonState = signal<'loading' | 'ready' | 'error'>('loading');
+  protected readonly loadFailed = signal(false);
 
   // LIFECYCLE
   constructor() {
@@ -54,48 +54,21 @@ export class Login {
                 error: () =>
                   this.snackbar.error(this.transloco.translate('auth.loginError')),
               }),
-            use_fedcm_for_button: true,
           });
           google.accounts.id.renderButton(this.button().nativeElement, {
             type: 'standard',
-            theme: 'outline',
-            size: 'medium',
-            shape: 'pill',
-            text: 'signin_with',
+            size: 'large',
+            text: 'continue_with',
+            width: Math.min(MAX_BUTTON_WIDTH, this.button().nativeElement.clientWidth),
             locale: this.language.lang(),
           });
-          return this.waitForGoogleFrame(this.button().nativeElement);
         })
-        .then(() => this.googleButtonState.set('ready'))
-        .catch(() => this.googleButtonState.set('error'));
+        .catch(() => this.loadFailed.set(true));
     });
   }
 
   // HELPERS
   private returnUrl(): string {
     return toSafeReturnUrl(this.route.snapshot.queryParamMap.get('returnUrl'));
-  }
-
-  private waitForGoogleFrame(host: HTMLElement): Promise<void> {
-    return new Promise(resolve => {
-      const done = (): void => {
-        observer.disconnect();
-        clearTimeout(fallback);
-        resolve();
-      };
-      const watch = (frame: HTMLIFrameElement): void => {
-        observer.disconnect();
-        frame.addEventListener('load', done, { once: true });
-      };
-      const observer = new MutationObserver(() => {
-        const frame = host.querySelector('iframe');
-        if (frame) watch(frame);
-      });
-      const fallback = setTimeout(done, GOOGLE_FRAME_TIMEOUT_MS);
-
-      const frame = host.querySelector('iframe');
-      if (frame) watch(frame);
-      else observer.observe(host, { childList: true, subtree: true });
-    });
   }
 }
