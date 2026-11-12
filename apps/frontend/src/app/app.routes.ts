@@ -1,6 +1,7 @@
 import { Routes } from '@angular/router';
 import { authGuard } from './core/guards/auth-guard';
 import { guestGuard } from './core/guards/guest-guard';
+import { offlineGuard } from './core/guards/offline-guard';
 import { Login } from './features/auth/pages/login/login';
 import { AuthLayout } from './shared/layouts/auth-layout/auth-layout';
 import { MainLayout } from './shared/layouts/main-layout/main-layout';
@@ -15,6 +16,7 @@ export const routes: Routes = [
   {
     path: 'offline',
     component: AuthLayout,
+    canActivate: [offlineGuard],
     children: [
       {
         path: '',
