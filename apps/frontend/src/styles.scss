@@ -225,6 +225,20 @@ mat-form-field {
     --mat-form-field-error-trailing-icon-color
   );
   --mat-form-field-outlined-focus-outline-color: var(--color-primary-text);
+  --mat-select-trigger-text-size: var(--font-size-sm);
+}
+
+.mat-mdc-form-field-type-mat-select {
+  --mat-form-field-outlined-label-text-size: var(--font-size-sm);
+}
+
+.mat-mdc-select-panel {
+  --mat-option-label-text-size: var(--font-size-sm);
+}
+
+.mat-mdc-form-field .mdc-notched-outline__notch {
+  border-left: none !important;
+  padding-left: var(--border-width-sm) !important;
 }
 
 .mat-mdc-select .mat-mdc-select-arrow {
