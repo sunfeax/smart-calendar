@@ -1,4 +1,4 @@
-import { provideHttpClient } from '@angular/common/http';
+import { provideHttpClient, withInterceptors } from '@angular/common/http';
 import {
   ApplicationConfig,
   inject,
@@ -17,6 +17,7 @@ import { routes } from './app.routes';
 import { provideLanguage } from './core/config/language.config';
 import { DATE_LOCALES } from './core/constants/date-locales';
 import { DEFAULT_LANGUAGE } from './core/constants/languages';
+import { loadingInterceptor } from './core/interceptors/loading-interceptor';
 import { AuthService } from './features/auth/service/auth.service';
 import { AppUpdateService } from './shared/services/app-update.service';
 import { ThemeService } from './shared/services/theme.service';
@@ -25,7 +26,7 @@ export const appConfig: ApplicationConfig = {
   providers: [
     provideBrowserGlobalErrorListeners(),
     provideRouter(routes, withComponentInputBinding()),
-    provideHttpClient(),
+    provideHttpClient(withInterceptors([loadingInterceptor])),
     provideLanguage(),
     { provide: MAT_DATE_LOCALE, useValue: DATE_LOCALES[DEFAULT_LANGUAGE] },
     provideDateFnsAdapter(),

@@ -1,0 +1,12 @@
+.app__loading {
+  position: fixed;
+  z-index: 2000;
+  inset: 0 0 auto;
+  animation: app-loading-in var(--duration-fast) var(--ease-standard) 300ms backwards;
+}
+
+@keyframes app-loading-in {
+  from {
+    opacity: 0;
+  }
+}
