@@ -1,19 +1,72 @@
 # Smart Calendar
 
-A Notion-style calendar for small teams and couples. The year scrolls month by month, events carry an icon and colored tags grouped into categories, and a calendar can be shared with a few people by a one-time invite link.
+**Plan the whole year, not just the week.** A calm, Notion-style calendar for small teams and couples: one scrolling year, events with icons and colored tags, and sharing in a single link.
 
-## Features
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="docs/images/calendar-dark.png">
+  <source media="(prefers-color-scheme: light)" srcset="docs/images/calendar-light.png">
+  <img src="docs/images/calendar-dark.png" alt="Smart Calendar showing a fictional studio schedule with colorful tags, event icons, and multi-day plans." width="1440">
+</picture>
 
-- Sign in with Google only, no passwords.
-- Several calendars per user, members with roles (owner, editor, viewer), one-time invite links.
-- Year view with weeks that grow with the number of events, drag-and-drop, resize, multi-day events.
-- Event dialog with autosave: title, description, dates, time, done mark, icon (emoji, brand logo or image link), tags by category.
-- Recurring events with "this event", "this and following" and "all events" scopes, as in Google Calendar.
-- Archive instead of hard delete, with undo, restore and permanent delete. Delete by dragging an event to a trash zone.
-- Event search by title, description and tag. Export to XLSX.
-- Light and dark themes, Russian, English and Spanish.
-- Mobile layout: month grid, day view with an hourly scale, swipe navigation.
-- Installable as a PWA.
+_Example calendar with fictional events._
+
+## Highlights
+
+- **One calendar for everything.** The year scrolls month by month and every week grows to fit its events.
+- **Events that look like yours.** An emoji, a brand logo or any image as the icon, tags grouped into categories.
+- **Fast to edit.** Everything autosaves, drag to reschedule, drag to the trash to delete, undo in one tap.
+- **Made for sharing.** Several calendars, roles for every member, one-time invite links.
+- **Everywhere.** Light and dark themes, English, Russian and Spanish, a phone layout and an installable PWA.
+- **Private by design.** Sign in with Google only, no passwords to store or leak.
+
+## Create calendars and events
+
+Make a calendar, name it right on the page, and click a day to add an event. The dialog saves as you type: title, description, icon, dates, time, repeat rule and a done mark.
+
+![Creating a calendar and an event](docs/images/create-event.gif)
+
+## Tags, drag and drop, delete
+
+Group tags into categories, create them on the spot and give each one a color. Move an event to another day by dragging it, or drop it on the trash zone to delete it. A short undo brings it back.
+
+![Tags, drag and drop and delete](docs/images/tags-drag-delete.gif)
+
+## Recurring events
+
+Repeat daily, weekly, monthly or yearly, with an end date or a number of repetitions. When you edit a series, choose what changes: this event, this and the following events, or all of them, just like in Google Calendar.
+
+## Search and archive
+
+Find any event by title, description or tag. Nothing is lost by accident: deleted events wait in the archive until you restore them or remove them for good.
+
+![Search and archive](docs/images/search-archive.gif)
+
+## Share a calendar
+
+Invite someone with a one-time link that expires in 7 days. Pick a role first, editor or viewer; the owner keeps control of members and links.
+
+![Sharing a calendar](docs/images/share.gif)
+
+## Export to Excel
+
+Download the events of any period of up to a year as an `.xlsx` file, with a column for every tag category.
+
+## On your phone
+
+Smart Calendar is a PWA: add it to your home screen and it opens like a native app. The year turns into a month grid, a tap on a day opens an hourly scale like in Google Calendar, a hold moves an event in time and its bottom handle makes it longer. Swipe left or right to change the day.
+
+<p align="center">
+  <img src="docs/images/mobile.gif" alt="Mobile layout: month, day view, editing, moving and resizing an event" width="320">
+</p>
+
+## Themes and languages
+
+Light and dark themes that follow your taste, and an interface in English, Russian and Spanish. The language follows your browser until you choose one.
+
+<p align="center">
+  <img src="docs/images/calendar-light.png" alt="Light theme" width="49%">
+  <img src="docs/images/login.png" alt="Sign in page" width="49%">
+</p>
 
 ## Stack
 
