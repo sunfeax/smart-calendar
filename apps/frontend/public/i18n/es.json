@@ -283,7 +283,8 @@
       "periodTooLong": "El periodo no puede superar un año"
     },
     "yes": "Sí",
-    "no": "No"
+    "no": "No",
+    "menu": "Exportar"
   },
   "import": {
     "title": "Importar eventos",
@@ -293,36 +294,19 @@
       "notion": "En Notion, abre el menú de la base de datos → Exportar como Markdown y CSV, descomprime el archivo y elige el .csv."
     },
     "chooseFile": "Elegir archivo",
-    "columns": {
-      "title": "Columna de título",
-      "date": "Columna de fecha",
-      "tags": "Columnas de etiquetas",
-      "short": {
-        "title": "Título",
-        "date": "Fecha",
-        "tags": "Etiquetas"
-      },
-      "none": "ninguna",
-      "configure": "Configurar columnas",
-      "hide": "Ocultar",
-      "hint": "Hemos adivinado qué significa cada columna de la tabla de Notion. Cámbialo si nos equivocamos. Las columnas no seleccionadas irán a la descripción del evento.",
-      "hints": {
-        "title": "Será el título del evento",
-        "date": "De aquí se toman la fecha y la hora",
-        "tags": "La columna será una categoría y los valores separados por comas, etiquetas"
-      }
-    },
     "summary": {
       "ready": "Listos para importar",
       "broken": "Faltan datos",
-      "skipped": "No se pueden importar"
+      "skipped": "No se pueden importar",
+      "duplicates": "Ya importados"
     },
-    "brokenHint": "Estos eventos no tienen fecha o contienen un error, así que no se pueden guardar tal cual. ¿Qué hacemos con ellos?",
-    "skipAll": "No importarlos",
+    "brokenHint": "Algunos eventos no tienen suficiente información o contienen un error, así que no se pueden guardar tal cual.",
+    "brokenQuestion": "¿Qué hacemos con ellos?",
+    "skipAll": "No importar",
     "fillIn": "Completar a mano",
     "skip": "Omitir",
     "allDay": "Todo el día",
-    "submit": "Importar ({{count}})",
+    "submit": "Importar",
     "success": "Eventos importados: {{count}}",
     "error": "No se pudieron importar los eventos",
     "errors": {
@@ -334,8 +318,6 @@
     },
     "problems": {
       "invalidFile": "El archivo no parece una exportación del servicio seleccionado.",
-      "missingColumn": "Falta la columna «{{value}}». Exporta todas las propiedades.",
-      "columnRoles": "Cada columna solo puede tener una función.",
       "tooManyEvents": "Un archivo puede contener como máximo {{value}} eventos.",
       "invalidEvent": "El registro del evento está dañado.",
       "missingDate": "El evento no tiene fecha.",
@@ -348,7 +330,14 @@
       "unsupportedRecurrence": "La regla de repetición no es compatible. El evento se importará sin repeticiones.",
       "titleTooLong": "El título supera los {{value}} caracteres.",
       "descriptionTooLong": "La descripción supera los {{value}} caracteres."
-    }
+    },
+    "dateColumn": {
+      "label": "Columna con la fecha del evento",
+      "hint": "El archivo tiene varias columnas con fechas. Elige cuál usar para colocar los eventos en el calendario."
+    },
+    "menu": "Importar",
+    "droppedTags": "{{count}} etiquetas no se importarán por los límites del calendario.",
+    "exceptionsLost": "Si cambias las fechas, se perderán {{count}} repeticiones editadas o canceladas de esta serie."
   },
   "search": {
     "title": "Buscar",

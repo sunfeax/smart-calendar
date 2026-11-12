@@ -89,9 +89,9 @@ file in the browser, sends it to the preview endpoint with the browser time zone
 shows how many events are ready, need attention, or cannot be imported. Broken events
 can be skipped together or filled in one by one; the import button stays disabled
 until every broken event is skipped or valid. Success reloads events and tag categories.
-A newer file selection cancels reading of the previous one (`switchMap`). Notion column
-selectors keep the last successful columns while a preview reloads or fails. The dialog
-cannot be closed while an import is saving.
+A newer file selection cancels reading of the previous one (`switchMap`). The dialog
+cannot be closed while an import is saving. Notion columns are detected on the server;
+the dialog asks only for the date column, and only when the file has several.
 
 ## PWA and connectivity
 

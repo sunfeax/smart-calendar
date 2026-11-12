@@ -19,16 +19,21 @@ export interface ParsedEventTag {
   name: string;
 }
 
+export type ParsedEventDates = Pick<EventCreateDto, 'startAt' | 'endAt' | 'allDay'>;
+
 export interface ParsedCalendarEvent {
   sourceId: string;
+  externalId: string | null;
   data: EventCreateDto;
   tags: ParsedEventTag[];
   exceptions: ParsedEventException[];
 }
 
 export interface ParsedEventDraft {
+  externalId: string | null;
   title: string;
   description: string | null;
+  dates: ParsedEventDates | null;
   tags: ParsedEventTag[];
 }
 
@@ -38,16 +43,10 @@ export interface CalendarParseIssue {
   draft: ParsedEventDraft | null;
 }
 
-export interface ParsedCalendarColumns {
-  names: string[];
-  title: string;
-  date: string;
-  tags: string[];
-}
-
 export interface ParsedCalendar {
   name: string | null;
-  columns: ParsedCalendarColumns | null;
+  dateColumns: string[];
+  dateColumn: string | null;
   events: ParsedCalendarEvent[];
   issues: CalendarParseIssue[];
 }

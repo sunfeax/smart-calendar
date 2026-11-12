@@ -59,14 +59,26 @@ Recurrence scope behavior is described in the [data model](02-data-model.md#recu
   export without saving. Returns counts of ready and unrecoverable records and the
   broken events (missing or invalid dates, oversized fields) with drafts. Timed events
   without an end last until the end of that day; all-day events without one last a day.
-  Notion responses include the detected title, date, and tag columns. Each broken
-  event lists `problems` as codes (`ImportProblemCode`) with an optional `value`;
-  the frontend translates them. A file that cannot be parsed returns 400 with the
-  same `code` and `value` fields.
+  Notion columns are detected automatically: the first column (the Notion title) is
+  the title, and the date is the column with the most parseable dates. Columns that
+  look like Notion timestamps (only single past date-times, such as "Created time")
+  lose to columns with event dates. The response lists all date
+  columns as `dateColumns`; an optional `dateColumn` in the request overrides the
+  choice. Columns with repeating short values (select, multi-select, status) become
+  tag categories, and the rest goes into the description. Each broken event lists
+  `problems` as codes (`ImportProblemCode`) with an optional `value`;
+  the frontend translates them; drafts carry `exceptions`, the number of edited or
+  cancelled repeats that a date change drops. A file that cannot be parsed returns 400
+  with the same `code` and `value` fields; files with more than 5000 events or rows are
+  rejected before full parsing. Google events whose `UID` is already in the calendar are
+  counted in `duplicates` and left out. `droppedTags` counts tags that will not be
+  created because of name length or calendar limits. Unsupported repeat rules keep the
+  event dates in the draft so the event can be imported once.
 - `POST /calendars/:id/import`: parse the same content again, apply user fixes by
   broken-event index, and save everything in one transaction. Missing categories and
   tags are created within the calendar limits; single-selection categories keep the
-  first tag. Both routes require EDITOR. Preview allows 60 requests per minute because
+  first tag. A fix may omit `description` to keep the one from the file. Concurrent
+  imports of the same events return 409. Both routes require EDITOR. Preview allows 60 requests per minute because
   the dialog repeats it on every column change; commit uses the strict rate limit.
   Only these routes accept JSON bodies up to 6 MB; other routes keep the 100 KB
   parser default (Caddy also caps other API routes at 1 MB).

@@ -283,7 +283,8 @@
       "periodTooLong": "The period can be at most one year"
     },
     "yes": "Yes",
-    "no": "No"
+    "no": "No",
+    "menu": "Export"
   },
   "import": {
     "title": "Import events",
@@ -293,36 +294,19 @@
       "notion": "In Notion, open the database menu → Export as Markdown & CSV, unzip the archive and choose the .csv file."
     },
     "chooseFile": "Choose file",
-    "columns": {
-      "title": "Title column",
-      "date": "Date column",
-      "tags": "Tag columns",
-      "short": {
-        "title": "Title",
-        "date": "Date",
-        "tags": "Tags"
-      },
-      "none": "none",
-      "configure": "Set up columns",
-      "hide": "Hide",
-      "hint": "We guessed what each column of the Notion table means. Change it if we got it wrong. Columns that aren't selected go into the event description.",
-      "hints": {
-        "title": "Becomes the event title",
-        "date": "Provides the date and time",
-        "tags": "The column becomes a category, comma-separated values become tags"
-      }
-    },
     "summary": {
       "ready": "Ready to import",
       "broken": "Missing data",
-      "skipped": "Cannot be imported"
+      "skipped": "Cannot be imported",
+      "duplicates": "Already imported"
     },
-    "brokenHint": "These events have no date or contain an error, so they can't be saved as is. What should we do with them?",
-    "skipAll": "Don't import them",
+    "brokenHint": "Some events don't have enough information or contain an error, so they can't be saved as they are.",
+    "brokenQuestion": "What should we do with them?",
+    "skipAll": "Don't import",
     "fillIn": "Fill in manually",
     "skip": "Skip",
     "allDay": "All day",
-    "submit": "Import ({{count}})",
+    "submit": "Import",
     "success": "Imported events: {{count}}",
     "error": "Could not import events",
     "errors": {
@@ -334,8 +318,6 @@
     },
     "problems": {
       "invalidFile": "This file is not a valid export from the selected service.",
-      "missingColumn": "Column «{{value}}» is missing. Export all properties.",
-      "columnRoles": "Each column can have only one role.",
       "tooManyEvents": "A file can contain at most {{value}} events.",
       "invalidEvent": "The event record is damaged.",
       "missingDate": "The event has no date.",
@@ -348,7 +330,14 @@
       "unsupportedRecurrence": "This repeat rule is not supported. The event will be imported without repeats.",
       "titleTooLong": "The title is longer than {{value}} characters.",
       "descriptionTooLong": "The description is longer than {{value}} characters."
-    }
+    },
+    "dateColumn": {
+      "label": "Event date column",
+      "hint": "The file has several date columns. Choose which one places events on the calendar."
+    },
+    "menu": "Import",
+    "droppedTags": "{{count}} tags will not be imported because of calendar limits.",
+    "exceptionsLost": "Changing the dates drops {{count}} edited or cancelled repeats of this series."
   },
   "search": {
     "title": "Search",

@@ -92,12 +92,14 @@ model Event {
   archivedAt     DateTime?        @db.Timestamptz(3)
   recurrenceRule String?
   timeZone       String?
+  externalId     String?
   createdAt      DateTime         @default(now()) @db.Timestamptz(3)
   updatedAt      DateTime         @updatedAt @db.Timestamptz(3)
   calendar       Calendar         @relation(fields: [calendarId], references: [id], onDelete: Cascade)
   tags           EventTag[]
   exceptions     EventException[]
 
+  @@unique([calendarId, externalId])
   @@index([calendarId, startAt])
   @@index([calendarId, archivedAt])
 }

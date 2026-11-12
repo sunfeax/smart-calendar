@@ -2,10 +2,13 @@ import { ONE_DAY_MS } from '../../../../common/constants.js';
 import { toWallClock } from '../../../../common/wall-clock.js';
 import type { EventCreateDto } from '../../events/event.dto.js';
 import { isRecurrenceRule } from '../../events/decorators/recurrence-rule.decorator.js';
+import { IMPORT_MAX_EVENTS } from '../import.constants.js';
 import {
   CalendarParseError,
   type ParsedCalendar,
   type ParsedCalendarEvent,
+  type ParsedEventDates,
+  type ParsedEventDraft,
   type ParsedEventException,
 } from './parsed-calendar.model.js';
 import { nextMidnight, parseWallDate } from './parse-date.js';
@@ -25,9 +28,15 @@ interface CalendarDate {
 
 export function parseGoogleCalendar(content: string): ParsedCalendar {
   const { properties, records } = readCalendar(content);
+  if (
+    records.filter(record => !find(record, 'RECURRENCE-ID')).length > IMPORT_MAX_EVENTS
+  ) {
+    throw new CalendarParseError('tooManyEvents', String(IMPORT_MAX_EVENTS));
+  }
   const result: ParsedCalendar = {
     name: textValue(properties, 'X-WR-CALNAME'),
-    columns: null,
+    dateColumns: [],
+    dateColumn: null,
     events: [],
     issues: [],
   };
@@ -50,11 +59,11 @@ export function parseGoogleCalendar(content: string): ParsedCalendar {
       if (exceptions.length && !data.recurrenceRule) {
         throw new CalendarParseError('unsupportedRecurrence');
       }
-      const event = { sourceId, data, tags: [], exceptions };
+      const event = { sourceId, externalId: sourceId, data, tags: [], exceptions };
       series.set(sourceId, event);
       result.events.push(event);
     } catch (error) {
-      const draft = series.has(sourceId) ? null : { ...parseText(record), tags: [] };
+      const draft = series.has(sourceId) ? null : parseDraft(record, defaultZone);
       reportError(result, sourceId, error, draft);
     }
   }
@@ -99,8 +108,34 @@ export function parseGoogleCalendar(content: string): ParsedCalendar {
   return result;
 }
 
-function parseEvent(record: Property[], defaultZone: string | null): EventCreateDto {
-  if (find(record, 'RDATE') || find(record, 'EXRULE')) {
+function parseDraft(record: Property[], defaultZone: string | null): ParsedEventDraft {
+  return {
+    externalId: textValue(record, 'UID'),
+    ...parseText(record),
+    dates: parseDraftDates(record, defaultZone),
+    tags: [],
+  };
+}
+
+function parseDraftDates(
+  record: Property[],
+  defaultZone: string | null,
+): ParsedEventDates | null {
+  try {
+    const { startAt, endAt, allDay } = parseEvent(record, defaultZone, false);
+    return { startAt, endAt, allDay };
+  } catch (error) {
+    if (error instanceof CalendarParseError) return null;
+    throw error;
+  }
+}
+
+function parseEvent(
+  record: Property[],
+  defaultZone: string | null,
+  withRecurrence = true,
+): EventCreateDto {
+  if (withRecurrence && (find(record, 'RDATE') || find(record, 'EXRULE'))) {
     throw new CalendarParseError('unsupportedRecurrence');
   }
   const startProperty = find(record, 'DTSTART');
@@ -129,7 +164,9 @@ function parseEvent(record: Property[], defaultZone: string | null): EventCreate
       ? new Date(+start.date + ONE_DAY_MS)
       : nextMidnight(start.date, start.timeZone ?? defaultZone);
   }
-  const rules = record.filter(property => property.name === 'RRULE');
+  const rules = withRecurrence
+    ? record.filter(property => property.name === 'RRULE')
+    : [];
   if (rules.length > 1) throw new CalendarParseError('unsupportedRecurrence');
   let recurrenceRule = rules[0]?.value ?? null;
   const timeZone = recurrenceRule && !start.allDay ? (start.timeZone ?? 'UTC') : null;

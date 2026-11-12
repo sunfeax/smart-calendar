@@ -14,9 +14,9 @@ import { MatButton, MatIconButton } from '@angular/material/button';
 import { MatButtonToggle, MatButtonToggleGroup } from '@angular/material/button-toggle';
 import { MatCheckbox } from '@angular/material/checkbox';
 import {
+  MatDatepickerToggle,
   MatDateRangeInput,
   MatDateRangePicker,
-  MatDatepickerToggle,
   MatEndDate,
   MatStartDate,
 } from '@angular/material/datepicker';
@@ -37,8 +37,8 @@ import {
   MatLabel,
   MatSuffix,
 } from '@angular/material/input';
-import { MatProgressBar } from '@angular/material/progress-bar';
 import { MatOption, MatSelect } from '@angular/material/select';
+import { MatProgressBar } from '@angular/material/progress-bar';
 import {
   MatTimepicker,
   MatTimepickerInput,
@@ -61,8 +61,8 @@ import {
   CalendarImportDto,
   EventCreateDto,
   ImportBrokenEventDto,
-  ImportColumnsDto,
   ImportFixDto,
+  ImportPreviewDto,
 } from '../../../../api/generated';
 import { SnackbarService } from '../../../../shared/services/snackbar.service';
 import {
@@ -93,12 +93,6 @@ type ImportFileError = 'tooLarge' | 'unreadable';
 interface ImportMessage {
   key: string;
   params: { value?: string | null };
-}
-
-interface ImportColumns {
-  title?: string;
-  date?: string;
-  tags?: string[];
 }
 
 interface ImportFix {
@@ -133,8 +127,8 @@ interface ImportFix {
     MatInput,
     MatLabel,
     MatOption,
-    MatProgressBar,
     MatSelect,
+    MatProgressBar,
     MatStartDate,
     MatSuffix,
     MatTimepicker,
@@ -179,9 +173,8 @@ export class CalendarImportDialog {
   readonly file = signal<ImportFile | null>(null);
   readonly fileError = signal<ImportFileError | null>(null);
   private readonly fileSelection = new Subject<File | null>();
-  private readonly columns = signal<ImportColumns>({});
+  readonly dateColumn = signal<string | null>(null);
   readonly reviewing = signal(false);
-  readonly columnsOpen = signal(false);
   readonly saving = signal(false);
   private readonly timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
 
@@ -226,19 +219,19 @@ export class CalendarImportDialog {
     });
   });
 
-  readonly selectedColumns = linkedSignal<
-    { file: ImportFile | null; columns: ImportColumnsDto | undefined },
-    ImportColumnsDto | null
+  readonly dateChoice = linkedSignal<
+    { file: ImportFile | null; preview: ImportPreviewDto | undefined },
+    { columns: string[]; selected: string | null } | null
   >({
     source: () => ({
       file: this.file(),
-      columns: this.preview.hasValue() ? this.preview.value().columns : undefined,
+      preview: this.preview.hasValue() ? this.preview.value() : undefined,
     }),
-    computation: ({ file, columns }, previous) =>
-      columns ?? (previous?.source.file === file ? previous.value : null),
+    computation: ({ file, preview }, previous) => {
+      if (preview) return { columns: preview.dateColumns, selected: preview.dateColumn };
+      return previous?.source.file === file ? previous.value : null;
+    },
   });
-
-  readonly columnNames = computed(() => this.selectedColumns()?.names ?? []);
 
   readonly skippedCount = computed(() => this.fixes().filter(fix => fix.skip).length);
 
@@ -291,18 +284,6 @@ export class CalendarImportDialog {
     this.resetFile(tooLarge ? null : selected);
   }
 
-  selectColumn(role: 'title' | 'date', name: string): void {
-    this.columns.update(columns => ({
-      ...columns,
-      [role]: name,
-      tags: columns.tags?.filter(tag => tag !== name),
-    }));
-  }
-
-  selectTagColumns(names: string[]): void {
-    this.columns.update(columns => ({ ...columns, tags: names }));
-  }
-
   skipAll(): void {
     this.fixes.update(fixes => fixes.map(fix => ({ ...fix, skip: true })));
     this.reviewing.set(false);
@@ -342,7 +323,7 @@ export class CalendarImportDialog {
 
   private resetFile(selected: File | null): void {
     this.file.set(null);
-    this.columns.set({});
+    this.dateColumn.set(null);
     this.reviewing.set(false);
     this.fileSelection.next(selected);
   }
@@ -376,16 +357,12 @@ export class CalendarImportDialog {
   }
 
   private toRequest(file: ImportFile): CalendarImportDto {
-    const { title, date, tags } = this.columns();
+    const dateColumn = this.dateColumn();
     return {
       source: this.source(),
       content: file.content,
       timeZone: this.timeZone,
-      ...(this.source() === 'notion' && {
-        titleColumn: title,
-        dateColumn: date,
-        tagColumns: tags,
-      }),
+      ...(dateColumn && { dateColumn }),
     };
   }
 
@@ -414,7 +391,9 @@ export class CalendarImportDialog {
       });
       const data: EventCreateDto = {
         title: fix.title,
-        description: fix.description || null,
+        ...(fix.description !== (draft.description ?? '') && {
+          description: fix.description || null,
+        }),
         ...dates,
         recurrenceRule: draft.recurrenceRule,
         timeZone: draft.recurrenceRule ? (draft.timeZone ?? this.timeZone) : null,

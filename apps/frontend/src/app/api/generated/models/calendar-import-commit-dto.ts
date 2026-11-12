@@ -12,8 +12,6 @@ export interface CalendarImportCommitDto {
     source: 'google' | 'notion';
     content: string;
     timeZone: string;
-    titleColumn?: string;
     dateColumn?: string;
-    tagColumns?: Array<string>;
     fixes: Array<ImportFixDto>;
 }

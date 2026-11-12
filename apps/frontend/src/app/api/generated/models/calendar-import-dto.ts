@@ -11,7 +11,5 @@ export interface CalendarImportDto {
     source: 'google' | 'notion';
     content: string;
     timeZone: string;
-    titleColumn?: string;
     dateColumn?: string;
-    tagColumns?: Array<string>;
 }

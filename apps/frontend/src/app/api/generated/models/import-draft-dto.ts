@@ -15,4 +15,5 @@ export interface ImportDraftDto {
     allDay: boolean;
     recurrenceRule: string | null;
     timeZone: string | null;
+    exceptions: number;
 }

@@ -19,7 +19,6 @@ import {
   IMPORT_MAX_EVENTS,
   IMPORT_PROBLEM_CODES,
   IMPORT_SOURCES,
-  IMPORT_TAG_COLUMNS_MAX,
 } from './import.constants.js';
 import type { ImportProblemCode } from './parsers/parsed-calendar.model.js';
 
@@ -39,19 +38,7 @@ export class CalendarImportDto {
   @IsOptional()
   @IsString()
   @MaxLength(IMPORT_COLUMN_MAX)
-  titleColumn?: string;
-
-  @IsOptional()
-  @IsString()
-  @MaxLength(IMPORT_COLUMN_MAX)
   dateColumn?: string;
-
-  @IsOptional()
-  @IsArray()
-  @ArrayMaxSize(IMPORT_TAG_COLUMNS_MAX)
-  @IsString({ each: true })
-  @MaxLength(IMPORT_COLUMN_MAX, { each: true })
-  tagColumns?: string[];
 }
 
 export class ImportFixDto {
@@ -80,6 +67,7 @@ export class ImportDraftDto {
   allDay!: boolean;
   recurrenceRule!: string | null;
   timeZone!: string | null;
+  exceptions!: number;
 }
 
 export class ImportProblemDto {
@@ -95,18 +83,14 @@ export class ImportBrokenEventDto {
   draft!: ImportDraftDto;
 }
 
-export class ImportColumnsDto {
-  names!: string[];
-  title!: string;
-  date!: string;
-  tags!: string[];
-}
-
 export class ImportPreviewDto {
   name!: string | null;
-  columns?: ImportColumnsDto;
+  dateColumns!: string[];
+  dateColumn!: string | null;
   ready!: number;
   skipped!: number;
+  duplicates!: number;
+  droppedTags!: number;
   broken!: ImportBrokenEventDto[];
 }
 

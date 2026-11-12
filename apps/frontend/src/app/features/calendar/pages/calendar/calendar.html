@@ -236,12 +236,12 @@
     }
     <button mat-menu-item type="button" (click)="openExport()">
       <mat-icon>download</mat-icon>
-      <span>{{ 'export.title' | transloco }}</span>
+      <span>{{ 'export.menu' | transloco }}</span>
     </button>
     @if (canEdit()) {
       <button mat-menu-item type="button" (click)="openImport()">
         <mat-icon>upload</mat-icon>
-        <span>{{ 'import.title' | transloco }}</span>
+        <span>{{ 'import.menu' | transloco }}</span>
       </button>
       <button mat-menu-item type="button" (click)="openArchive()">
         <mat-icon>inventory_2</mat-icon>

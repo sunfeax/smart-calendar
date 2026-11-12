@@ -1,5 +1,7 @@
 import { ONE_DAY_MS } from '../../../../common/constants.js';
 import type { EventCreateDto } from '../../events/event.dto.js';
+import { MAX_TAGS_PER_CATEGORY, NAME_MAX } from '../../tags/tag.constants.js';
+import { IMPORT_MAX_EVENTS } from '../import.constants.js';
 import {
   CalendarParseError,
   type ParsedCalendar,
@@ -9,10 +11,8 @@ import { assertTimeZone, nextMidnight, parseWallDate } from './parse-date.js';
 import { reportError } from './parse-issues.js';
 
 export interface NotionCsvOptions {
-  titleColumn?: string;
-  dateColumn?: string;
-  tagColumns?: string[];
   timeZone?: string;
+  dateColumn?: string;
   name?: string;
 }
 
@@ -38,6 +38,9 @@ export function parseNotionCsv(
   const timeZone = options.timeZone ?? null;
   assertTimeZone(timeZone);
   const rows = readCsv(content);
+  if (rows.length - 1 > IMPORT_MAX_EVENTS) {
+    throw new CalendarParseError('tooManyEvents', String(IMPORT_MAX_EVENTS));
+  }
   const headers = rows.shift()?.map(header => header.trim());
   if (!headers?.length || headers.some(header => !header)) {
     throw new CalendarParseError('invalidFile');
@@ -45,29 +48,33 @@ export function parseNotionCsv(
   if (new Set(headers).size !== headers.length) {
     throw new CalendarParseError('invalidFile');
   }
-  const titleColumn = options.titleColumn ?? headers[0];
+  const titleColumn = headers[0];
+  const now = Date.now();
+  const dateColumns = headers
+    .map((header, column) => ({
+      header,
+      score: dateColumnScore(rows, column, timeZone, now),
+    }))
+    .filter(({ header, score }) => header !== titleColumn && score > 0)
+    .sort((a, b) => b.score - a.score)
+    .map(({ header }) => header);
   const dateColumn =
-    options.dateColumn ??
-    headers.find(
-      (header, column) =>
-        header !== titleColumn &&
-        rows.some(cells => isDateRange(cells[column], timeZone)),
-    ) ??
-    headers.find(header => header !== titleColumn) ??
-    titleColumn;
-  const tagColumns = options.tagColumns ?? [];
+    dateColumns.find(header => header === options.dateColumn) ??
+    dateColumns[0] ??
+    headers[1];
+  if (!dateColumn) throw new CalendarParseError('invalidFile');
+  const tagColumns = headers.filter(
+    (header, column) =>
+      header !== titleColumn &&
+      header !== dateColumn &&
+      isTagColumn(rows, column) &&
+      !rows.some(cells => isDateRange(cells[column], timeZone)),
+  );
   const mapped = [titleColumn, dateColumn, ...tagColumns];
-  if (new Set(mapped).size !== mapped.length) {
-    throw new CalendarParseError('columnRoles');
-  }
-  for (const column of mapped) {
-    if (!headers.includes(column)) {
-      throw new CalendarParseError('missingColumn', column);
-    }
-  }
   const result: ParsedCalendar = {
     name: options.name ?? null,
-    columns: { names: headers, title: titleColumn, date: dateColumn, tags: tagColumns },
+    dateColumns,
+    dateColumn,
     events: [],
     issues: [],
   };
@@ -79,12 +86,14 @@ export function parseNotionCsv(
     }
     const values = new Map(headers.map((header, column) => [header, cells[column]]));
     const draft: ParsedEventDraft = {
+      externalId: null,
       title: values.get(titleColumn)!.trim(),
       description:
         headers
           .filter(header => !mapped.includes(header) && values.get(header)?.trim())
           .map(header => `${header}: ${values.get(header)!}`)
           .join('\n') || null,
+      dates: null,
       tags: tagColumns.flatMap(category =>
         [
           ...new Set(
@@ -101,11 +110,13 @@ export function parseNotionCsv(
     try {
       const dateValue = values.get(dateColumn)!.trim();
       if (!dateValue) throw new CalendarParseError('missingDate');
-      const { tags, ...text } = draft;
+      const { title, description, tags } = draft;
       result.events.push({
         sourceId,
+        externalId: null,
         data: {
-          ...text,
+          title,
+          description,
           icon: null,
           ...parseDateRange(dateValue, timeZone),
           recurrenceRule: null,
@@ -119,6 +130,49 @@ export function parseNotionCsv(
     }
   }
   return result;
+}
+
+function dateColumnScore(
+  rows: string[][],
+  column: number,
+  timeZone: string | null,
+  now: number,
+): number {
+  const dates = rows.flatMap(cells => {
+    const value = cells[column]?.trim();
+    if (!value) return [];
+    try {
+      return [{ range: value.includes('→'), ...parseDateRange(value, timeZone) }];
+    } catch {
+      return [];
+    }
+  });
+  if (!dates.length) return 0;
+  const looksLikeTimestamp = dates.every(
+    ({ range, allDay, startAt }) => !range && !allDay && Date.parse(startAt) <= now,
+  );
+  return dates.length + (looksLikeTimestamp ? 0 : rows.length);
+}
+
+function isTagColumn(rows: string[][], column: number): boolean {
+  const names = rows.flatMap(cells =>
+    (cells[column] ?? '')
+      .split(',')
+      .map(name => name.trim())
+      .filter(Boolean),
+  );
+  const distinct = new Set(names);
+  return (
+    distinct.size > 0 &&
+    distinct.size < names.length &&
+    distinct.size <= MAX_TAGS_PER_CATEGORY &&
+    [...distinct].every(
+      name =>
+        name.length <= NAME_MAX &&
+        !/^[\d\s.,:%+-]+$/.test(name) &&
+        !/^(yes|no)$/i.test(name),
+    )
+  );
 }
 
 function isDateRange(value: string | undefined, timeZone: string | null): boolean {

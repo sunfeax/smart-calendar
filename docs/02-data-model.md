@@ -20,6 +20,9 @@ parameters are validated with `ParseUUIDPipe`.
 | `EventTag`       | Many-to-many event/tag association.                                                               |
 | `EventException` | Cancelled or overridden occurrence, identified by series and original start.                      |
 
+`Event.externalId` stores the Google Calendar `UID` of an imported event and is unique
+per calendar, so importing the same export again skips events that already exist.
+
 Theme and language preferences live in browser storage rather than `User`.
 
 ## Access control

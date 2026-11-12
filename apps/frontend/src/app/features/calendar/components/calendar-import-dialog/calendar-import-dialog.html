@@ -51,98 +51,30 @@
     </p>
   }
 
-  @if (selectedColumns(); as columns) {
-    <section class="import__columns">
-      <div class="import__columns-header">
-        <p class="import__columns-summary">
-          <span>
-            {{ 'import.columns.short.title' | transloco }}:
-            <strong>{{ columns.title }}</strong>
-          </span>
-          <span>
-            {{ 'import.columns.short.date' | transloco }}:
-            <strong>{{ columns.date }}</strong>
-          </span>
-          <span>
-            {{ 'import.columns.short.tags' | transloco }}:
-            <strong>
-              {{
-                columns.tags.length
-                  ? columns.tags.join(', ')
-                  : ('import.columns.none' | transloco)
-              }}
-            </strong>
-          </span>
-        </p>
-        <button
-          matButton
-          type="button"
-          [attr.aria-expanded]="columnsOpen()"
-          (click)="columnsOpen.set(!columnsOpen())"
+  @if (dateChoice(); as choice) {
+    @if (choice.columns.length > 1) {
+      <mat-form-field class="import__date-column" subscriptSizing="dynamic">
+        <mat-label>{{ 'import.dateColumn.label' | transloco }}</mat-label>
+        <mat-select
+          [value]="choice.selected"
+          (selectionChange)="dateColumn.set($event.value)"
         >
-          <mat-icon>{{ columnsOpen() ? 'expand_less' : 'tune' }}</mat-icon>
-          {{
-            (columnsOpen() ? 'import.columns.hide' : 'import.columns.configure')
-              | transloco
-          }}
-        </button>
-      </div>
-
-      @if (columnsOpen()) {
-        <p class="import__hint">{{ 'import.columns.hint' | transloco }}</p>
-        <div class="import__columns-fields">
-          <mat-form-field subscriptSizing="dynamic">
-            <mat-label>{{ 'import.columns.title' | transloco }}</mat-label>
-            <mat-select
-              [value]="columns.title"
-              (selectionChange)="selectColumn('title', $event.value)"
-            >
-              @for (name of columnNames(); track name) {
-                <mat-option [value]="name" [disabled]="name === columns.date">
-                  {{ name }}
-                </mat-option>
-              }
-            </mat-select>
-            <mat-hint>{{ 'import.columns.hints.title' | transloco }}</mat-hint>
-          </mat-form-field>
-          <mat-form-field subscriptSizing="dynamic">
-            <mat-label>{{ 'import.columns.date' | transloco }}</mat-label>
-            <mat-select
-              [value]="columns.date"
-              (selectionChange)="selectColumn('date', $event.value)"
-            >
-              @for (name of columnNames(); track name) {
-                <mat-option [value]="name" [disabled]="name === columns.title">
-                  {{ name }}
-                </mat-option>
-              }
-            </mat-select>
-            <mat-hint>{{ 'import.columns.hints.date' | transloco }}</mat-hint>
-          </mat-form-field>
-          <mat-form-field subscriptSizing="dynamic">
-            <mat-label>{{ 'import.columns.tags' | transloco }}</mat-label>
-            <mat-select
-              multiple
-              [value]="columns.tags"
-              (selectionChange)="selectTagColumns($event.value)"
-            >
-              @for (name of columnNames(); track name) {
-                @if (name !== columns.title && name !== columns.date) {
-                  <mat-option [value]="name">{{ name }}</mat-option>
-                }
-              }
-            </mat-select>
-            <mat-hint>{{ 'import.columns.hints.tags' | transloco }}</mat-hint>
-          </mat-form-field>
-        </div>
-      }
-    </section>
+          @for (name of choice.columns; track name) {
+            <mat-option [value]="name">{{ name }}</mat-option>
+          }
+        </mat-select>
+        <mat-hint>{{ 'import.dateColumn.hint' | transloco }}</mat-hint>
+      </mat-form-field>
+    }
   }
 
   @if (preview.hasValue()) {
     <ul class="import__summary">
-      <li>
-        <span>{{ 'import.summary.ready' | transloco }}</span>
+      <li class="import__summary-item--success">
+        <span class="import__summary-label">
+          <mat-icon>check_circle</mat-icon>
+          {{ 'import.summary.ready' | transloco }}
+        </span>
         <strong>{{ preview.value().ready }}</strong>
       </li>
       @if (broken().length) {
@@ -160,14 +92,34 @@
           <strong>{{ preview.value().skipped }}</strong>
         </li>
       }
+      @if (preview.value().duplicates) {
+        <li>
+          <span>{{ 'import.summary.duplicates' | transloco }}</span>
+          <strong>{{ preview.value().duplicates }}</strong>
+        </li>
+      }
     </ul>
+
+    @if (preview.value().droppedTags) {
+      <p class="import__hint">
+        {{ 'import.droppedTags' | transloco: { count: preview.value().droppedTags } }}
+      </p>
+    }
 
     @if (broken().length) {
       <section class="import__broken">
-        <p class="import__hint">{{ 'import.brokenHint' | transloco }}</p>
+        <div class="import__question">
+          <mat-icon>help</mat-icon>
+          <div>
+            <p class="import__question-text">{{ 'import.brokenHint' | transloco }}</p>
+            <p class="import__question-title">
+              {{ 'import.brokenQuestion' | transloco }}
+            </p>
+          </div>
+        </div>
         <div class="import__choice">
           <button
-            matButton="tonal"
+            matButton="outlined"
             type="button"
             [class.import__choice--selected]="
               !reviewing() && skippedCount() === broken().length
@@ -178,12 +130,12 @@
             {{ 'import.skipAll' | transloco }}
           </button>
           <button
-            matButton="tonal"
+            matButton="outlined"
             type="button"
             [class.import__choice--selected]="reviewing()"
             (click)="review()"
           >
-            <mat-icon>edit_calendar</mat-icon>
+            <mat-icon>edit</mat-icon>
             {{ 'import.fillIn' | transloco }}
           </button>
         </div>
@@ -206,6 +158,14 @@
                     {{
                       'import.problems.' + problem.code
                         | transloco: { value: problem.value }
+                    }}
+                  </p>
+                }
+                @if (item.draft.exceptions) {
+                  <p class="import__reason">
+                    {{
+                      'import.exceptionsLost'
+                        | transloco: { count: item.draft.exceptions }
                     }}
                   </p>
                 }
@@ -316,6 +276,6 @@
     [disabled]="!canImport()"
     (click)="importEvents()"
   >
-    {{ 'import.submit' | transloco: { count: importCount() } }}
+    {{ 'import.submit' | transloco }}
   </button>
 </mat-dialog-actions>

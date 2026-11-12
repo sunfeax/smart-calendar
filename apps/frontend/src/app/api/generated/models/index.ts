@@ -16,7 +16,6 @@ export * from "./event-dto";
 export * from "./event-update-dto";
 export * from "./google-login-dto";
 export * from "./import-broken-event-dto";
-export * from "./import-columns-dto";
 export * from "./import-draft-dto";
 export * from "./import-fix-dto";
 export * from "./import-preview-dto";
