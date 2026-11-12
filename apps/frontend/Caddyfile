@@ -8,7 +8,16 @@
 :80 {
 	encode zstd gzip
 
-	request_body /api/* {
+	@importBody path_regexp ^/api/calendars/[^/]+/import
+	request_body @importBody {
+		max_size 6MB
+	}
+
+	@apiBody {
+		path /api/*
+		not path_regexp ^/api/calendars/[^/]+/import
+	}
+	request_body @apiBody {
 		max_size 1MB
 	}
 

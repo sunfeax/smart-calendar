@@ -6,6 +6,7 @@ import { THROTTLE_LIMIT, THROTTLE_TTL_MS } from './common/constants.js';
 import { AuthModule } from './features/auth/auth.module.js';
 import { CalendarModule } from './features/calendar/calendars/calendar.module.js';
 import { EventModule } from './features/calendar/events/event.module.js';
+import { ImportModule } from './features/calendar/import/import.module.js';
 import { InviteModule } from './features/calendar/invites/invite.module.js';
 import { MemberModule } from './features/calendar/members/member.module.js';
 import { TagCategoryModule } from './features/calendar/tag-categories/tag-category.module.js';
@@ -24,6 +25,7 @@ import { PrismaModule } from './prisma/prisma.module.js';
     SessionModule,
     CalendarModule,
     EventModule,
+    ImportModule,
     TagCategoryModule,
     TagModule,
     MemberModule,

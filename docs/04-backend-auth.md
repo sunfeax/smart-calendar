@@ -53,6 +53,24 @@ frontend models are generated from it. Swagger is available only outside product
 Event responses contain `tagIds`; category responses supply names and colors.
 Recurrence scope behavior is described in the [data model](02-data-model.md#recurrence).
 
+### Import
+
+- `POST /calendars/:id/import/preview`: parse a Google Calendar `.ics` or Notion `.csv`
+  export without saving. Returns counts of ready and unrecoverable records and the
+  broken events (missing or invalid dates, oversized fields) with drafts. Timed events
+  without an end last until the end of that day; all-day events without one last a day.
+  Notion responses include the detected title, date, and tag columns. Each broken
+  event lists `problems` as codes (`ImportProblemCode`) with an optional `value`;
+  the frontend translates them. A file that cannot be parsed returns 400 with the
+  same `code` and `value` fields.
+- `POST /calendars/:id/import`: parse the same content again, apply user fixes by
+  broken-event index, and save everything in one transaction. Missing categories and
+  tags are created within the calendar limits; single-selection categories keep the
+  first tag. Both routes require EDITOR. Preview allows 60 requests per minute because
+  the dialog repeats it on every column change; commit uses the strict rate limit.
+  Only these routes accept JSON bodies up to 6 MB; other routes keep the 100 KB
+  parser default (Caddy also caps other API routes at 1 MB).
+
 ### Tags
 
 - `GET`/`POST /calendars/:calendarId/tag-categories`: list categories with tags or create one.
