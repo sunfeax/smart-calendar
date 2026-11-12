@@ -69,6 +69,7 @@ import {
   CalendarExportDialog,
   CalendarExportPeriod,
 } from '../../components/calendar-export-dialog/calendar-export-dialog';
+import { CalendarImportDialog } from '../../components/calendar-import-dialog/calendar-import-dialog';
 import { EventEditDialog } from '../../components/event-edit-dialog/event-edit-dialog';
 import { EventIcon } from '../../components/event-icon/event-icon';
 import { EventSearchDialog } from '../../components/event-search-dialog/event-search-dialog';
@@ -474,6 +475,18 @@ export class Calendar {
     CalendarExportDialog.open(this.dialog)
       .pipe(switchMap(period => this.exportEvents(period)))
       .subscribe();
+  }
+
+  openImport(): void {
+    CalendarImportDialog.open(this.dialog, { calendarId: this.id() }).subscribe(
+      created => {
+        this.events.reload();
+        this.tagCategories.reload();
+        this.snackbarService.success(
+          this.transloco.translate('import.success', { count: created }),
+        );
+      },
+    );
   }
 
   createEventInView(): void {

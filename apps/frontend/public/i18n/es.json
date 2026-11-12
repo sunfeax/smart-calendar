@@ -285,6 +285,71 @@
     "yes": "Sí",
     "no": "No"
   },
+  "import": {
+    "title": "Importar eventos",
+    "source": "Origen",
+    "hints": {
+      "google": "En Google Calendar, abre Configuración → Importar y exportar → Exportar, descomprime el archivo y elige el .ics del calendario.",
+      "notion": "En Notion, abre el menú de la base de datos → Exportar como Markdown y CSV, descomprime el archivo y elige el .csv."
+    },
+    "chooseFile": "Elegir archivo",
+    "columns": {
+      "title": "Columna de título",
+      "date": "Columna de fecha",
+      "tags": "Columnas de etiquetas",
+      "short": {
+        "title": "Título",
+        "date": "Fecha",
+        "tags": "Etiquetas"
+      },
+      "none": "ninguna",
+      "configure": "Configurar columnas",
+      "hide": "Ocultar",
+      "hint": "Hemos adivinado qué significa cada columna de la tabla de Notion. Cámbialo si nos equivocamos. Las columnas no seleccionadas irán a la descripción del evento.",
+      "hints": {
+        "title": "Será el título del evento",
+        "date": "De aquí se toman la fecha y la hora",
+        "tags": "La columna será una categoría y los valores separados por comas, etiquetas"
+      }
+    },
+    "summary": {
+      "ready": "Listos para importar",
+      "broken": "Faltan datos",
+      "skipped": "No se pueden importar"
+    },
+    "brokenHint": "Estos eventos no tienen fecha o contienen un error, así que no se pueden guardar tal cual. ¿Qué hacemos con ellos?",
+    "skipAll": "No importarlos",
+    "fillIn": "Completar a mano",
+    "skip": "Omitir",
+    "allDay": "Todo el día",
+    "submit": "Importar ({{count}})",
+    "success": "Eventos importados: {{count}}",
+    "error": "No se pudieron importar los eventos",
+    "errors": {
+      "invalid": "No se pudo leer el archivo. Comprueba que sea una exportación del servicio seleccionado.",
+      "tooLarge": "El archivo es demasiado grande. El límite es 4 MB.",
+      "unreadable": "No se pudo leer el archivo del dispositivo.",
+      "throttled": "Demasiadas solicitudes. Espera un minuto e inténtalo de nuevo.",
+      "unknown": "Algo salió mal. Inténtalo de nuevo."
+    },
+    "problems": {
+      "invalidFile": "El archivo no parece una exportación del servicio seleccionado.",
+      "missingColumn": "Falta la columna «{{value}}». Exporta todas las propiedades.",
+      "columnRoles": "Cada columna solo puede tener una función.",
+      "tooManyEvents": "Un archivo puede contener como máximo {{value}} eventos.",
+      "invalidEvent": "El registro del evento está dañado.",
+      "missingDate": "El evento no tiene fecha.",
+      "invalidDate": "No se pudo reconocer la fecha.",
+      "floatingTime": "La hora no tiene zona horaria.",
+      "nonexistentTime": "Esta hora local no existe por el cambio de horario.",
+      "unsupportedTimeZone": "La zona horaria {{value}} no es compatible.",
+      "endBeforeStart": "El evento termina antes de empezar.",
+      "zeroDuration": "El evento no tiene duración. Indica una hora de fin.",
+      "unsupportedRecurrence": "La regla de repetición no es compatible. El evento se importará sin repeticiones.",
+      "titleTooLong": "El título supera los {{value}} caracteres.",
+      "descriptionTooLong": "La descripción supera los {{value}} caracteres."
+    }
+  },
   "search": {
     "title": "Buscar",
     "placeholder": "Título, descripción o etiqueta",

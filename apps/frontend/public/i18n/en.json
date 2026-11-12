@@ -285,6 +285,71 @@
     "yes": "Yes",
     "no": "No"
   },
+  "import": {
+    "title": "Import events",
+    "source": "Source",
+    "hints": {
+      "google": "In Google Calendar, open Settings → Import & export → Export, unzip the archive and choose the .ics file of the calendar.",
+      "notion": "In Notion, open the database menu → Export as Markdown & CSV, unzip the archive and choose the .csv file."
+    },
+    "chooseFile": "Choose file",
+    "columns": {
+      "title": "Title column",
+      "date": "Date column",
+      "tags": "Tag columns",
+      "short": {
+        "title": "Title",
+        "date": "Date",
+        "tags": "Tags"
+      },
+      "none": "none",
+      "configure": "Set up columns",
+      "hide": "Hide",
+      "hint": "We guessed what each column of the Notion table means. Change it if we got it wrong. Columns that aren't selected go into the event description.",
+      "hints": {
+        "title": "Becomes the event title",
+        "date": "Provides the date and time",
+        "tags": "The column becomes a category, comma-separated values become tags"
+      }
+    },
+    "summary": {
+      "ready": "Ready to import",
+      "broken": "Missing data",
+      "skipped": "Cannot be imported"
+    },
+    "brokenHint": "These events have no date or contain an error, so they can't be saved as is. What should we do with them?",
+    "skipAll": "Don't import them",
+    "fillIn": "Fill in manually",
+    "skip": "Skip",
+    "allDay": "All day",
+    "submit": "Import ({{count}})",
+    "success": "Imported events: {{count}}",
+    "error": "Could not import events",
+    "errors": {
+      "invalid": "Could not read this file. Check that it is an export from the selected service.",
+      "tooLarge": "The file is too large. The limit is 4 MB.",
+      "unreadable": "Could not read this file from your device.",
+      "throttled": "Too many requests. Wait a minute and try again.",
+      "unknown": "Something went wrong. Try again."
+    },
+    "problems": {
+      "invalidFile": "This file is not a valid export from the selected service.",
+      "missingColumn": "Column «{{value}}» is missing. Export all properties.",
+      "columnRoles": "Each column can have only one role.",
+      "tooManyEvents": "A file can contain at most {{value}} events.",
+      "invalidEvent": "The event record is damaged.",
+      "missingDate": "The event has no date.",
+      "invalidDate": "The date could not be recognized.",
+      "floatingTime": "The time has no time zone.",
+      "nonexistentTime": "This local time does not exist because of a clock change.",
+      "unsupportedTimeZone": "Time zone {{value}} is not supported.",
+      "endBeforeStart": "The event ends before it starts.",
+      "zeroDuration": "The event has no duration. Set an end time.",
+      "unsupportedRecurrence": "This repeat rule is not supported. The event will be imported without repeats.",
+      "titleTooLong": "The title is longer than {{value}} characters.",
+      "descriptionTooLong": "The description is longer than {{value}} characters."
+    }
+  },
   "search": {
     "title": "Search",
     "placeholder": "Title, description or tag",

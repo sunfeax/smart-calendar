@@ -1,0 +1,321 @@
+<div class="import__header">
+  <h1 mat-dialog-title>{{ 'import.title' | transloco }}</h1>
+  <button
+    matIconButton
+    [attr.aria-label]="'common.close' | transloco"
+    [disabled]="saving()"
+    (click)="close()"
+  >
+    <mat-icon>close</mat-icon>
+  </button>
+</div>
+
+<mat-dialog-content class="import__content">
+  <mat-button-toggle-group
+    class="import__sources"
+    hideSingleSelectionIndicator
+    [value]="source()"
+    [attr.aria-label]="'import.source' | transloco"
+    (change)="selectSource($event.value)"
+  >
+    <mat-button-toggle value="google">Google Calendar</mat-button-toggle>
+    <mat-button-toggle value="notion">Notion</mat-button-toggle>
+  </mat-button-toggle-group>
+
+  <p class="import__hint">{{ 'import.hints.' + source() | transloco }}</p>
+
+  <div class="import__file">
+    <input
+      #fileInput
+      class="import__file-input"
+      type="file"
+      [accept]="fileTypes[source()]"
+      (change)="selectFile(fileInput)"
+    />
+    <button matButton="outlined" type="button" (click)="fileInput.click()">
+      <mat-icon>upload_file</mat-icon>
+      {{ 'import.chooseFile' | transloco }}
+    </button>
+    @if (file(); as selected) {
+      <span class="import__file-name">{{ selected.name }}</span>
+    }
+  </div>
+
+  @if (preview.isLoading() || saving()) {
+    <mat-progress-bar mode="indeterminate" />
+  }
+
+  @if (errorMessage(); as message) {
+    <p class="import__error" role="alert">
+      {{ message.key | transloco: message.params }}
+    </p>
+  }
+
+  @if (selectedColumns(); as columns) {
+    <section class="import__columns">
+      <div class="import__columns-header">
+        <p class="import__columns-summary">
+          <span>
+            {{ 'import.columns.short.title' | transloco }}:
+            <strong>{{ columns.title }}</strong>
+          </span>
+          <span>
+            {{ 'import.columns.short.date' | transloco }}:
+            <strong>{{ columns.date }}</strong>
+          </span>
+          <span>
+            {{ 'import.columns.short.tags' | transloco }}:
+            <strong>
+              {{
+                columns.tags.length
+                  ? columns.tags.join(', ')
+                  : ('import.columns.none' | transloco)
+              }}
+            </strong>
+          </span>
+        </p>
+        <button
+          matButton
+          type="button"
+          [attr.aria-expanded]="columnsOpen()"
+          (click)="columnsOpen.set(!columnsOpen())"
+        >
+          <mat-icon>{{ columnsOpen() ? 'expand_less' : 'tune' }}</mat-icon>
+          {{
+            (columnsOpen() ? 'import.columns.hide' : 'import.columns.configure')
+              | transloco
+          }}
+        </button>
+      </div>
+
+      @if (columnsOpen()) {
+        <p class="import__hint">{{ 'import.columns.hint' | transloco }}</p>
+        <div class="import__columns-fields">
+          <mat-form-field subscriptSizing="dynamic">
+            <mat-label>{{ 'import.columns.title' | transloco }}</mat-label>
+            <mat-select
+              [value]="columns.title"
+              (selectionChange)="selectColumn('title', $event.value)"
+            >
+              @for (name of columnNames(); track name) {
+                <mat-option [value]="name" [disabled]="name === columns.date">
+                  {{ name }}
+                </mat-option>
+              }
+            </mat-select>
+            <mat-hint>{{ 'import.columns.hints.title' | transloco }}</mat-hint>
+          </mat-form-field>
+          <mat-form-field subscriptSizing="dynamic">
+            <mat-label>{{ 'import.columns.date' | transloco }}</mat-label>
+            <mat-select
+              [value]="columns.date"
+              (selectionChange)="selectColumn('date', $event.value)"
+            >
+              @for (name of columnNames(); track name) {
+                <mat-option [value]="name" [disabled]="name === columns.title">
+                  {{ name }}
+                </mat-option>
+              }
+            </mat-select>
+            <mat-hint>{{ 'import.columns.hints.date' | transloco }}</mat-hint>
+          </mat-form-field>
+          <mat-form-field subscriptSizing="dynamic">
+            <mat-label>{{ 'import.columns.tags' | transloco }}</mat-label>
+            <mat-select
+              multiple
+              [value]="columns.tags"
+              (selectionChange)="selectTagColumns($event.value)"
+            >
+              @for (name of columnNames(); track name) {
+                @if (name !== columns.title && name !== columns.date) {
+                  <mat-option [value]="name">{{ name }}</mat-option>
+                }
+              }
+            </mat-select>
+            <mat-hint>{{ 'import.columns.hints.tags' | transloco }}</mat-hint>
+          </mat-form-field>
+        </div>
+      }
+    </section>
+  }
+
+  @if (preview.hasValue()) {
+    <ul class="import__summary">
+      <li>
+        <span>{{ 'import.summary.ready' | transloco }}</span>
+        <strong>{{ preview.value().ready }}</strong>
+      </li>
+      @if (broken().length) {
+        <li class="import__summary-item--danger">
+          <span class="import__summary-label">
+            <mat-icon>warning</mat-icon>
+            {{ 'import.summary.broken' | transloco }}
+          </span>
+          <strong>{{ broken().length }}</strong>
+        </li>
+      }
+      @if (preview.value().skipped) {
+        <li>
+          <span>{{ 'import.summary.skipped' | transloco }}</span>
+          <strong>{{ preview.value().skipped }}</strong>
+        </li>
+      }
+    </ul>
+
+    @if (broken().length) {
+      <section class="import__broken">
+        <p class="import__hint">{{ 'import.brokenHint' | transloco }}</p>
+        <div class="import__choice">
+          <button
+            matButton="tonal"
+            type="button"
+            [class.import__choice--selected]="
+              !reviewing() && skippedCount() === broken().length
+            "
+            (click)="skipAll()"
+          >
+            <mat-icon>block</mat-icon>
+            {{ 'import.skipAll' | transloco }}
+          </button>
+          <button
+            matButton="tonal"
+            type="button"
+            [class.import__choice--selected]="reviewing()"
+            (click)="review()"
+          >
+            <mat-icon>edit_calendar</mat-icon>
+            {{ 'import.fillIn' | transloco }}
+          </button>
+        </div>
+
+        @if (reviewing()) {
+          <ol class="import__list">
+            @for (item of broken(); track item.index; let i = $index) {
+              @let fix = fixForm[i];
+              <li class="import__item" [class.import__item--skipped]="fix.skip().value()">
+                <div class="import__item-header">
+                  <span class="import__item-title">
+                    {{ fix.title().value() || ('event.untitled' | transloco) }}
+                  </span>
+                  <mat-checkbox [formField]="fix.skip">
+                    {{ 'import.skip' | transloco }}
+                  </mat-checkbox>
+                </div>
+                @for (problem of item.problems; track $index) {
+                  <p class="import__reason">
+                    {{
+                      'import.problems.' + problem.code
+                        | transloco: { value: problem.value }
+                    }}
+                  </p>
+                }
+
+                @if (!fix.skip().value()) {
+                  <mat-form-field class="import__field" subscriptSizing="dynamic">
+                    <mat-label>{{ 'event.title' | transloco }}</mat-label>
+                    <input matInput [formField]="fix.title" />
+                    @if (fix.title().errors()[0]; as error) {
+                      <mat-error>
+                        {{ 'event.errors.' + error.kind | transloco }}
+                      </mat-error>
+                    }
+                  </mat-form-field>
+
+                  @if ((item.draft.description?.length ?? 0) > descriptionMax) {
+                    <mat-form-field class="import__field" subscriptSizing="dynamic">
+                      <mat-label>{{ 'event.description' | transloco }}</mat-label>
+                      <textarea
+                        matInput
+                        rows="4"
+                        [formField]="fix.description"
+                      ></textarea>
+                      @if (fix.description().errors()[0]; as error) {
+                        <mat-error>
+                          {{ 'event.errors.' + error.kind | transloco }}
+                        </mat-error>
+                      }
+                    </mat-form-field>
+                  }
+
+                  <div class="import__dates">
+                    <mat-form-field class="import__field" subscriptSizing="dynamic">
+                      <mat-label>{{ 'event.dates' | transloco }}</mat-label>
+                      <mat-date-range-input [rangePicker]="datesPicker">
+                        <input
+                          matStartDate
+                          [formField]="fix.startAt"
+                          [attr.aria-label]="'event.startAt' | transloco"
+                          [placeholder]="'event.startAt' | transloco"
+                        />
+                        <input
+                          matEndDate
+                          [formField]="fix.endAt"
+                          [attr.aria-label]="'event.endAt' | transloco"
+                          [placeholder]="'event.endAt' | transloco"
+                        />
+                      </mat-date-range-input>
+                      <mat-datepicker-toggle matIconSuffix [for]="datesPicker" />
+                      <mat-date-range-picker #datesPicker />
+                      @if (
+                        fix.startAt().errors()[0] ?? fix.endAt().errors()[0];
+                        as error
+                      ) {
+                        <mat-error>
+                          {{ 'event.errors.' + error.kind | transloco }}
+                        </mat-error>
+                      }
+                    </mat-form-field>
+                    <mat-checkbox [formField]="fix.allDay">
+                      {{ 'import.allDay' | transloco }}
+                    </mat-checkbox>
+                  </div>
+
+                  @if (!fix.allDay().value()) {
+                    <div class="import__dates">
+                      <mat-form-field class="import__field" subscriptSizing="dynamic">
+                        <mat-label>{{ 'event.startTime' | transloco }}</mat-label>
+                        <input
+                          matInput
+                          [matTimepicker]="startTime"
+                          [formField]="fix.startAt"
+                          (click)="startTime.open()"
+                        />
+                        <mat-timepicker-toggle matIconSuffix [for]="startTime" />
+                        <mat-timepicker #startTime [interval]="timeStep" />
+                      </mat-form-field>
+                      <mat-form-field class="import__field" subscriptSizing="dynamic">
+                        <mat-label>{{ 'event.endTime' | transloco }}</mat-label>
+                        <input
+                          matInput
+                          [matTimepicker]="endTime"
+                          [formField]="fix.endAt"
+                          (click)="endTime.open()"
+                        />
+                        <mat-timepicker-toggle matIconSuffix [for]="endTime" />
+                        <mat-timepicker #endTime [interval]="timeStep" />
+                      </mat-form-field>
+                    </div>
+                  }
+                }
+              </li>
+            }
+          </ol>
+        }
+      </section>
+    }
+  }
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+  <button matButton type="button" [disabled]="saving()" (click)="close()">
+    {{ 'common.cancel' | transloco }}
+  </button>
+  <button
+    matButton="filled"
+    type="button"
+    [disabled]="!canImport()"
+    (click)="importEvents()"
+  >
+    {{ 'import.submit' | transloco: { count: importCount() } }}
+  </button>
+</mat-dialog-actions>

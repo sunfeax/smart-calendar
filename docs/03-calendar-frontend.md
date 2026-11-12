@@ -82,6 +82,17 @@ XLSX export runs in the browser through a dynamically loaded `write-excel-file`.
 The user selects a period of up to a year. Each occurrence becomes a row, with a
 column for each tag category.
 
+## Import
+
+Owners and editors open import from the header menu. The dialog reads the selected
+file in the browser, sends it to the preview endpoint with the browser time zone, and
+shows how many events are ready, need attention, or cannot be imported. Broken events
+can be skipped together or filled in one by one; the import button stays disabled
+until every broken event is skipped or valid. Success reloads events and tag categories.
+A newer file selection cancels reading of the previous one (`switchMap`). Notion column
+selectors keep the last successful columns while a preview reloads or fails. The dialog
+cannot be closed while an import is saving.
+
 ## PWA and connectivity
 
 `@angular/service-worker` is enabled for production builds. `ngsw-config.json`
