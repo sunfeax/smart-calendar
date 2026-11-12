@@ -12,3 +12,6 @@ apps/backend/src/generated
 .vscode
 .idea
 docs
+.project-notes.md
+/*.ical/
+/*_ExportBlock_*/

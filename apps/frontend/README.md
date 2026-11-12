@@ -6,7 +6,7 @@ In development, `ng serve` proxies `/api` to the backend on port 3000 (`proxy.co
 
 Translations live in `public/i18n/{ru,en,es}.json` (Transloco), design tokens in `src/styles/_tokens.scss`.
 
-See the root `CLAUDE.md` and `docs/04-calendar-frontend.md` for the calendar design and project rules.
+See the [frontend guide](../../docs/03-calendar-frontend.md) for calendar design and the root [project instructions](../../CLAUDE.md) for development conventions.
 
 ## Setup
 

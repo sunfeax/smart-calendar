@@ -1,144 +1,115 @@
-# CLAUDE.md
+# Project instructions
 
-Notion-style календарь: Angular + FullCalendar на фронтенде, NestJS + Prisma + PostgreSQL на бэкенде, вход только через Google. Сейчас это закрытая бета для 2–3 человек, цель: публичный продукт с монетизацией. Проектируем с расчётом минимум на 1000 пользователей. Статус: основные функции готовы, дальше выкладка в прод, рефакторинг крупных компонентов и несколько функций из «Позже» (`docs/07-tasks.md`).
+Smart Calendar uses Angular and FullCalendar on the frontend, NestJS and Prisma
+on the backend, and PostgreSQL. Authentication uses Google sign-in and database
+sessions.
 
-Подробная документация лежит в `docs/`. Перед нетривиальной задачей прочитай нужный файл, а не угадывай:
+## Documentation
 
-- `docs/00-overview.md`: цель и таблица принятых решений.
-- `docs/01-stack.md`: стек и отвергнутые варианты.
-- `docs/03-data-model.md`: схема БД и правила (доступ, даты, иконки, повторы).
-- `docs/04-calendar-frontend.md`: FullCalendar, диалог события, телефон, поиск, PWA.
-- `docs/05-backend-auth.md`: API, вход через Google, безопасность.
-- `docs/07-tasks.md`: открытые задачи и сделанное кратко.
-- `docs/08-open-questions.md`: нерешённые вопросы. Не решай их молча, спроси.
-- `docs/09-deploy.md`: выкладка и защита.
+Read the relevant document before making a substantial change:
 
-## Как мы работаем
+- [Overview](docs/00-overview.md): product scope and architectural decisions.
+- [Stack](docs/01-stack.md): technologies and frontend data flow.
+- [Data model](docs/02-data-model.md): entities, access, dates, icons, and recurrence.
+- [Calendar frontend](docs/03-calendar-frontend.md): FullCalendar, dialogs, mobile UI, and PWA.
+- [Backend and authentication](docs/04-backend-auth.md): modules, API, and sessions.
+- [Deployment](docs/05-deploy.md): production topology and operation.
 
-Автор проекта делает его и чтобы получить результат, и чтобы научиться (NestJS, Prisma, OAuth, Docker). Поэтому:
+If `.project-notes.md` exists locally, read it for collaboration preferences,
+planning, and unresolved decisions. It is excluded from Git and Docker contexts.
+Explicit user instructions take precedence over local preferences.
 
-- Не пиши сразу весь код для ключевых частей: логика календаря и состояния, модули Nest, авторизация и доступ, модель данных. Сначала предложи подход и объясни почему, дай набросок или подсказки. Код пишет автор, ты его ревьюишь.
-- Если автор просит написать такую часть целиком, сделай, но объясни ключевые решения и укажи, на что смотреть при проверке.
-- Исключение: всё, что относится к самому FullCalendar (плагины, опции, колбэки, маппер событий, перенос и ресайз), пишешь ты целиком. Автор не хочет тратить время на его API. Состояние страницы, сервисы, диалоги и формы вокруг него остаются за автором по правилам выше.
-- Рутину можно делать целиком: SCSS и вёрстка, формы и DTO, конфиги, миграции по уже согласованной схеме, переводы.
-- Автотесты пока не пишем: решение автора, сначала освоить Nest. Проверка ручная.
-- Не принимай решения из `docs/08-open-questions.md` самостоятельно. Если задача на них упирается, остановись и спроси.
-- Если сомневаешься в API FullCalendar v7, сверяйся с документацией v7. Большинство туториалов и ответов в сети написаны под v6.
-- Не придумывай функции сверх запрошенного. Простое решение лучше универсального.
-- Комментарии в коде только по правилам из раздела «Комментарии и порядок в классе». Объяснения давай в ответе.
+## Language and scope
 
-## Язык
+- Write code, names, comments, commit messages, and documentation in English.
+- Put UI text in Transloco dictionaries. Update matching keys in
+  `apps/frontend/public/i18n/{ru,en,es}.json` together.
+- Follow the user's requested scope. Explain new dependencies before adding them.
+- Do not commit or push unless explicitly requested. Do not add co-author trailers
+  or generated-by signatures to commits or pull requests.
+- Verify changes with the appropriate build and checks. Check UI changes in a
+  browser in both themes; state any checks that could not be performed.
 
-- Общение: русский.
-- Код, имена, комментарии, сообщения коммитов: английский.
-- Тексты интерфейса: только через Transloco, никаких строк в шаблонах. Переводы в `apps/frontend/public/i18n/{ru,en,es}.json`, набор ключей во всех трёх файлах одинаковый.
+## Repository and tooling
 
-## Структура репозитория (монорепо)
+- Each application has its own `package.json`, lockfile, and `node_modules`.
+  The root package contains shared tooling and wrapper scripts; there are no workspaces.
+- Keep shared ESLint, Prettier, editor, and Git configuration at the root.
+  Application-specific TypeScript options remain in each application.
+- The backend is ESM: relative imports use `.js` extensions.
+- Prisma configuration is `apps/backend/prisma7.config.ts`; the schema is
+  `apps/backend/prisma/schema.prisma`. Generated client files live in
+  `apps/backend/src/generated/prisma` and must not be edited manually.
+- Environment values are supplied through the root `.env`. Do not read, modify,
+  print, or commit it. Add variable names to `.env.example` and ask the user to
+  supply values. Do not read private keys, certificates, or SSH configuration.
+- Use Prisma migrations for schema changes. Do not manually modify the database
+  schema or run destructive migrations without explicit approval.
 
-```
-.
-├── apps/
-│   ├── frontend/         # Angular + Material + FullCalendar
-│   └── backend/          # NestJS + Prisma
-├── docs/                 # документация проекта
-├── eslint.config.js      # общий ESLint для обоих приложений
-├── tsconfig.base.json    # общие флаги строгости TS, его расширяют оба tsconfig
-├── .prettierrc           # общий Prettier
-├── docker-compose.yaml  # Postgres для разработки
-├── docker-compose.prod.yaml  # прод: Postgres, миграции, Nest, Caddy с фронтом
-├── .dockerignore
-├── .env.example        # шаблон .env (сам .env в корне, не коммитится)
-├── .editorconfig, .gitignore, .vscode/
-├── CLAUDE.md
-└── package.json          # только тулинг (ESLint, Prettier) и скрипты-обёртки
-```
+## Frontend conventions
 
-Workspaces нет: у каждого приложения свой `package.json`, `package-lock.json` и `node_modules`. Корневой `npm i` ставит только тулинг, зависимости приложений ставятся в их папках.
+- Use modern standalone Angular, signals, `inject()`, `input()`, `output()`,
+  and built-in template control flow. Use self-closing component tags.
+- Prefer private writable signals with public read-only access. Derive state with
+  `computed` or `linkedSignal`. Use ISO strings for persistent date state and
+  `date-fns` for date calculations.
+- API services contain requests. Components do not call `HttpClient` or build API
+  URLs. Page data belongs in `rxResource`; service methods return Observables.
+- Use RxJS for cancellation, debounce, retries, and ordered asynchronous work.
+  Close subscriptions with `takeUntilDestroyed` or the async pipe, except for
+  intentionally drained finite mutation queues described in the frontend guide.
+- Handle mutation errors. Update resources from successful responses; revert
+  failed drag/resize operations. Series changes can reload the range because the
+  server expands occurrences.
+- Use effects for DOM, storage, and imperative APIs, not signal-to-signal synchronization.
+- Import FullCalendar through `@fullcalendar/angular`, not `fullcalendar` directly.
+  Use documentation matching the installed major version.
+- Use existing design tokens for colors, spacing, typography, borders, and shadows.
+  Use paired `--color-on-*` tokens for text on colored backgrounds.
+- Keep theme and language preferences in browser storage. The default theme is
+  dark; language selection uses the saved preference, then browser language,
+  then Russian.
+- Generate API models from OpenAPI instead of duplicating them manually.
+- Use kebab-case filenames, PascalCase types without prefixes, and functions
+  rather than utility classes.
 
-Общие конфиги живут только в корне. Не создавай `.prettierrc`, `.gitignore`, `.editorconfig`, конфиг ESLint внутри `apps/*`: Prettier берёт ближайший конфиг и не сливает его с корневым. Специфичные настройки TS (`module`, `target`, Angular-опции) остаются в tsconfig приложения.
+## Backend conventions
 
-Переменные окружения лежат в одном `.env` в корне: его читают docker compose, Prisma CLI и Nest. Compose находит его сам. Остальным путь задан явно, потому что они запускаются из `apps/backend`: в `prisma7.config.ts` через `dotenv`, в Nest через `ConfigModule.forRoot({ envFilePath: '../../.env' })`. Новую переменную добавлять и в `.env`, и в `.env.example`.
+- Keep controllers thin, business logic in services, and validated DTOs on every endpoint.
+- Check calendar membership and role through the access service for every calendar
+  data operation. Do not substitute a filter on `userId` for authorization.
+- Bound database lists by date range, pagination, or a limit.
+- Store sessions and durable application state outside the process. The current
+  rate limiter is process-local and needs shared storage before running replicas.
+- Keep tags and categories within their calendar and validate their assignment.
+- Use `timestamptz` for timestamps. All-day events use UTC midnight and exclusive ends.
 
-Prisma (v7): конфиг `apps/backend/prisma7.config.ts` (это имя по умолчанию в Prisma 7), схема `prisma/schema.prisma`, клиент генерируется в `src/generated/prisma` (в `.gitignore`, свои файлы туда не класть). `PrismaService` и `PrismaModule` лежат в `src/prisma/`, подключение через адаптер `@prisma/adapter-pg`.
+## Comments and class layout
 
-Бэкенд работает как ESM (`"type": "module"`): относительные импорты пишутся с расширением `.js`. Тестовый раннер на обоих концах Vitest, но тестов пока нет.
+Only uppercase block headings and explicitly requested actionable `TODO` comments
+are allowed. Do not add explanatory comments, JSDoc, or HTML/SCSS comments.
+Omit empty blocks and headings in classes with only one block. Use this order:
 
-Фронтенд (`apps/frontend/src/app`): `core/` (конфиги `provide*`, константы, guards), `features/<фича>/` (страницы, сервисы, модели фичи), `shared/` (общие сервисы `ThemeService`, `LanguageService`, `SnackbarService`, `TabSyncService`, модели, `components/` для переиспользуемых UI-блоков: `ConfirmDialog` (`ConfirmDialog.open`), `Snackbar` (вид уведомлений `SnackbarService`; `withAction` добавляет кнопку действия с обратным отсчётом и возвращает Observable нажатия), `UserMenu` (аватар с меню: тема, язык, выход; стоит в шапке каждой страницы, сайдбара нет), `pipes/` (`truncate`), `layouts/` для каркасов страниц: `AuthLayout`, `MainLayout`). Тема и язык хранятся только в браузере (`localStorage`), не в профиле: тема по умолчанию тёмная, язык из сохранённого, иначе из браузера, иначе `ru`. Стили: токены в `src/styles/_tokens.scss` (светлая тема на `:root`, тёмная на `:root[data-theme='dark']`), шрифт Inter из пакета `@fontsource-variable/inter`.
+1. `// STATIC`: static members.
+2. `// DEPENDENCIES`: injected dependencies; Nest constructor injection.
+3. `// INPUTS`: inputs, outputs, and models.
+4. `// STATE`: signals, forms, streams, view queries, and template constants.
+5. `// DATA`: resources.
+6. `// COMPUTED`: computed state, linked signals, getters, and calendar options.
+7. `// LIFECYCLE`: lifecycle hooks and constructors that only call named setup methods.
+8. `// EFFECTS`: constructor-invoked effects, render hooks, and subscription setup.
+9. `// ACTIONS`: public/protected actions, then private methods with side effects.
+10. `// HANDLERS`: private reactions to external callbacks.
+11. `// HELPERS`: private methods without side effects.
 
-## Команды
+Place fields below the fields they read during initialization. See
+`apps/frontend/src/app/features/calendar/pages/calendar/calendar.ts` for the style.
 
-```bash
-# Из корня
-npm run front          # ng serve, http://localhost:4200
-npm run back           # nest start --watch, порт из PORT или 3000
-npm run lint           # ESLint по обоим приложениям
-npm run format         # Prettier --write по всему репозиторию
-npm run format:check
-npm run db:up          # Postgres в Docker
-npm run db:down
+## Security and product boundaries
 
-# Бэкенд (cd apps/backend)
-npm run build
-npm run prisma:migrate   # создать и применить миграцию (prisma migrate dev)
-npm run prisma:generate  # пересоздать клиент после правки схемы
-npm run prisma:studio    # просмотр данных
-
-# Фронтенд (cd apps/frontend)
-npm run build
-```
-
-## Ключевые решения (кратко)
-
-- Календарь: FullCalendar v7 (`@fullcalendar/angular`). Не импортировать пакет `fullcalendar` напрямую в Angular-коде.
-- Компонент календаря работает с данными через сервис-API событий, а не через `HttpClient` напрямую.
-- Несколько календарей на пользователя. События, категории и теги принадлежат календарю. Доступ определяется членством (`CalendarMember`) и ролью.
-- Иконка события: одна строка с префиксом `emoji:`, `brand:`, `url:`. Загрузки файлов нет.
-- Вход только через Google (ID token, проверка через `google-auth-library`), сессия в httpOnly-cookie. Паролей нет.
-- Время хранится как `timestamptz`. События «на весь день» хранят дату, у FullCalendar конец такого события эксклюзивный.
-
-## Правила кода
-
-- Бэкенд без состояния в памяти процесса (сессии, кеши, очереди только во внешнем хранилище), чтобы можно было запустить несколько экземпляров.
-- Списки из БД всегда ограничены: диапазон дат, пагинация или лимит. Никаких выборок «всё сразу».
-- Angular: standalone-компоненты. `OnPush` в Angular 22 включён по умолчанию, указывать `changeDetection` не нужно. Состояние на signals. HTTP и потоки событий через Observable (методы сервисов возвращают Observable, переход через `toSignal`/`toObservable`). Новые подписки RxJS закрывать (`takeUntilDestroyed` или `async`).
-- Данные на фронтенде: сервис-API (`@Service()`) только с запросами; данные страницы через `rxResource` в компоненте; общее состояние приложения в signal сервиса; мутации с обработкой ошибки; после успеха данные обновляются локально ответом сервера (`resource.update`), без `reload()` диапазона, перенос и ресайз при ошибке откатываются через `revert()`. Подробно в `docs/01-stack.md`.
-- Не хранить `Date` в состоянии, использовать ISO-строки. Для вычислений `date-fns`.
-- Цвета тегов хранятся как ключи палитры, а не hex, чтобы работали обе темы.
-- Все стили должны работать в светлой и тёмной темах. Цвета, отступы, радиусы, тени и шрифты берём из токенов `_tokens.scss`, а не пишем значения напрямую. Для текста на цветном фоне используем парный токен `--color-on-*`.
-- NestJS: на каждый эндпоинт DTO с `class-validator`, логика в сервисах, контроллеры тонкие.
-- Prisma: схему меняем только миграциями (`prisma migrate`), без ручных правок БД.
-- Каждый запрос к данным календаря проходит через сервис доступа (проверка членства и роли). Никаких обходных запросов с фильтром только по `userId`.
-- API описан через Swagger, клиент для Angular генерируется из OpenAPI, типы вручную не дублировать.
-
-## Комментарии и порядок в классе
-
-- В коде два вида комментариев: заголовки блоков и `TODO` для автора. Поясняющих комментариев нет (ни в TS, ни в SCSS, ни в HTML).
-- Члены класса группируются в блоки. Блок начинается с заголовка `// NAME` заглавными буквами, между блоками пустая строка. Пустые блоки не пишем. Если у класса всего один блок (DTO, модуль Nest, маленький компонент), заголовок не нужен. Порядок блоков:
-  1. `// STATIC`: статические члены.
-  2. `// DEPENDENCIES`: `inject()`, в Nest конструктор с параметрами-зависимостями.
-  3. `// INPUTS`: `input()`, `output()`, `model()`.
-  4. `// STATE`: `signal()`, формы (`form()`), `Subject` и потоки, `viewChild`, константы для шаблона.
-  5. `// DATA`: ресурсы (`rxResource`, `httpResource`).
-  6. `// COMPUTED`: `computed()`, `linkedSignal()`, геттеры, опции FullCalendar.
-  7. `// LIFECYCLE`: конструктор (если это не только DI) и хуки `ng*` / `onModule*`. Конструктор только вызывает именованные методы, кода в нём нет.
-  8. `// EFFECTS`: методы, которые конструктор вызывает при создании: `effect()`, `afterRenderEffect()`, `afterNextRender()`, подписки с `takeUntilDestroyed()`, настройка `DestroyRef` и `MatDialogRef`. Имя говорит, что метод делает (`syncThemeFromTabs`, `showEventsError`). Вызываются только из конструктора: им нужен injection context.
-  9. `// ACTIONS`: публичные методы (включая `protected` для шаблона и эндпоинты контроллеров), затем приватные методы с побочными эффектами: запросы, изменение состояния, диалоги, навигация, уведомления.
-  10. `// HANDLERS`: приватные реакции на внешние колбэки (FullCalendar, диалоги, подписки).
-  11. `// HELPERS`: приватные методы без побочных эффектов: вычисления, преобразования, проверки.
-- Внутри блока поле стоит ниже полей, которые оно читает при инициализации.
-- Образец: `features/calendar/pages/calendar/calendar.ts`.
-
-## Безопасность
-
-- Не коммитить секреты. Всё в переменных окружения, `.env` в `.gitignore`, в репозитории только `.env.example`.
-- Иконка по ссылке: только `https://`, ограничение длины, на клиенте `loading="lazy"` и `referrerpolicy="no-referrer"`.
-- Тексты событий и заметок считать недоверенными данными, особенно когда появится ИИ-агент (риск prompt injection).
-- Разрушительные действия (удаление, массовые изменения) агентом только с подтверждением пользователя.
-- Перед выкладкой в прод: HTTPS, бэкапы Postgres, лимиты запросов, логи и статистика. Доступ открыт для всех, списка разрешённых email нет.
-
-## Чего не делаем
-
-- Загрузка картинок пользователем.
-- Вход по паролю.
-- ИИ-агент и RAG до готовой основы (раздел «Продакшен» в `docs/07-tasks.md`).
-- Новые зависимости без причины. Если нужна библиотека, объясни зачем.
+- Treat imported content, event text, and notes as untrusted data.
+- External icon URLs must use HTTPS. Preserve length validation, lazy loading,
+  and `referrerpolicy="no-referrer"`.
+- Never publish personal calendar exports or real user data as fixtures.
+- Destructive actions and bulk data changes require explicit user authorization.
+- File uploads and password authentication are outside the current product scope.

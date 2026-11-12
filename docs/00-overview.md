@@ -1,60 +1,54 @@
-# Notion-style календарь: обзор
+# Smart Calendar overview
 
-Статус на 2026-11-03: основные функции готовы (`07-tasks.md`, «Сделано»). Дальше выкладка в прод, рефакторинг крупных компонентов и несколько функций из «Позже».
+Smart Calendar is a shared web calendar with a continuous year view, event icons,
+and colored tags organized into categories. Users can create personal calendars
+or share them with a small group through single-use invitation links.
 
-## Цель
+The application includes Google sign-in, recurring events, archive and restore,
+search, XLSX export, light and dark themes, English/Russian/Spanish translations,
+and mobile month/day views. It can be installed as a PWA. Backend and deployment
+limitations are documented alongside their implementation.
 
-Веб-календарь в духе Notion. Сейчас закрытая бета: 2–3 человека пользуются и тестируют. Цель: публичный продукт с монетизацией, поэтому архитектуру с самого начала закладываем минимум на 1000 пользователей. Попутно автор осваивает новый стек (NestJS, Prisma, OAuth, Docker).
+## Architectural decisions
 
-## Принципы
+| Area               | Decision                                                 | Rationale                                                                        |
+| ------------------ | -------------------------------------------------------- | -------------------------------------------------------------------------------- |
+| Calendar rendering | FullCalendar through `@fullcalendar/angular`             | Provides multi-day layout, drag and drop, resizing, and multiple views.          |
+| Frontend           | Standalone Angular with signals and RxJS                 | Signals represent state; RxJS handles asynchronous events and HTTP workflows.    |
+| UI                 | Angular Material and shared design tokens                | Consistent controls, accessibility, and light/dark theme support.                |
+| Backend            | NestJS, Prisma, PostgreSQL                               | Modular services, validated API boundaries, and relational data with migrations. |
+| Authentication     | Google ID tokens and database sessions                   | Avoids password storage and supports immediate session revocation.               |
+| Authorization      | Calendar membership with OWNER, EDITOR, and VIEWER roles | Centralizes access checks for shared calendars and their data.                   |
+| Recurrence         | Server-side `rrule` expansion in the series time zone    | Keeps local event times stable through daylight saving changes.                  |
+| Dates              | PostgreSQL `timestamptz`; UTC dates for all-day events   | Separates absolute instants from date-only events with exclusive end dates.      |
+| Invitations        | Single-use, seven-day links for EDITOR or VIEWER         | Limits link reuse and prevents granting ownership by invitation.                 |
+| Event editing      | Autosave with ordered mutations                          | Saves individual changes without a separate save action.                         |
+| Deletion           | Archive, undo, restore, and confirmed permanent deletion | Supports recovery from accidental deletion.                                      |
+| Tags               | Calendar-owned categories and tags with palette keys     | Keeps shared metadata consistent and supports both themes.                       |
+| Event appearance   | Neutral cards with icons and colored tags                | Uses a shared background while keeping event metadata visible.                   |
+| Icons              | Emoji, bundled brand SVGs, and external HTTPS images     | Supports multiple icon sources without file uploads.                             |
+| Preferences        | Browser-local theme and language                         | Keeps device preferences independent of account data.                            |
+| Mobile             | Month grid and hourly day view; editing through dialogs  | Supports touch navigation without drag/scroll conflicts.                         |
+| PWA                | Cached application shell; API data remains online        | Supports installation without offline-editing conflicts in shared calendars.     |
+| Deployment         | Docker Compose with an external HTTPS reverse proxy      | Separates application containers from public TLS termination.                    |
 
-- Сначала рабочий календарь, потом всё остальное. Первую версию показать тестовым пользователям как можно раньше.
-- Готовое берём там, где учиться нечему (сетка календаря), своё пишем там, где обучение (бэкенд, авторизация, теги, диалоги).
-- Компоненты работают с данными через сервисы, а не через `HttpClient` напрямую. Источник иконок прячем за интерфейсом, чтобы менять его без переписывания компонентов.
-- ИИ-агент добавляем только когда основа готова.
+## Scope and limits
 
-## Ключевые решения
+- Calendars, categories, tags, and members have server-side limits defined in their
+  feature constants. No capacity claim is implied by the architecture.
+- Category/tag ordering follows creation order; `sortOrder` is reserved for explicit ordering.
+- Single-selection categories reject conversion when existing events have multiple tags.
+- Series tags apply to all occurrences. Recurrence exceptions modify event fields.
+- Shared views do not currently receive live updates from other participants.
+- Offline editing, password authentication, and user image uploads are not implemented.
 
-| Вопрос                        | Решение                                                                                                                                              | Почему                                                                                      |
-| ----------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------- |
-| Календарь                     | FullCalendar v7 (`@fullcalendar/angular`)                                                                                                            | Многодневные события, drag-and-drop и ресайз уже есть. Писать свою сетку дольше             |
-| UI-кит                        | Angular Material                                                                                                                                     | Выбор автора                                                                                |
-| Бэкенд                        | NestJS + Prisma                                                                                                                                      | Похож на Angular по устройству, автор хочет освоить                                         |
-| БД                            | PostgreSQL (Docker)                                                                                                                                  | Стандарт, потом можно добавить `pgvector`                                                   |
-| Вход                          | Только Google, без паролей                                                                                                                           | Проще и безопаснее                                                                          |
-| Календари                     | Несколько календарей на пользователя, с участниками и ролями                                                                                         | Личный, с коллегами, с второй половиной                                                     |
-| Иконки                        | Встроенный набор + эмодзи + ссылка по URL. Загрузки файлов нет                                                                                       | Не грузит БД, проще                                                                         |
-| Повторяющиеся события         | Через `rrule`, развёртывание на сервере в поясе серии (`Event.timeZone`), действия как в Google Calendar: только это, это и последующие, все         | Привычная модель для пользователей                                                          |
-| Удаление событий              | Архив: `DELETE` переносит событие в архив, «Отменить» 6 секунд, в архиве восстановление и удаление навсегда                                          | Случайное удаление не теряет данные                                                         |
-| Темы                          | Светлая и тёмная, по умолчанию тёмная. Выбор хранится в браузере (`localStorage`), не в профиле                                                      | Тема — настройка устройства, серверу не нужна                                               |
-| Языки                         | ru, es, en через Transloco, база для трёх языков есть. Выбор хранится в браузере; в профиль добавим, когда сервер начнёт слать письма и напоминания  | Пока язык нужен только интерфейсу                                                           |
-| Шрифт                         | Inter из пакета `@fontsource-variable/inter` (в бандле). Значки Material Symbols с Google Fonts                                                      | Кириллица; значки кешируются service worker                                                 |
-| Дизайн-токены                 | Токены в `_tokens.scss` (светлая тема на `:root`, тёмная на `data-theme=dark`), `--mat-sys-*` Material привязаны к ним                               | Одна точка правки цветов, контраст текста не ниже AA                                        |
-| Телефон                       | До 600px: сетка месяца, по дате день с почасовой шкалой, свайпы, кнопка «+», диалог события на весь экран. Перенос только через диалог               | Перетаскивание пальцем неудобно и конфликтует с прокруткой                                  |
-| Сессия                        | Таблица `Session` в БД, токен в httpOnly-cookie, 30 дней со скользящим продлением. Не JWT                                                            | Мгновенный отзыв, refresh-токены не нужны. Postgres всё равно опрашивается на каждый запрос |
-| Дедлайн                       | Нет                                                                                                                                                  | Не нужен                                                                                    |
-| Отметка «выполнено»           | Поле `completedAt` у события                                                                                                                         | Нужна галочка, дата выполнения пригодится для статистики                                    |
-| Цвет карточки события         | Нейтральный серый из токенов (`--color-event`), события со временем тоже карточки, с иконкой часов. Цвет несут иконка и теги                         | Цветные теги и иконки читаются лучше на спокойном фоне                                      |
-| Часовые пояса                 | Время в поясе браузера. У повторяющихся серий свой пояс `Event.timeZone`, события «на весь день» как дата (полночь UTC)                              | `timestamptz` хранит абсолютное время, пояс отображения можно сменить                       |
-| Теги                          | Принадлежат календарю                                                                                                                                | Общий календарь = общий набор тегов                                                         |
-| Приглашения                   | По одноразовой ссылке на 7 дней. Роль (EDITOR или VIEWER) выбирает тот, кто создаёт ссылку. Лимит участников на календарь, позже снимается подпиской | Ссылку нельзя переслать дальше; лимиты станут частью монетизации                            |
-| Доступ к приложению           | Открыт для всех, списка разрешённых email нет                                                                                                        | Сначала нужна статистика и логи, чтобы видеть, что происходит (открытый вопрос)             |
-| Права редактора               | События и теги полностью, ссылки-приглашения, удаление участников кроме владельца. Не может трогать владельца, настройки и удаление календаря        | Базовый CRUD, но не наравне с владельцем                                                    |
-| Хостинг                       | VPS                                                                                                                                                  |                                                                                             |
-| Сохранение события            | Без кнопки «Сохранить»: клик по календарю сразу создаёт пустое событие, каждое изменение уходит своим `PATCH`, теги по одному через `POST`/`DELETE`  | Как в Notion, меньше действий; мелкие запросы не спорят друг с другом                       |
-| Ручная сортировка в дне       | Пока не делаем, набросок в `07-tasks.md`                                                                                                             | Нет запроса от пользователей                                                                |
-| Порядок категорий и тегов     | По времени создания, ручной сортировки нет. Колонка `sortOrder` остаётся в схеме                                                                     | Их немного, есть поиск. Вернуть сортировку можно без миграции                               |
-| Категория в режим одного тега | Запрет (409), пока у какого-то события больше одного тега категории. Пользователь сначала оставляет по одному тегу                                   | Данные не расходятся с правилом, ничего не удаляется молча                                  |
-| PWA                           | Устанавливается на телефон, оболочка работает без сети, данные только с сервера. Офлайн-редактирования нет                                           | Офлайн-синхронизация с общими календарями слишком дорогая                                   |
-| Изменения других участников   | Перезапрос диапазона при возврате на вкладку и раз в 30–60 секунд, без SSE                                                                           | При 2–5 участниках задержки в минуту хватает                                                |
-| ИИ-агент                      | После готовой основы. Сначала tool calling, RAG только если появятся заметки                                                                         |                                                                                             |
+## Documentation
 
-## Файлы
+- [Stack and data flow](01-stack.md)
+- [Data model and domain rules](02-data-model.md)
+- [Calendar frontend](03-calendar-frontend.md)
+- [Backend and authentication](04-backend-auth.md)
+- [Deployment](05-deploy.md)
 
-- `01-stack.md`: технологии, правила работы с данными, отвергнутые варианты.
-- `03-data-model.md`: схема БД с пояснениями и правила (доступ, теги, даты, повторы, удаление).
-- `04-calendar-frontend.md`: FullCalendar, диалог события, телефон, поиск, PWA.
-- `05-backend-auth.md`: API, вход через Google, безопасность, будущий ИИ-агент.
-- `07-tasks.md`: открытые задачи.
-- `08-open-questions.md`: что ещё нужно решить.
-- `09-deploy.md`: выкладка в прод и защита.
+The root [README](../README.md) covers setup and commands. The Prisma schema and
+application source are authoritative when documentation and implementation differ.

@@ -118,6 +118,8 @@
       "required": "This field is required",
       "maxLength": "The value is too long",
       "matDatepickerParse": "Invalid date",
+      "matTimepickerMin": "The end time must be later than the start",
+      "matTimepickerParse": "Invalid time",
       "endBeforeStart": "The end must be later than the start",
       "durationTooShort": "The event must last at least 15 minutes",
       "matStartDateInvalid": "The start date can't be after the end date",

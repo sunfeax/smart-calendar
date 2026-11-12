@@ -118,6 +118,8 @@
       "required": "Обязательное поле",
       "maxLength": "Слишком длинное значение",
       "matDatepickerParse": "Некорректная дата",
+      "matTimepickerMin": "Время окончания должно быть позже начала",
+      "matTimepickerParse": "Некорректное время",
       "endBeforeStart": "Окончание должно быть позже начала",
       "durationTooShort": "Событие должно длиться не меньше 15 минут",
       "matStartDateInvalid": "Дата начала не может быть позже окончания",

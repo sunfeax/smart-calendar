@@ -2,7 +2,7 @@
 
 Smart Calendar API: NestJS (ESM) + Prisma 7 + PostgreSQL. Sign-in with Google, sessions stored in the database.
 
-See the root `CLAUDE.md` and `docs/05-backend-auth.md` for the API design and project rules.
+See the [backend guide](../../docs/04-backend-auth.md) for API design and the root [project instructions](../../CLAUDE.md) for development conventions.
 
 ## Setup
 
@@ -34,7 +34,7 @@ npm run prisma:generate  # regenerate the client after a schema change
 npm run prisma:studio    # browse data
 ```
 
-- Config: `prisma7.config.ts` (the default file name in Prisma 7). Schema: `prisma/schema.prisma`.
+- Project config: `prisma7.config.ts`. Schema: `prisma/schema.prisma`.
 - The client is generated into `src/generated/prisma`. It is git-ignored, so never put hand-written files there.
 - `PrismaService` and `PrismaModule` live in `src/prisma/`.
 

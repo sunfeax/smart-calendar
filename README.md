@@ -22,7 +22,7 @@ A Notion-style calendar for small teams and couples. The year scrolls month by m
 | Frontend | Angular (standalone, signals), Angular Material, FullCalendar v7, Transloco |
 | Backend  | NestJS, Prisma 7, class-validator, Swagger, google-auth-library             |
 | Database | PostgreSQL                                                                  |
-| Infra    | Docker Compose, Caddy (HTTPS and reverse proxy), GitHub Actions CI          |
+| Infra    | Docker Compose, Caddy, external HTTPS reverse proxy, GitHub Actions CI      |
 
 Sessions are stored in the database and sent as an httpOnly cookie. The frontend and the API share one domain, the API lives under `/api`.
 
@@ -32,7 +32,7 @@ Sessions are stored in the database and sent as an httpOnly cookie. The frontend
 apps/
   frontend/   Angular app, Dockerfile and Caddyfile for production
   backend/    NestJS API, Prisma schema and migrations
-docs/         project docs (in Russian)
+docs/         architecture, domain rules, API, and deployment guides in English
 docker-compose.yaml        Postgres for local development
 docker-compose.prod.yaml   production: Postgres, migrations, API, Caddy
 ```
@@ -76,11 +76,20 @@ In `apps/backend`: `npm run prisma:migrate` creates and applies a migration, `np
 
 ## Deployment
 
-Production runs on a single VPS with `docker-compose.prod.yaml`. Caddy serves the built frontend, proxies `/api` to the backend and obtains HTTPS certificates. Migrations run automatically before the API starts.
+Production uses `docker-compose.prod.yaml`. Caddy serves the built frontend and proxies `/api` to the backend. An upstream reverse proxy on the external `web` Docker network provides public HTTPS; the bundled Caddy configuration listens on port 80 with automatic HTTPS disabled. Migrations run automatically before the API starts.
 
 ```bash
-cp .env.example .env            # POSTGRES_*, GOOGLE_CLIENT_ID, DOMAIN
+cp .env.example .env            # POSTGRES_*, GOOGLE_CLIENT_ID
 docker compose -f docker-compose.prod.yaml up -d --build
 ```
 
-Details and the security setup are in `docs/09-deploy.md`.
+Configure the external network and HTTPS proxy before starting the production stack. See the [deployment guide](docs/05-deploy.md) for details.
+
+## Documentation
+
+- [Product overview and decisions](docs/00-overview.md)
+- [Stack and data flow](docs/01-stack.md)
+- [Data model and domain rules](docs/02-data-model.md)
+- [Calendar frontend](docs/03-calendar-frontend.md)
+- [Backend and authentication](docs/04-backend-auth.md)
+- [Deployment](docs/05-deploy.md)
