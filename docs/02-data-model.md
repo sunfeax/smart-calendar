@@ -58,7 +58,13 @@ while any event still has multiple tags in it.
 - Parent IDs belong in routes: `calendars/:calendarId/tag-categories` and
   `tag-categories/:categoryId/tags`. Moving tags across categories is unsupported.
 - Categories are returned with nested tags, ordered by `sortOrder`, then `createdAt`.
-  The server appends new records with the next sort order; clients do not set it.
+  The server appends new records with the next sort order. Clients change order only
+  through `PUT calendars/:calendarId/tag-categories/order` and
+  `PUT tag-categories/:categoryId/tags/order` with the complete ID list; an outdated
+  list returns 409.
+- `showOnCard` (default `true`) controls whether a category's tags appear on event
+  cards. It is shared by all calendar members and does not affect the event dialog,
+  search, or archive.
 - Category creation requires `multiple`; tag creation requires `color`. Avoid
   `@IsOptional()` for non-nullable create fields: it also accepts `null`.
 - Assignment uses individual `POST`/`DELETE events/:id/tags/:tagId` calls.

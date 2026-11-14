@@ -227,6 +227,16 @@
         </mat-icon>
         <span>{{ 'tags.multiple' | transloco }}</span>
       </button>
+      <button
+        mat-menu-item
+        type="button"
+        (click)="keepMenuOpen($event); toggleShowOnCard(category)"
+      >
+        <mat-icon>
+          {{ category.showOnCard ? 'check_box' : 'check_box_outline_blank' }}
+        </mat-icon>
+        <span>{{ 'tags.showOnCard' | transloco }}</span>
+      </button>
       <button mat-menu-item type="button" (click)="detachCategory(category)">
         <mat-icon>link_off</mat-icon>
         <span>{{ 'tags.detachCategory' | transloco }}</span>

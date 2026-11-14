@@ -357,9 +357,18 @@ export class Calendar {
     return tags;
   });
 
+  private readonly cardTags = computed(() =>
+    this.tagCategories.hasValue()
+      ? this.tagCategories
+          .value()
+          .filter(category => category.showOnCard)
+          .flatMap(category => category.tags)
+      : [],
+  );
+
   private readonly calendarEvents = computed(() => {
     if (!this.events.hasValue()) return [];
-    const tags = [...this.tagsById().values()];
+    const tags = this.cardTags();
     return this.events.value().map(event => {
       const ids = new Set(event.tagIds);
       return toCalendarEvent(

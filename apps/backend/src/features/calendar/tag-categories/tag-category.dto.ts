@@ -6,6 +6,7 @@ import {
   IsBoolean,
   IsUUID,
   MaxLength,
+  ValidateIf,
 } from 'class-validator';
 import { IsNotBlank } from '../../../common/decorators/is-not-blank.decorator.js';
 import { TagDto } from '../tags/tag.dto.js';
@@ -18,6 +19,10 @@ export class TagCategoryCreateDto {
 
   @IsBoolean()
   multiple!: boolean;
+
+  @ValidateIf((_, value) => value !== undefined)
+  @IsBoolean()
+  showOnCard?: boolean;
 }
 
 export class TagCategoryUpdateDto extends PartialType(TagCategoryCreateDto, {
@@ -36,5 +41,6 @@ export class TagCategoryDto {
   id!: string;
   name!: string;
   multiple!: boolean;
+  showOnCard!: boolean;
   tags!: TagDto[];
 }

@@ -12,5 +12,6 @@ export interface TagCategoryDto {
     id: string;
     name: string;
     multiple: boolean;
+    showOnCard: boolean;
     tags: Array<TagDto>;
 }

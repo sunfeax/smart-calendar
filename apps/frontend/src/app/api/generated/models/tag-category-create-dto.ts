@@ -10,4 +10,5 @@
 export interface TagCategoryCreateDto {
     name: string;
     multiple: boolean;
+    showOnCard?: boolean;
 }

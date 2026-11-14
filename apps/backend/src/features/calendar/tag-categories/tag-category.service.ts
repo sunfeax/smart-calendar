@@ -22,6 +22,7 @@ const CATEGORY_SELECT = {
   id: true,
   name: true,
   multiple: true,
+  showOnCard: true,
   tags: {
     select: { id: true, name: true, color: true },
     orderBy: [{ sortOrder: 'asc' }, { createdAt: 'asc' }],
@@ -67,6 +68,7 @@ export class TagCategoryService {
         calendarId,
         name: dto.name,
         multiple: dto.multiple,
+        showOnCard: dto.showOnCard,
         sortOrder,
       },
       select: CATEGORY_SELECT,
@@ -101,6 +103,7 @@ export class TagCategoryService {
       data: {
         name: dto.name,
         multiple: dto.multiple,
+        showOnCard: dto.showOnCard,
       },
       select: CATEGORY_SELECT,
     });

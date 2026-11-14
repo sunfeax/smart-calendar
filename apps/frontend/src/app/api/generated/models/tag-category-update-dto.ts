@@ -10,4 +10,5 @@
 export interface TagCategoryUpdateDto {
     name?: string;
     multiple?: boolean;
+    showOnCard?: boolean;
 }

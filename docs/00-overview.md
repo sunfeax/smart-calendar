@@ -36,7 +36,8 @@ limitations are documented alongside their implementation.
 
 - Calendars, categories, tags, and members have server-side limits defined in their
   feature constants. No capacity claim is implied by the architecture.
-- Category/tag ordering follows creation order; `sortOrder` is reserved for explicit ordering.
+- Categories and tags are ordered by `sortOrder`, set by drag and drop in the event dialog.
+  Event cards show tags in the same order, limited to categories with `showOnCard`.
 - Single-selection categories reject conversion when existing events have multiple tags.
 - Series tags apply to all occurrences. Recurrence exceptions modify event fields.
 - Shared views do not currently receive live updates from other participants.

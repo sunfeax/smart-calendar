@@ -194,6 +194,7 @@
     "editTag": "Edit “{{name}}”",
     "backToTags": "Back to tags",
     "multiple": "Multiple tags",
+    "showOnCard": "Show on card",
     "tags": "Tags",
     "color": "Color",
     "delete": "Delete",

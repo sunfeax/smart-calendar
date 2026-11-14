@@ -281,6 +281,24 @@ export class EventTags {
     );
   }
 
+  toggleShowOnCard(category: TagCategoryDto): void {
+    this.mutate(
+      () => {
+        const current = this.categories()
+          .value()
+          ?.find(item => item.id === category.id);
+        return current
+          ? this.tagService.updateCategory(category.id, {
+              showOnCard: !current.showOnCard,
+            })
+          : EMPTY;
+      },
+      'tags.updateError',
+      updated =>
+        this.updateCategory(category.id, current => ({ ...updated, tags: current.tags })),
+    );
+  }
+
   toggleMultiple(category: TagCategoryDto): void {
     this.mutate(
       () => {
