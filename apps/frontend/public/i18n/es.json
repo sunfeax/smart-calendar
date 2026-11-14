@@ -3,9 +3,7 @@
     "cancel": "Cancelar",
     "confirm": "Confirmar",
     "close": "Cerrar",
-    "undo": "Deshacer",
-    "updateReady": "Hay una nueva versión disponible",
-    "reload": "Actualizar"
+    "undo": "Deshacer"
   },
   "auth": {
     "loginError": "No se pudo iniciar sesión con Google",
