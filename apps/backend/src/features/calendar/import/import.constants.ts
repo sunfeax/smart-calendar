@@ -4,6 +4,7 @@ export const IMPORT_SOURCES = ['google', 'notion'] as const;
 export const IMPORT_PROBLEM_CODES = [
   'invalidFile',
   'tooManyEvents',
+  'noDateColumn',
   'invalidEvent',
   'missingDate',
   'invalidDate',

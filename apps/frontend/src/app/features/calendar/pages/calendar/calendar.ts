@@ -87,6 +87,7 @@ import {
   countEventsByDay,
   EventDates,
   fitWeekRow,
+  pinWeekRow,
   toEventDates,
 } from '../../utils/calendar-layout';
 import { toCalendarEvent, toEventApiDates, toEventKey } from '../../utils/event.mapper';
@@ -149,6 +150,7 @@ export class Calendar {
   readonly dragging = signal(false);
   readonly overTrash = signal(false);
   private droppedOnTrash = false;
+  private unpinToday = (): void => undefined;
   readonly isMobile = toSignal(
     this.breakpointObserver.observe(MOBILE_QUERY).pipe(map(state => state.matches)),
     { initialValue: this.breakpointObserver.isMatched(MOBILE_QUERY) },
@@ -340,6 +342,10 @@ export class Calendar {
       if (!this.calendarSwipe().ignoreTap()) this.openEvent(info.event.id);
     },
     datesSet: info => this.changeDates(info),
+    viewDidMount: ({ el, view }) => {
+      if (isToday(view.calendar.getDate())) this.pinToday(el);
+    },
+    viewWillUnmount: () => this.unpinToday(),
   }));
 
   private readonly tagsById = computed(() => {
@@ -504,6 +510,9 @@ export class Calendar {
       return;
     }
     api[action]();
+    if (action === 'today') {
+      this.pinToday(this.host.nativeElement.querySelector<HTMLElement>('.app-year-view'));
+    }
   }
 
   selectYear(year: number): void {
@@ -546,6 +555,13 @@ export class Calendar {
         ]?.focus('program'),
       { injector: this.injector },
     );
+  }
+
+  private pinToday(view: HTMLElement | null): void {
+    this.unpinToday();
+    if (view?.classList.contains('app-year-view')) {
+      this.unpinToday = pinWeekRow(view, format(new Date(), 'yyyy-MM-dd'));
+    }
   }
 
   private focusMobilePeriod(period: 'months' | 'years'): void {

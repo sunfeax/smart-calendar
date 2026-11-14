@@ -59,10 +59,8 @@ export function parseNotionCsv(
     .sort((a, b) => b.score - a.score)
     .map(({ header }) => header);
   const dateColumn =
-    dateColumns.find(header => header === options.dateColumn) ??
-    dateColumns[0] ??
-    headers[1];
-  if (!dateColumn) throw new CalendarParseError('invalidFile');
+    dateColumns.find(header => header === options.dateColumn) ?? dateColumns[0];
+  if (!dateColumn) throw new CalendarParseError('noDateColumn');
   const tagColumns = headers.filter(
     (header, column) =>
       header !== titleColumn &&

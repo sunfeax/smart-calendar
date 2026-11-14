@@ -84,3 +84,42 @@ function countTagLines(names: string[], width: number): number {
   }
   return lines;
 }
+
+export function pinWeekRow(view: HTMLElement, date: string): () => void {
+  const scroller = view.firstElementChild;
+  const tiles = scroller?.firstElementChild;
+  if (!(scroller instanceof HTMLElement) || !tiles) return () => undefined;
+
+  const align = (): void => {
+    const row = scroller
+      .querySelector(`[data-date="${date}"]`)
+      ?.closest<HTMLElement>('.app-week-row');
+    const month = row?.closest<HTMLElement>('[data-date]');
+    const firstRow = month?.querySelector('.app-week-row');
+    if (!row || !month || !firstRow) return;
+    const top =
+      scroller.scrollTop +
+      month.getBoundingClientRect().top -
+      scroller.getBoundingClientRect().top +
+      row.getBoundingClientRect().top -
+      firstRow.getBoundingClientRect().top;
+    if (Math.abs(scroller.scrollTop - top) > 1) scroller.scrollTop = top;
+  };
+
+  const observer = new ResizeObserver(align);
+  const listeners = new AbortController();
+  const release = (): void => {
+    observer.disconnect();
+    listeners.abort();
+  };
+  observer.observe(tiles);
+  scroller.addEventListener('scroll', align, { signal: listeners.signal });
+  for (const type of ['wheel', 'touchstart', 'pointerdown', 'keydown']) {
+    view.ownerDocument.addEventListener(type, release, {
+      capture: true,
+      passive: true,
+      signal: listeners.signal,
+    });
+  }
+  return release;
+}

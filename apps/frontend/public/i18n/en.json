@@ -317,6 +317,7 @@
     "problems": {
       "invalidFile": "This file is not a valid export from the selected service.",
       "tooManyEvents": "A file can contain at most {{value}} events.",
+      "noDateColumn": "The file has no date column. Notion exports two CSV files: choose the one ending in _all.csv.",
       "invalidEvent": "The event record is damaged.",
       "missingDate": "The event has no date.",
       "invalidDate": "The date could not be recognized.",
