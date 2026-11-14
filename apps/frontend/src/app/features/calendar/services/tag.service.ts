@@ -3,9 +3,11 @@ import { inject, Service } from '@angular/core';
 import {
   TagCategoryCreateDto,
   TagCategoryDto,
+  TagCategoryOrderDto,
   TagCategoryUpdateDto,
   TagCreateDto,
   TagDto,
+  TagOrderDto,
   TagUpdateDto,
 } from '../../../api/generated';
 
@@ -30,6 +32,13 @@ export class TagService {
     return this.http.patch<TagCategoryDto>(`/api/tag-categories/${categoryId}`, body);
   }
 
+  reorderCategories(calendarId: string, body: TagCategoryOrderDto) {
+    return this.http.put<TagCategoryDto[]>(
+      `/api/calendars/${calendarId}/tag-categories/order`,
+      body,
+    );
+  }
+
   deleteCategory(categoryId: string) {
     return this.http.delete<void>(`/api/tag-categories/${categoryId}`);
   }
@@ -40,6 +49,10 @@ export class TagService {
 
   updateTag(tagId: string, body: TagUpdateDto) {
     return this.http.patch<TagDto>(`/api/tags/${tagId}`, body);
+  }
+
+  reorderTags(categoryId: string, body: TagOrderDto) {
+    return this.http.put<TagDto[]>(`/api/tag-categories/${categoryId}/tags/order`, body);
   }
 
   deleteTag(tagId: string) {

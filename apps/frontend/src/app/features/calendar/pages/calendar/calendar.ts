@@ -359,13 +359,14 @@ export class Calendar {
 
   private readonly calendarEvents = computed(() => {
     if (!this.events.hasValue()) return [];
-    const tags = this.tagsById();
-    return this.events.value().map(event =>
-      toCalendarEvent(
+    const tags = [...this.tagsById().values()];
+    return this.events.value().map(event => {
+      const ids = new Set(event.tagIds);
+      return toCalendarEvent(
         event,
-        event.tagIds.flatMap(id => tags.get(id) ?? []),
-      ),
-    );
+        tags.filter(tag => ids.has(tag.id)),
+      );
+    });
   });
 
   private readonly eventsByDay = computed(() => countEventsByDay(this.renderedEvents()));

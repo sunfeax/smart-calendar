@@ -6,6 +6,7 @@ import {
 } from '@nestjs/common';
 import { Prisma, TagCategory } from '../../../generated/prisma/client.js';
 import { CalendarRole } from '../../../generated/prisma/enums.js';
+import { assertCompleteOrder } from '../../../common/order.js';
 import { PrismaService } from '../../../prisma/prisma.service.js';
 import { CalendarAccessService } from '../calendars/calendar-access.service.js';
 import { MAX_TAGS_PER_CATEGORY } from '../tags/tag.constants.js';
@@ -13,6 +14,7 @@ import { MAX_TAG_CATEGORIES_PER_CALENDAR } from './tag-category.constants.js';
 import {
   TagCategoryCreateDto,
   TagCategoryDto,
+  TagCategoryOrderDto,
   TagCategoryUpdateDto,
 } from './tag-category.dto.js';
 
@@ -38,22 +40,7 @@ export class TagCategoryService {
   // ACTIONS
   async list(userId: string, calendarId: string): Promise<TagCategoryDto[]> {
     await this.access.assertRole(userId, calendarId, CalendarRole.VIEWER);
-
-    const categories = await this.prisma.tagCategory.findMany({
-      where: {
-        calendarId,
-      },
-      select: CATEGORY_SELECT,
-      orderBy: [
-        {
-          sortOrder: 'asc',
-        },
-        { createdAt: 'asc' },
-      ],
-      take: MAX_TAG_CATEGORIES_PER_CALENDAR,
-    });
-
-    return categories;
+    return this.findCategories(calendarId);
   }
 
   async create(
@@ -126,6 +113,36 @@ export class TagCategoryService {
     await this.prisma.tagCategory.deleteMany({ where: { id } });
   }
 
+  async reorder(
+    userId: string,
+    calendarId: string,
+    dto: TagCategoryOrderDto,
+  ): Promise<TagCategoryDto[]> {
+    await this.access.assertRole(userId, calendarId, CalendarRole.EDITOR);
+
+    const categories = await this.prisma.tagCategory.findMany({
+      where: { calendarId },
+      select: { id: true },
+      take: MAX_TAG_CATEGORIES_PER_CALENDAR + 1,
+    });
+    assertCompleteOrder(
+      categories.map(category => category.id),
+      dto.ids,
+    );
+
+    await this.prisma.$transaction(
+      dto.ids.map((id, sortOrder) =>
+        this.prisma.tagCategory.update({
+          where: { id },
+          data: { sortOrder },
+          select: { id: true },
+        }),
+      ),
+    );
+
+    return this.findCategories(calendarId);
+  }
+
   async getAuthorizedTagCategory(
     userId: string,
     categoryId: string,
@@ -140,5 +157,15 @@ export class TagCategoryService {
     await this.access.assertRole(userId, category.calendarId, minRole);
 
     return category;
+  }
+
+  // HELPERS
+  private findCategories(calendarId: string): Promise<TagCategoryDto[]> {
+    return this.prisma.tagCategory.findMany({
+      where: { calendarId },
+      select: CATEGORY_SELECT,
+      orderBy: [{ sortOrder: 'asc' }, { createdAt: 'asc' }],
+      take: MAX_TAG_CATEGORIES_PER_CALENDAR,
+    });
   }
 }

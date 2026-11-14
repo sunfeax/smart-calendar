@@ -8,10 +8,11 @@ import {
   ParseUUIDPipe,
   Patch,
   Post,
+  Put,
 } from '@nestjs/common';
 import type { User } from '../../../generated/prisma/client.js';
 import { CurrentUser } from '../../auth/decorators/current-user.decorator.js';
-import { TagCreateDto, TagDto, TagUpdateDto } from './tag.dto.js';
+import { TagCreateDto, TagDto, TagOrderDto, TagUpdateDto } from './tag.dto.js';
 import { TagService } from './tag.service.js';
 
 @Controller()
@@ -27,6 +28,15 @@ export class TagController {
     @Body() dto: TagCreateDto,
   ): Promise<TagDto> {
     return this.tagService.create(user.id, categoryId, dto);
+  }
+
+  @Put('tag-categories/:categoryId/tags/order')
+  reorder(
+    @CurrentUser() user: User,
+    @Param('categoryId', ParseUUIDPipe) categoryId: string,
+    @Body() dto: TagOrderDto,
+  ): Promise<TagDto[]> {
+    return this.tagService.reorder(user.id, categoryId, dto);
   }
 
   @Patch('tags/:id')

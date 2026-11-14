@@ -1,4 +1,10 @@
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import {
+  CdkDrag,
+  CdkDragDrop,
+  CdkDropList,
+  moveItemInArray,
+} from '@angular/cdk/drag-drop';
 import { NgTemplateOutlet } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
 import {
@@ -33,6 +39,8 @@ import { TagCreateRequest } from '../../models/tag-create-request';
 @Component({
   selector: 'app-event-tags',
   imports: [
+    CdkDrag,
+    CdkDropList,
     MatButton,
     MatFormField,
     MatIcon,
@@ -71,6 +79,7 @@ export class EventTags {
   // STATE
   readonly colors = TAG_COLORS;
   readonly nameMax = TAG_NAME_MAX;
+  readonly dragDelay = { touch: 300, mouse: 0 };
   readonly query = signal('');
   readonly categoryQuery = signal('');
   readonly editingTagId = signal<string | null>(null);
@@ -306,6 +315,33 @@ export class EventTags {
       );
   }
 
+  moveCategory({ previousIndex, currentIndex }: CdkDragDrop<unknown>): void {
+    const rows = this.rows();
+    const current = this.categories().value();
+    if (!current || previousIndex === currentIndex) return;
+    const list = [...current];
+    moveItemInArray(
+      list,
+      list.findIndex(category => category.id === rows[previousIndex].category.id),
+      list.findIndex(category => category.id === rows[currentIndex].category.id),
+    );
+    this.categories().set(list);
+    const ids = list.map(category => category.id);
+    this.saveOrder(() => this.tagService.reorderCategories(this.calendarId(), { ids }));
+  }
+
+  moveTag(
+    category: TagCategoryDto,
+    { previousIndex, currentIndex }: CdkDragDrop<unknown>,
+  ): void {
+    if (previousIndex === currentIndex) return;
+    const tags = [...category.tags];
+    moveItemInArray(tags, previousIndex, currentIndex);
+    this.updateCategory(category.id, item => ({ ...item, tags }));
+    const ids = tags.map(tag => tag.id);
+    this.saveOrder(() => this.tagService.reorderTags(category.id, { ids }));
+  }
+
   renameTag(categoryId: string, tag: TagDto, value: string): void {
     const name = value.trim();
     if (!name) return;
@@ -355,16 +391,27 @@ export class EventTags {
     );
   }
 
+  private saveOrder(request: () => Observable<unknown>): void {
+    this.mutate(
+      request,
+      'tags.updateError',
+      () => undefined,
+      () => this.categories().reload(),
+    );
+  }
+
   private mutate<T>(
     request: () => Observable<T>,
     errorKey: string | ((error: unknown) => string),
     apply: (result: T) => void,
+    revert?: () => void,
   ): void {
     if (!this.editable()) return;
     this.mutations.next(() =>
       defer(request).pipe(
         tap(apply),
         catchError((error: unknown) => {
+          revert?.();
           this.notifyError(typeof errorKey === 'string' ? errorKey : errorKey(error));
           return EMPTY;
         }),

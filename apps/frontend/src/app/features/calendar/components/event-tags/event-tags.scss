@@ -356,3 +356,25 @@ button.tags__value {
   border: var(--border-width-sm) solid var(--color-border-soft);
   border-radius: var(--radius-sm);
 }
+
+.tags__row.cdk-drag-placeholder,
+.tags__chip.cdk-drag-placeholder {
+  opacity: 0.4;
+}
+
+.tags__row.cdk-drag-preview {
+  border-radius: var(--radius-control);
+  background: var(--color-surface);
+  box-shadow: var(--shadow-md);
+}
+
+.tags__chip.cdk-drag-preview {
+  box-shadow: var(--shadow-md);
+}
+
+.cdk-drop-list-dragging .tags__row:not(.cdk-drag-placeholder),
+.cdk-drop-list-dragging .tags__chip:not(.cdk-drag-placeholder),
+.tags__row.cdk-drag-animating,
+.tags__chip.cdk-drag-animating {
+  transition: transform var(--duration-normal) var(--ease-standard);
+}

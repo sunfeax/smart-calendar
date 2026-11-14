@@ -9,12 +9,14 @@ import {
   ParseUUIDPipe,
   Patch,
   Post,
+  Put,
 } from '@nestjs/common';
 import { type User } from '../../../generated/prisma/client.js';
 import { CurrentUser } from '../../auth/decorators/current-user.decorator.js';
 import {
   TagCategoryCreateDto,
   TagCategoryDto,
+  TagCategoryOrderDto,
   TagCategoryUpdateDto,
 } from './tag-category.dto.js';
 import { TagCategoryService } from './tag-category.service.js';
@@ -40,6 +42,15 @@ export class TagCategoryController {
     @Body() dto: TagCategoryCreateDto,
   ): Promise<TagCategoryDto> {
     return this.tagCategoryService.create(user.id, calendarId, dto);
+  }
+
+  @Put('calendars/:calendarId/tag-categories/order')
+  reorder(
+    @CurrentUser() user: User,
+    @Param('calendarId', ParseUUIDPipe) calendarId: string,
+    @Body() dto: TagCategoryOrderDto,
+  ): Promise<TagCategoryDto[]> {
+    return this.tagCategoryService.reorder(user.id, calendarId, dto);
   }
 
   @Patch('tag-categories/:id')

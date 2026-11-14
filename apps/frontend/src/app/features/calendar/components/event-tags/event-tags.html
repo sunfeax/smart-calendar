@@ -1,7 +1,12 @@
-<div class="tags">
+<div
+  class="tags"
+  cdkDropList
+  [cdkDropListDisabled]="!editable()"
+  (cdkDropListDropped)="moveCategory($event)"
+>
   @for (row of rows(); track row.category.id) {
     @let category = row.category;
-    <div class="tags__row">
+    <div class="tags__row" cdkDrag [cdkDragStartDelay]="dragDelay">
       @if (editable()) {
         <button
           type="button"
@@ -141,11 +146,20 @@
         <div
           class="tags__picker-list"
           tabindex="-1"
+          cdkDropList
+          cdkDropListOrientation="mixed"
+          [cdkDropListDisabled]="query().trim().length > 0"
+          (cdkDropListDropped)="moveTag(category, $event)"
           (click)="keepMenuOpen($event)"
           (keydown)="keepMenuOpen($event)"
         >
           @for (tag of filteredTags(category); track tag.id) {
-            <span class="tags__chip" [attr.data-tag-color]="tag.color">
+            <span
+              class="tags__chip"
+              cdkDrag
+              [cdkDragStartDelay]="dragDelay"
+              [attr.data-tag-color]="tag.color"
+            >
               <button
                 type="button"
                 class="tags__chip-toggle"

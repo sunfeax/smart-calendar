@@ -1,11 +1,12 @@
 import { ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
 import { Tag } from '../../../generated/prisma/client.js';
 import { CalendarRole } from '../../../generated/prisma/enums.js';
+import { assertCompleteOrder } from '../../../common/order.js';
 import { PrismaService } from '../../../prisma/prisma.service.js';
 import { CalendarAccessService } from '../calendars/calendar-access.service.js';
 import { TagCategoryService } from '../tag-categories/tag-category.service.js';
 import { MAX_TAGS_PER_CATEGORY } from './tag.constants.js';
-import { TagCreateDto, TagDto, TagUpdateDto } from './tag.dto.js';
+import { TagCreateDto, TagDto, TagOrderDto, TagUpdateDto } from './tag.dto.js';
 
 @Injectable()
 export class TagService {
@@ -68,6 +69,41 @@ export class TagService {
   async remove(userId: string, tagId: string): Promise<void> {
     await this.getAuthorizedTag(userId, tagId, CalendarRole.EDITOR);
     await this.prisma.tag.deleteMany({ where: { id: tagId } });
+  }
+
+  async reorder(userId: string, categoryId: string, dto: TagOrderDto): Promise<TagDto[]> {
+    await this.tagCategoryService.getAuthorizedTagCategory(
+      userId,
+      categoryId,
+      CalendarRole.EDITOR,
+    );
+
+    const tags = await this.prisma.tag.findMany({
+      where: { categoryId },
+      select: { id: true },
+      take: MAX_TAGS_PER_CATEGORY + 1,
+    });
+    assertCompleteOrder(
+      tags.map(tag => tag.id),
+      dto.ids,
+    );
+
+    await this.prisma.$transaction(
+      dto.ids.map((id, sortOrder) =>
+        this.prisma.tag.update({
+          where: { id },
+          data: { sortOrder },
+          select: { id: true },
+        }),
+      ),
+    );
+
+    return this.prisma.tag.findMany({
+      where: { categoryId },
+      select: { id: true, name: true, color: true },
+      orderBy: [{ sortOrder: 'asc' }, { createdAt: 'asc' }],
+      take: MAX_TAGS_PER_CATEGORY,
+    });
   }
 
   private async getAuthorizedTag(
