@@ -127,6 +127,7 @@
       "add": "Добавить иконку",
       "change": "Изменить иконку",
       "remove": "Убрать",
+      "frequent": "Часто используемые",
       "title": "Иконка",
       "inputLabel": "Эмодзи или адрес сайта",
       "inputPlaceholder": "🎉 или example.com",

@@ -128,6 +128,10 @@ html {
   }
 }
 
+.tags-menu--picker.mat-mdc-menu-panel {
+  width: min(18rem, calc(100vw - 2rem));
+}
+
 *,
 *::before,
 *::after {

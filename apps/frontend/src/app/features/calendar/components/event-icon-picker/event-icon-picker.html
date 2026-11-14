@@ -56,21 +56,28 @@
     <div class="picker__header">
       <span class="picker__title">{{ 'event.icon.title' | transloco }}</span>
       @if (icon()) {
-        <button type="button" class="picker__remove" (click)="choose(null)">
-          {{ 'event.icon.remove' | transloco }}
+        <button
+          matIconButton
+          type="button"
+          class="picker__remove"
+          [attr.aria-label]="'event.icon.remove' | transloco"
+          (click)="choose(null)"
+        >
+          <mat-icon>delete</mat-icon>
         </button>
       }
     </div>
 
-    <div class="picker__brands">
-      @for (brand of brands; track brand) {
+    <p class="picker__caption">{{ 'event.icon.frequent' | transloco }}</p>
+    <div class="picker__quick">
+      @for (item of quickIcons(); track item.icon) {
         <button
           type="button"
-          class="picker__brand"
-          [attr.aria-label]="brand"
-          (click)="choose('brand:' + brand)"
+          class="picker__quick-icon"
+          [attr.aria-label]="item.label"
+          (click)="choose(item.icon)"
         >
-          <img alt="" [src]="brandSrc(brand)" />
+          <app-event-icon [icon]="item.icon" />
         </button>
       }
     </div>

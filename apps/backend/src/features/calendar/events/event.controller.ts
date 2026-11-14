@@ -46,6 +46,14 @@ export class EventController {
     return this.eventService.listArchived(user.id, calendarId);
   }
 
+  @Get('calendars/:calendarId/events/icons')
+  listFrequentIcons(
+    @CurrentUser() user: User,
+    @Param('calendarId', ParseUUIDPipe) calendarId: string,
+  ): Promise<string[]> {
+    return this.eventService.listFrequentIcons(user.id, calendarId);
+  }
+
   @Get('calendars/:calendarId/events/search')
   search(
     @CurrentUser() user: User,

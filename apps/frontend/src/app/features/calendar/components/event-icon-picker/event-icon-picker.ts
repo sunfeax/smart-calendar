@@ -16,11 +16,22 @@ import {
   signal,
   viewChild,
 } from '@angular/core';
+import { rxResource } from '@angular/core/rxjs-interop';
 import { MatButton, MatIconButton } from '@angular/material/button';
 import { MatIcon } from '@angular/material/icon';
 import { TranslocoPipe } from '@jsverse/transloco';
-import { BRAND_ICONS, ICON_URL_MAX } from '../../constants/icon.constants';
-import { brandIconSrc, IconInputKind, resolveIconInput } from '../../utils/event-icon';
+import {
+  BRAND_ICONS,
+  ICON_URL_MAX,
+  QUICK_ICONS_MAX,
+} from '../../constants/icon.constants';
+import { EventService } from '../../services/event.service';
+import {
+  iconLabel,
+  IconInputKind,
+  resolveIconInput,
+  toEventIconView,
+} from '../../utils/event-icon';
 import { EventIcon } from '../event-icon/event-icon';
 
 @Component({
@@ -44,8 +55,10 @@ export class EventIconPicker {
 
   // DEPENDENCIES
   private readonly injector = inject(Injector);
+  private readonly eventService = inject(EventService);
 
   // INPUTS
+  readonly calendarId = input.required<string>();
   readonly icon = input<string | null>(null);
   readonly editable = input(false);
   readonly iconChange = output<string | null>();
@@ -53,9 +66,7 @@ export class EventIconPicker {
   // STATE
   readonly dialogId = `event-icon-picker-${EventIconPicker.nextId++}`;
   readonly hintId = `${this.dialogId}-hint`;
-  readonly brands = BRAND_ICONS;
   readonly urlMax = ICON_URL_MAX;
-  readonly brandSrc = brandIconSrc;
   readonly opened = signal(false);
   readonly inputKind = signal<IconInputKind>('site');
   readonly query = signal('');
@@ -78,7 +89,23 @@ export class EventIconPicker {
   ];
   private readonly trigger = viewChild<ElementRef<HTMLButtonElement>>('triggerButton');
 
+  // DATA
+  readonly frequentIcons = rxResource({
+    params: () => (this.editable() ? this.calendarId() : undefined),
+    stream: ({ params }) => this.eventService.listFrequentIcons(params),
+  });
+
   // COMPUTED
+  readonly quickIcons = computed(() => {
+    const frequent = this.frequentIcons.hasValue() ? this.frequentIcons.value() : [];
+    const icons = new Set([
+      ...frequent.filter(icon => toEventIconView(icon)),
+      ...BRAND_ICONS.map(brand => `brand:${brand}`),
+    ]);
+    return [...icons]
+      .slice(0, QUICK_ICONS_MAX)
+      .map(icon => ({ icon, label: iconLabel(icon) }));
+  });
   readonly candidate = computed(() => resolveIconInput(this.query(), this.inputKind()));
   readonly hintKey = computed(() => {
     if (this.invalid()) return 'event.icon.inputInvalid';

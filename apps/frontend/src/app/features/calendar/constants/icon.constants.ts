@@ -10,3 +10,4 @@ export const ICON_EMOJI_PATTERN = new RegExp(
   'u',
 );
 export const BRAND_ICONS = ['telegram', 'instagram'] as const;
+export const QUICK_ICONS_MAX = 14;

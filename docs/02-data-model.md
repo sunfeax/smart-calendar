@@ -125,6 +125,11 @@ as `url:`. Image mode stores the original HTTPS URL without requiring a file
 extension. Emoji can be entered in either mode. These picker modes are frontend
 behavior; the backend stores only the prefixed value.
 
+The picker's quick row shows up to `FREQUENT_ICONS_MAX` icons most used by
+non-archived events of the calendar (`GET calendars/:calendarId/events/icons`,
+EDITOR role), validated again on the frontend, then fills free slots with
+`BRAND_ICONS`.
+
 External images use lazy loading, `referrerpolicy="no-referrer"`, and a fallback
 on failure. The picker uses a CDK connected overlay with focus containment,
 Escape/outside-click dismissal, and vertical scrolling. File upload is unsupported.

@@ -257,6 +257,7 @@ full-calendar {
   flex: none;
   align-items: center;
   height: calc(var(--calendar-event-tags-height) - var(--space-3));
+  padding-top: var(--space-1);
   padding-inline: var(--space-1-5);
   border-radius: var(--radius-sm);
   font-size: calc(var(--font-size-2xs) + 2px);

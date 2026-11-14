@@ -147,7 +147,7 @@
           class="tags__picker-list"
           tabindex="-1"
           cdkDropList
-          cdkDropListOrientation="mixed"
+          cdkDropListOrientation="vertical"
           [cdkDropListDisabled]="query().trim().length > 0"
           (cdkDropListDropped)="moveTag(category, $event)"
           (click)="keepMenuOpen($event)"

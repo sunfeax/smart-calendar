@@ -127,6 +127,7 @@
       "add": "Añadir icono",
       "change": "Cambiar icono",
       "remove": "Quitar",
+      "frequent": "Usados con frecuencia",
       "title": "Icono",
       "inputLabel": "Emoji o dirección de un sitio web",
       "inputPlaceholder": "🎉 o example.com",

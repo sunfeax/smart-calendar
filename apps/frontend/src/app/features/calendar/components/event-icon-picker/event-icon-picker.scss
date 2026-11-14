@@ -63,31 +63,29 @@
 }
 
 .picker__remove {
-  padding: var(--space-1) var(--space-2);
-  border: 0;
-  background: none;
-  color: var(--color-danger);
-  font: inherit;
-  font-size: var(--font-size-sm);
-  cursor: pointer;
+  --mat-icon-button-icon-color: var(--color-danger);
 
-  &:hover {
-    background: var(--color-control-hover);
-  }
+  margin-block: calc(var(--space-2) * -1);
+  margin-inline-end: calc(var(--space-2) * -1);
 }
 
-.picker__brands {
-  display: flex;
-  flex-wrap: wrap;
+.picker__caption {
+  margin: 0 0 calc(var(--space-1) - var(--space-3));
+  color: var(--color-text-muted);
+  font-size: var(--font-size-xs);
+}
+
+.picker__quick {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
   gap: var(--space-2);
 }
 
-.picker__brand {
+.picker__quick-icon {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: var(--space-10);
-  height: var(--space-10);
+  aspect-ratio: 1;
   border: var(--border-width-sm) solid var(--color-border-soft);
   border-radius: var(--radius-control);
   background: var(--color-surface);
@@ -99,9 +97,8 @@
     background: var(--color-control-hover);
   }
 
-  img {
-    width: var(--space-6);
-    height: var(--space-6);
+  app-event-icon {
+    font-size: var(--space-6);
   }
 }
 

@@ -14,6 +14,7 @@ export const ICON_URL_MAX = 2048;
 export const RANGE_MAX_DAYS = 375;
 export const RANGE_MAX_ITEMS = 5000;
 export const ARCHIVE_MAX_ITEMS = 100;
+export const FREQUENT_ICONS_MAX = 14;
 export const SEARCH_MIN_LENGTH = 2;
 export const SEARCH_MAX_LENGTH = 100;
 export const SEARCH_MAX_ITEMS = 50;

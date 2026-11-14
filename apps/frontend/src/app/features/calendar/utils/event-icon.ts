@@ -28,6 +28,15 @@ export function toEventIconView(icon: string): EventIconView | null {
   return null;
 }
 
+export function iconLabel(icon: string): string {
+  const value = icon.slice(icon.indexOf(':') + 1);
+  if (!icon.startsWith('url:') || !URL.canParse(value)) return value;
+  const url = new URL(value);
+  return url.hostname === 'icons.duckduckgo.com'
+    ? url.pathname.replace(/^\/ip3\/|\.ico$/g, '')
+    : url.hostname;
+}
+
 export function brandIconSrc(brand: string): string {
   return `/icons/brands/${brand}.svg`;
 }

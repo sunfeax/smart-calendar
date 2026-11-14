@@ -30,6 +30,7 @@
 >
   <div class="edit__intro">
     <app-event-icon-picker
+      [calendarId]="data.event.calendarId"
       [icon]="icon()"
       [editable]="data.editable"
       (iconChange)="setIcon($event)"

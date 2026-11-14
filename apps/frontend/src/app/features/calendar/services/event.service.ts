@@ -47,6 +47,10 @@ export class EventService {
     return this.http.get<EventDto[]>(`/api/calendars/${calendarId}/events/archived`);
   }
 
+  listFrequentIcons(calendarId: string) {
+    return this.http.get<string[]>(`/api/calendars/${calendarId}/events/icons`);
+  }
+
   restore(eventId: string, scope?: EventScopeParams) {
     return this.http.post<EventDto>(`/api/events/${eventId}/restore`, null, {
       params: scope ? { ...scope } : {},

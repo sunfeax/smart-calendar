@@ -25,6 +25,7 @@ import {
 } from './event-recurrence.js';
 import {
   ARCHIVE_MAX_ITEMS,
+  FREQUENT_ICONS_MAX,
   RANGE_MAX_DAYS,
   RANGE_MAX_ITEMS,
   SEARCH_MAX_ITEMS,
@@ -260,6 +261,20 @@ export class EventService {
     });
 
     return events.map(event => this.toEventDto(event));
+  }
+
+  async listFrequentIcons(userId: string, calendarId: string): Promise<string[]> {
+    await this.access.assertRole(userId, calendarId, CalendarRole.EDITOR);
+
+    const icons = await this.prisma.event.groupBy({
+      by: ['icon'],
+      where: { calendarId, archivedAt: null, icon: { not: null } },
+      _count: { icon: true },
+      orderBy: [{ _count: { icon: 'desc' } }, { icon: 'asc' }],
+      take: FREQUENT_ICONS_MAX,
+    });
+
+    return icons.flatMap(({ icon }) => icon ?? []);
   }
 
   async restore(userId: string, id: string, target: EventScopeDto): Promise<EventDto> {

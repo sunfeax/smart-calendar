@@ -178,8 +178,8 @@ button.tags__value {
 
 .tags__picker-list {
   display: flex;
-  flex-wrap: wrap;
-  align-content: flex-start;
+  flex-direction: column;
+  align-items: flex-start;
   gap: var(--space-1-5);
   max-height: min(20rem, 45dvh);
   padding: 0 var(--space-4) var(--space-3);
