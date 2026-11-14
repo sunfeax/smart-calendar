@@ -116,12 +116,18 @@ the dialog asks only for the date column, and only when the file has several.
 prefetches the application shell and loads translations, images, and Google fonts
 on demand. `/api/**` is neither cached nor treated as application navigation.
 
-The service worker downloads a new version in the background and activates it on
-the next page load, without prompting. An installed PWA updates on its next cold
-start. `AppUpdateService` only reloads the page when `SwUpdate.unrecoverable` reports
-a broken worker cache. Because open tabs keep running the previous version, API
-changes must stay compatible with the previous frontend for one release. Caddy does not mark unhashed worker scripts as immutable. Google fonts are
-allowed in `connect-src` for service-worker requests.
+`navigationRequestStrategy: "freshness"` loads `index.html` from the network on every
+navigation and falls back to the cached shell only offline, so a reload shows a new
+deployment immediately. New hashed bundles are not in the old worker's manifest and
+pass through to the network; the worker caches the new version in the background.
+An installed PWA updates on its next cold start. `AppUpdateService` only reloads the
+page when `SwUpdate.unrecoverable` reports a broken worker cache. Because open tabs
+keep running the previous version, API changes must stay compatible with the
+previous frontend for one release.
+
+Caddy serves `index.html`, `ngsw.json`, and worker scripts with `no-cache` and marks
+only hashed JS, CSS, and fonts as immutable. Google fonts are allowed in
+`connect-src` for service-worker requests.
 
 `AuthService.me()` clears the user only for 401 responses. Other failures mark the
 backend unreachable, route guards redirect to `/offline` with `returnUrl`, and
