@@ -52,7 +52,10 @@ builds use the repository root as context. `.dockerignore` excludes dependencies
 build output, environment files, local notes, and personal calendar exports.
 
 For an update, pull the desired revision and run the same `up -d --build` command.
-Pending migrations run before the API starts. Review migrations and back up data
+Pending migrations run before the API starts. Open tabs and installed PWAs keep the
+previous frontend until their next load, so a release must not break the previous
+frontend's API calls; remove or rename fields one release after the frontend stops
+using them. Review migrations and back up data
 before deployment. Keep an off-server database backup and verify restoration as
 part of the operating procedure; this repository does not configure a backup schedule.
 

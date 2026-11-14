@@ -49,6 +49,8 @@ frontend models are generated from it. Swagger is available only outside product
 - `GET /calendars/:id/events/search?q=`: case-insensitive title, description, and
   tag-name search, from 2 to 100 characters, up to 50 non-archived results.
   A series contributes its next occurrence, or its final occurrence if it has ended.
+- `GET /calendars/:id/events/icons`: up to 14 icons most used by non-archived events,
+  owner/editor only. Used by the icon picker's quick row.
 
 Event responses contain `tagIds`; category responses supply names and colors.
 Recurrence scope behavior is described in the [data model](02-data-model.md#recurrence).
@@ -86,9 +88,14 @@ Recurrence scope behavior is described in the [data model](02-data-model.md#recu
 ### Tags
 
 - `GET`/`POST /calendars/:calendarId/tag-categories`: list categories with tags or create one.
-- `PATCH`/`DELETE /tag-categories/:id`: update or remove a category.
+- `PATCH`/`DELETE /tag-categories/:id`: update or remove a category, including
+  `multiple` and `showOnCard`.
+- `PUT /calendars/:calendarId/tag-categories/order`: reorder all categories.
 - `POST /tag-categories/:categoryId/tags`: create a tag.
+- `PUT /tag-categories/:categoryId/tags/order`: reorder all tags of a category.
 - `PATCH`/`DELETE /tags/:id`: update or remove a tag.
+
+Order endpoints take the complete ID list and return 409 when it is outdated.
 
 There is no separate tag-list endpoint. XLSX export is generated on the client;
 JSON/ICS export endpoints are not currently implemented.

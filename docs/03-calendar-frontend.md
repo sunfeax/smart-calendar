@@ -32,11 +32,19 @@ after package updates. `--calendar-event-height`, `--calendar-event-outer-height
 and `--calendar-event-gap` keep card borders and spacing in the row calculation.
 The API bounds requests with `RANGE_MAX_DAYS` and `RANGE_MAX_ITEMS`.
 
+FullCalendar scrolls the year view to the top of the current month, not to the
+current week. On load (`viewDidMount` on today's date) and after Today, `pinWeekRow`
+keeps today's week directly below the sticky month header. A `ResizeObserver` and a
+`scroll` listener re-align it while events load and rows animate, and override the
+month scroll. The first wheel, touch, pointer, or key input releases the pin.
+
 ## Event dialog and autosave
 
 The Material dialog edits title, description, date range, time, all-day/completion
 state, icon, tags, and recurrence. Date selection uses `mat-date-range-input`.
-The icon picker provides bundled choices and emoji, website, and HTTPS image inputs.
+The icon picker shows a quick row of up to 14 icons: the calendar's most used
+icons first, then bundled brands in free slots. It also accepts emoji, website, and
+HTTPS image inputs.
 The dialog is fullscreen on phones.
 
 `EventEditDialog` tracks form state and the last server-confirmed event. Debounced
@@ -54,6 +62,14 @@ own ordered queue and update resources from successful responses. Tag name draft
 save on blur, return to the list, or Escape dismissal. Deletion confirmations are
 not delayed in the metadata queue.
 
+Editors reorder category rows and tags in the picker menu with CDK drag and drop
+(immediate with a mouse, after a 300 ms press on touch). Tag dragging is disabled
+while the search field filters the list. The dialog shows only assigned categories,
+so a row move is mapped to a position in the full category list. The new order is
+applied locally and sent through the metadata queue. Successful order responses are
+intentionally not written back: an earlier response would briefly undo a later
+drag. A failed request, including 409 for an outdated list, reloads the categories.
+
 ## Sharing
 
 `CalendarShareDialog` displays members for every role. Owners and editors can
@@ -69,7 +85,8 @@ accepted. The sharing dialog refreshes on reopening, without live membership upd
 
 The FullCalendar Monarch theme maps to shared design tokens in
 `_calendar-theme.scss`. Cards use a neutral background, with icons and tags carrying
-color. Material and FullCalendar switch themes together. Every layout supports
+color. Card tags follow category and tag order and include only categories with
+`showOnCard`; week heights are calculated from these visible tags. Material and FullCalendar switch themes together. Every layout supports
 light and dark tokens.
 
 ## Search and export
@@ -99,8 +116,11 @@ the dialog asks only for the date column, and only when the file has several.
 prefetches the application shell and loads translations, images, and Google fonts
 on demand. `/api/**` is neither cached nor treated as application navigation.
 
-`AppUpdateService` downloads a new version in the background and offers an update
-action. Caddy does not mark unhashed worker scripts as immutable. Google fonts are
+The service worker downloads a new version in the background and activates it on
+the next page load, without prompting. An installed PWA updates on its next cold
+start. `AppUpdateService` only reloads the page when `SwUpdate.unrecoverable` reports
+a broken worker cache. Because open tabs keep running the previous version, API
+changes must stay compatible with the previous frontend for one release. Caddy does not mark unhashed worker scripts as immutable. Google fonts are
 allowed in `connect-src` for service-worker requests.
 
 `AuthService.me()` clears the user only for 401 responses. Other failures mark the
