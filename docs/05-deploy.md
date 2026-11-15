@@ -56,8 +56,51 @@ Pending migrations run before the API starts. Open tabs and installed PWAs keep 
 previous frontend until their next load, so a release must not break the previous
 frontend's API calls; remove or rename fields one release after the frontend stops
 using them. Review migrations and back up data
-before deployment. Keep an off-server database backup and verify restoration as
-part of the operating procedure; this repository does not configure a backup schedule.
+before deployment.
+
+## Database backups
+
+[`scripts/backup-db.sh`](../scripts/backup-db.sh) streams `pg_dump` from the
+database container into an encrypted [restic](https://restic.net) repository in
+Cloudflare R2, then keeps 7 daily, 4 weekly, and 3 monthly snapshots. restic
+does not save a snapshot when `pg_dump` fails. It requires restic 0.17 or newer.
+
+Create an R2 bucket and an R2 API token with Object Read & Write access to that
+bucket. On the server, create `~/smart-calendar/backup.env` with mode `600`
+from [`backup.env.example`](../backup.env.example). `HEALTHCHECK_URL` is an
+optional healthchecks.io ping URL.
+
+```bash
+mkdir -p ~/smart-calendar
+install -m 600 backup.env.example ~/smart-calendar/backup.env
+```
+
+Store the restic password outside the server as well; snapshots cannot be
+decrypted without it. Initialize the repository once, run the first backup, and
+schedule the script with cron as a user that can run Docker:
+
+```bash
+set -a; source ~/smart-calendar/backup.env; set +a
+restic init
+./scripts/backup-db.sh
+restic snapshots
+```
+
+```cron
+PATH=/usr/local/bin:/usr/bin:/bin
+0 3 * * * /path/to/smart-calendar/scripts/backup-db.sh >> $HOME/smart-calendar-backup.log 2>&1
+```
+
+Verify restoration into a separate database, not the production one:
+
+```bash
+docker compose -f docker-compose.prod.yaml exec -T smart-calendar-db \
+  sh -c 'createdb -U "$POSTGRES_USER" restore_check'
+restic dump latest smart-calendar.sql | docker compose -f docker-compose.prod.yaml \
+  exec -T smart-calendar-db sh -c 'psql -U "$POSTGRES_USER" -d restore_check -q'
+```
+
+Drop `restore_check` after inspecting it.
 
 ## Security and operating limits
 
@@ -78,5 +121,5 @@ part of the operating procedure; this repository does not configure a backup sch
 - Public HTTPS is required for secure session cookies. Verify sign-in, PWA
   installation, and application updates through the public origin.
 
-The external proxy, certificates, public ingress rules, backups, and monitoring
+The external proxy, certificates, public ingress rules, backup scheduling, and monitoring
 are deployment responsibilities outside the bundled application containers.
