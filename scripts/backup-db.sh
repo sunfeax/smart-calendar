@@ -1,12 +1,11 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-ENV_FILE="${1:-$HOME/smart-calendar/backup.env}"
-set -a
-source "$ENV_FILE"
-set +a
-
 cd "$(dirname "$0")/.."
+
+set -a
+source "${1:-backup.env}"
+set +a
 
 ping_healthcheck() {
   if [[ -n "${HEALTHCHECK_URL:-}" ]]; then

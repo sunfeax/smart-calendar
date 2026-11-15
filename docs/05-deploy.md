@@ -66,13 +66,12 @@ Cloudflare R2, then keeps 7 daily, 4 weekly, and 3 monthly snapshots. restic
 does not save a snapshot when `pg_dump` fails. It requires restic 0.17 or newer.
 
 Create an R2 bucket and an R2 API token with Object Read & Write access to that
-bucket. On the server, create `~/smart-calendar/backup.env` with mode `600`
-from [`backup.env.example`](../backup.env.example). `HEALTHCHECK_URL` is an
-optional healthchecks.io ping URL.
+bucket. On the server, create `backup.env` in the repository root with mode `600`
+from [`backup.env.example`](../backup.env.example). Git ignores it.
+`HEALTHCHECK_URL` is an optional healthchecks.io ping URL.
 
 ```bash
-mkdir -p ~/smart-calendar
-install -m 600 backup.env.example ~/smart-calendar/backup.env
+install -m 600 backup.env.example backup.env
 ```
 
 Store the restic password outside the server as well; snapshots cannot be
@@ -80,7 +79,7 @@ decrypted without it. Initialize the repository once, run the first backup, and
 schedule the script with cron as a user that can run Docker:
 
 ```bash
-set -a; source ~/smart-calendar/backup.env; set +a
+set -a; source backup.env; set +a
 restic init
 ./scripts/backup-db.sh
 restic snapshots
