@@ -316,6 +316,35 @@ button mat-progress-spinner {
   --snack-bar-accent-soft: var(--color-warning-soft);
 }
 
-.app-dialog-fullscreen {
-  --mat-dialog-container-shape: 0;
+.mat-mdc-dialog-container .mat-mdc-dialog-title {
+  flex-shrink: 1;
+  min-width: 0;
+  overflow-wrap: anywhere;
+
+  + button {
+    flex-shrink: 0;
+  }
+}
+
+.app-event-dialog {
+  --event-dialog-gutter: var(--space-8);
+  --event-dialog-max-height: 44rem;
+}
+
+@container (max-width: 300px) {
+  app-event-recurrence .recurrence__days {
+    --mat-button-toggle-label-text-size: var(--font-size-xs);
+
+    .mat-button-toggle-label-content {
+      padding-inline: var(--space-1);
+    }
+  }
+}
+
+@media (max-width: 600px) {
+  .app-event-dialog {
+    --event-dialog-gutter: 0px;
+    --event-dialog-max-height: 100dvh;
+    --mat-dialog-container-shape: 0;
+  }
 }

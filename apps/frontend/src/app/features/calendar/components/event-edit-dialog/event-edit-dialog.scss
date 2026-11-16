@@ -5,6 +5,7 @@
   flex-direction: column;
   height: 100%;
   min-height: 0;
+  container-type: inline-size;
 }
 
 .edit__header {
@@ -197,7 +198,7 @@
   color: var(--color-danger);
 }
 
-@media (max-width: 540px) {
+@container (max-width: 540px) {
   .edit__header {
     padding-inline-start: var(--space-4);
   }
@@ -222,7 +223,8 @@
     }
   }
 
-  .edit__property--dates {
+  .edit__property--dates,
+  .edit__property--recurrence {
     grid-template-columns: minmax(0, 1fr);
     gap: var(--space-1);
 

@@ -214,3 +214,36 @@ full-calendar.calendar--over-trash .app-drop-highlight {
   background: none;
   box-shadow: none;
 }
+
+@media (min-width: 601px) and (max-width: 1024px) {
+  full-calendar .app-year-view {
+    --calendar-event-height: var(--space-6);
+    --calendar-event-outer-height: calc(
+      var(--calendar-event-height) + 2 * var(--border-width-sm)
+    );
+    --calendar-event-gap: var(--space-1);
+    --calendar-event-tags-height: calc(var(--space-6) + 2px);
+
+    .calendar__event {
+      padding-inline: var(--space-2);
+    }
+
+    .calendar__event-title {
+      font-size: var(--font-size-base);
+    }
+
+    .calendar__icon {
+      font-size: var(--font-size-lg);
+    }
+
+    .calendar__event-tags {
+      padding-bottom: var(--space-2);
+    }
+
+    .calendar__tag {
+      height: calc(var(--calendar-event-tags-height) - var(--space-2));
+      padding-inline: var(--space-1);
+      font-size: var(--font-size-xs);
+    }
+  }
+}

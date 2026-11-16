@@ -287,7 +287,7 @@
         <span class="calendar__event-tags">
           @for (tag of arg.event.extendedProps.tags; track tag.id) {
             <span class="calendar__tag" [attr.data-tag-color]="tag.color">
-              {{ tag.name | truncate: tagNameMax }}
+              <span>{{ tag.name | truncate: tagNameMax }}</span>
             </span>
           }
         </span>

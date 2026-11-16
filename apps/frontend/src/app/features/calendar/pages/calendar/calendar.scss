@@ -256,6 +256,7 @@ full-calendar {
   display: inline-flex;
   flex: none;
   align-items: center;
+  max-width: 100%;
   height: calc(var(--calendar-event-tags-height) - var(--space-3));
   padding-top: var(--space-1);
   padding-inline: var(--space-1-5);
@@ -263,6 +264,11 @@ full-calendar {
   font-size: calc(var(--font-size-2xs) + 2px);
   line-height: 1;
   white-space: nowrap;
+
+  > span {
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
 }
 
 .calendar__time-icon {
@@ -402,5 +408,24 @@ full-calendar {
 @media (prefers-reduced-motion: reduce) {
   .calendar__trash {
     transition: none;
+  }
+}
+
+@media (min-width: 601px) and (max-width: 1024px) {
+  .calendar__header {
+    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-areas:
+      'identity controls'
+      'year year';
+    gap: var(--space-1);
+    padding: var(--space-2) var(--space-4);
+  }
+
+  .calendar__year {
+    justify-self: center;
+  }
+
+  .calendar__controls {
+    gap: var(--space-1);
   }
 }

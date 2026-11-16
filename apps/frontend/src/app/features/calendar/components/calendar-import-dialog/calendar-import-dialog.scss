@@ -15,9 +15,11 @@
 
 .import__sources {
   align-self: center;
+  width: min(100%, 20rem);
 
   mat-button-toggle {
-    min-width: 10rem;
+    flex: 1;
+    min-width: 0;
   }
 }
 

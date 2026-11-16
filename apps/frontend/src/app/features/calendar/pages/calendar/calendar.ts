@@ -391,13 +391,19 @@ export class Calendar {
 
   // EFFECTS
   private fitWeekRows(): void {
-    afterRenderEffect(() => {
+    afterRenderEffect(onCleanup => {
       if (this.isMobile()) return;
-      for (const row of this.host.nativeElement.querySelectorAll<HTMLElement>(
-        '.app-week-row',
-      )) {
-        fitWeekRow(row, this.eventsByDay());
-      }
+      const host = this.host.nativeElement;
+      const counts = this.eventsByDay();
+      const fit = (): void => {
+        for (const row of host.querySelectorAll<HTMLElement>('.app-week-row')) {
+          fitWeekRow(row, counts);
+        }
+      };
+      fit();
+      const observer = new ResizeObserver(fit);
+      observer.observe(host);
+      onCleanup(() => observer.disconnect());
     });
   }
 
@@ -755,20 +761,12 @@ export class Calendar {
         createTag: (categoryId, payload) => this.createTag(categoryId, payload),
         setTag: (tagId, assigned) => this.setEventTag(target.id, tagId, assigned),
       },
-      ...(this.isMobile()
-        ? {
-            width: '100vw',
-            height: '100dvh',
-            maxWidth: '100vw',
-            maxHeight: '100dvh',
-            panelClass: 'app-dialog-fullscreen',
-          }
-        : {
-            width: 'min(40rem, calc(100vw - 2rem))',
-            height: 'min(44rem, calc(100dvh - 2rem))',
-            maxWidth: 'calc(100vw - 2rem)',
-            maxHeight: 'calc(100dvh - 2rem)',
-          }),
+      width: 'min(40rem, calc(100vw - var(--event-dialog-gutter)))',
+      height:
+        'min(var(--event-dialog-max-height), calc(100dvh - var(--event-dialog-gutter)))',
+      maxWidth: '100vw',
+      maxHeight: '100dvh',
+      panelClass: 'app-event-dialog',
     });
   }
 

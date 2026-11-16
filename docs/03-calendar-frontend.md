@@ -140,9 +140,15 @@ through `pointermove`. `eventDragStop` over the target uses the ordinary deletio
 path. A subsequent `eventDrop` onto the cell below it is reverted. The target sits
 above the bottom edge to avoid FullCalendar's automatic scroll zone.
 
-## Mobile behavior
+## Responsive behavior
 
-- Below 600px (`MOBILE_QUERY`), use `dayGridMonth` instead of the year view.
+- Between 601px and 1024px, keep the year view with a two-row header, smaller
+  event spacing, and compact titles, icons, and tags. Tags truncate to their card
+  width. A `ResizeObserver` recalculates week heights when the calendar is resized.
+- Event-dialog dimensions adapt while the window is resized, including when the
+  dialog is already open. Field layouts use the dialog width, rather than the
+  viewport width. Narrow recurrence controls keep all seven weekdays visible.
+- At 600px and below (`MOBILE_QUERY`), use `dayGridMonth` instead of the year view.
   Horizontal swipes navigate months; day view swipes navigate days. Short,
   vertical, diagonal, held, cancelled, or multi-touch gestures do not navigate.
   Swipes suppress accidental date/event clicks while preserving vertical scrolling
@@ -158,5 +164,5 @@ above the bottom edge to avoid FullCalendar's automatic scroll zone.
   date in month view. Selecting an empty time slot creates a one-hour event.
   Creation is limited to owners and editors; viewers can navigate and inspect events.
 - Dragging is disabled on phones; dates and times are edited in the fullscreen dialog
-  (`app-dialog-fullscreen`). Switching to a wider screen restores the year view;
+  (`app-event-dialog`). Switching to a wider screen restores the year view;
   returning to a phone layout restores month view.
