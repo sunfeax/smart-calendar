@@ -25,6 +25,7 @@ import {
   CalendarOptions,
   DatesSetInfo,
   EventApi,
+  EventInput,
   EventChangeInfo,
   EventDragStartInfo,
   EventDragStopInfo,
@@ -97,7 +98,13 @@ import {
   pinWeekRow,
   toEventDates,
 } from '../../utils/calendar-layout';
-import { toCalendarEvent, toEventApiDates, toEventKey } from '../../utils/event.mapper';
+import {
+  toApiRenderKey,
+  toCalendarEvent,
+  toEventApiDates,
+  toEventKey,
+  toInputRenderKey,
+} from '../../utils/event.mapper';
 import { EventsXlsxLabels } from '../../utils/events-xlsx';
 import { SnackbarService } from './../../../../shared/services/snackbar.service';
 
@@ -156,6 +163,7 @@ export class Calendar {
   readonly overTrash = signal(false);
   readonly copying = signal(false);
   private droppedOnTrash = false;
+  private readonly displayedKeys = new Map<string, string>();
   private unpinToday = (): void => undefined;
   readonly isMobile = toSignal(
     this.breakpointObserver.observe(MOBILE_QUERY).pipe(map(state => state.matches)),
@@ -335,7 +343,7 @@ export class Calendar {
       timeGridPlugin,
       interactionPlugin,
     ],
-    events: this.calendarEvents(),
+    events: this.displayedEvents(),
     eventsSet: events => this.syncRenderedEvents(events),
     editable: this.canEdit() && (!this.isMobile() || this.isDayView()),
     eventDragStart: info => this.startDrag(info),
@@ -378,16 +386,25 @@ export class Calendar {
       : [],
   );
 
-  private readonly calendarEvents = computed(() => {
-    if (!this.events.hasValue()) return [];
-    const tags = this.cardTags();
-    return this.events.value().map(event => {
-      const ids = new Set(event.tagIds);
-      return toCalendarEvent(
-        event,
-        tags.filter(tag => ids.has(tag.id)),
-      );
-    });
+  private readonly calendarEvents = linkedSignal<
+    { events: EventDto[]; tags: TagDto[] },
+    EventInput[]
+  >({
+    source: () => ({
+      events: this.events.hasValue() ? this.events.value() : [],
+      tags: this.cardTags(),
+    }),
+    computation: ({ events, tags }, previous) => {
+      const reusable =
+        previous?.source.tags === tags
+          ? new Map(previous.source.events.map((event, i) => [event, previous.value[i]]))
+          : null;
+      return events.map(event => reusable?.get(event) ?? this.toCardEvent(event, tags));
+    },
+  });
+
+  private readonly displayedEvents = computed(() => this.calendarEvents(), {
+    equal: (_, next) => this.isDisplayed(next),
   });
 
   private readonly eventsByDay = computed(() => countEventsByDay(this.renderedEvents()));
@@ -1017,9 +1034,28 @@ export class Calendar {
 
   private syncRenderedEvents(events: EventApi[]): void {
     this.renderedEvents.set(events.map(toEventDates));
+    this.displayedKeys.clear();
+    for (const event of events) this.displayedKeys.set(event.id, toApiRenderKey(event));
   }
 
   // HELPERS
+  private toCardEvent(event: EventDto, tags: TagDto[]): EventInput {
+    const ids = new Set(event.tagIds);
+    return toCalendarEvent(
+      event,
+      tags.filter(tag => ids.has(tag.id)),
+    );
+  }
+
+  private isDisplayed(events: EventInput[]): boolean {
+    return (
+      events.length === this.displayedKeys.size &&
+      events.every(
+        event => this.displayedKeys.get(String(event.id)) === toInputRenderKey(event),
+      )
+    );
+  }
+
   private toExportLabels(): EventsXlsxLabels {
     const t = (key: string) => this.transloco.translate(key);
     return {

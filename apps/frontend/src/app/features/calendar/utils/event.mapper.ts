@@ -1,5 +1,5 @@
-import { EventInput } from '@fullcalendar/angular';
-import { addDays } from 'date-fns';
+import { EventApi, EventInput } from '@fullcalendar/angular';
+import { addDays, parseISO } from 'date-fns';
 import { EventDto, TagDto } from '../../../api/generated';
 import { HOUR_MS } from '../constants/event.constants';
 
@@ -33,6 +33,55 @@ export function toCalendarEvent(event: EventDto, tags: TagDto[]): EventInput {
   }
 
   return input;
+}
+
+export function toInputRenderKey(input: EventInput): string {
+  return toRenderKey(
+    String(input.id),
+    parseISO(String(input.start)).getTime(),
+    input.end ? parseISO(String(input.end)).getTime() : null,
+    Boolean(input.allDay),
+    input.title ?? '',
+    String(input.className ?? ''),
+    input.extendedProps ?? {},
+  );
+}
+
+export function toApiRenderKey(event: EventApi): string {
+  return toRenderKey(
+    event.id,
+    event.start?.getTime() ?? null,
+    event.end?.getTime() ?? null,
+    event.allDay,
+    event.title,
+    event.className,
+    event.extendedProps,
+  );
+}
+
+function toRenderKey(
+  id: string,
+  start: number | null,
+  end: number | null,
+  allDay: boolean,
+  title: string,
+  className: string,
+  props: Record<string, unknown>,
+): string {
+  const tags = (props['tags'] as TagDto[] | undefined) ?? [];
+  return JSON.stringify([
+    id,
+    start,
+    end,
+    allDay,
+    title,
+    className,
+    props['eventId'],
+    props['originalStart'],
+    props['completed'],
+    props['icon'],
+    tags.map(tag => `${tag.id}:${tag.name}:${tag.color}`),
+  ]);
 }
 
 interface EventFormDates {

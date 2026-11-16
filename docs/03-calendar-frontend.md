@@ -16,6 +16,19 @@ callbacks to the dialog for requests, resource updates, and error handling.
 Series mutations reload the range because occurrences are expanded on the server.
 All-day event ends are exclusive.
 
+`EventCard` renders each card from primitive inputs and the tag array. `calendarEvents`
+is a `linkedSignal` that reuses the previous `EventInput` for every unchanged
+`EventDto`, so unchanged cards keep the same inputs and Angular skips them.
+
+FullCalendar receives a new `events` array only when the desired events differ from
+what it displays. `eventsSet` records a render key for every displayed event
+(`toApiRenderKey`); the equality function of `displayedEvents` compares the next
+array with those keys (`toInputRenderKey`) and keeps the previous array when they
+match. After a successful drag or resize the server response matches the event
+FullCalendar has already moved, so the calendar renders once instead of twice.
+Keys cover dates, title, classes, icon, completion, and tags. Any difference passes
+the new array and FullCalendar resets its events as before.
+
 ## Year view and week height
 
 `multiMonthYear` uses a fixed `dayMaxEventRows: true` layout. Regular
