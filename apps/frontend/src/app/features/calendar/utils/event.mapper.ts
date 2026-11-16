@@ -118,7 +118,7 @@ export function toEventApiDates(form: EventFormDates): {
     : { allDay: false, startAt: form.startAt.toISOString(), endAt: end.toISOString() };
 }
 
-function fromAllDayIso(value: string): Date {
+export function fromAllDayIso(value: string): Date {
   const date = new Date(value);
   return new Date(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate());
 }

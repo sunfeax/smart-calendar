@@ -389,23 +389,19 @@
     "retry": "Reintentar",
     "off": "Sin recordatorio",
     "custom": "Intervalo personalizado",
-    "minutesBefore": "Minutos antes",
     "allDayTime": "Hora del día del evento",
     "timeZone": "Zona horaria: {{zone}}",
     "useLocalTimeZone": "Usar mi zona horaria",
     "shared": "Avisa a todos los miembros del calendario que tengan las notificaciones activadas.",
     "series": "Se aplica a todas las futuras repeticiones de esta serie.",
     "saving": "Guardando…",
-    "deviceEnabled": "Las notificaciones están activadas en este dispositivo.",
     "deviceDisabled": "Activa las notificaciones en este dispositivo para recibir recordatorios.",
     "enableDevice": "Activar notificaciones",
-    "disableDevice": "Desactivar en este dispositivo",
     "deviceError": "No se pudieron cambiar las notificaciones. Revisa los permisos del navegador e inténtalo de nuevo.",
     "installIos": "En iPhone y iPad, añade la aplicación a la pantalla de inicio y ábrela desde allí para activar las notificaciones.",
     "unsupported": "Las notificaciones no están disponibles en este navegador. Usa un navegador compatible o la aplicación instalada.",
     "blocked": "Las notificaciones están bloqueadas. Permítelas en los ajustes del navegador o del dispositivo y vuelve a abrir la aplicación.",
     "unavailable": "Las notificaciones aún no están disponibles. Los ajustes del recordatorio se guardarán.",
-    "invalidMinutes": "Introduce un número entero entre 0 y 10080.",
     "invalidTime": "Introduce una hora válida.",
     "notFound": "Este evento ya no está disponible.",
     "offsets": {
@@ -416,6 +412,14 @@
       "60": "1 hora antes",
       "1440": "1 día antes",
       "10080": "1 semana antes"
-    }
+    },
+    "date": "Fecha",
+    "time": "Hora",
+    "errors": {
+      "invalid": "Indica la fecha y la hora",
+      "afterEvent": "El recordatorio no puede ser posterior al inicio del evento",
+      "tooEarly": "El recordatorio puede ser como máximo 7 días antes del evento"
+    },
+    "remove": "Eliminar recordatorio"
   }
 }

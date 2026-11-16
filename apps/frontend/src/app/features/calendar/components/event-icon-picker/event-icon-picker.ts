@@ -20,11 +20,7 @@ import { rxResource } from '@angular/core/rxjs-interop';
 import { MatButton, MatIconButton } from '@angular/material/button';
 import { MatIcon } from '@angular/material/icon';
 import { TranslocoPipe } from '@jsverse/transloco';
-import {
-  BRAND_ICONS,
-  ICON_URL_MAX,
-  QUICK_ICONS_MAX,
-} from '../../constants/icon.constants';
+import { ICON_URL_MAX, QUICK_ICONS_MAX } from '../../constants/icon.constants';
 import { EventService } from '../../services/event.service';
 import {
   iconLabel,
@@ -98,11 +94,8 @@ export class EventIconPicker {
   // COMPUTED
   readonly quickIcons = computed(() => {
     const frequent = this.frequentIcons.hasValue() ? this.frequentIcons.value() : [];
-    const icons = new Set([
-      ...frequent.filter(icon => toEventIconView(icon)),
-      ...BRAND_ICONS.map(brand => `brand:${brand}`),
-    ]);
-    return [...icons]
+    return frequent
+      .filter(icon => toEventIconView(icon))
       .slice(0, QUICK_ICONS_MAX)
       .map(icon => ({ icon, label: iconLabel(icon) }));
   });

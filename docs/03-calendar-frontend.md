@@ -209,14 +209,25 @@ a conflict check; server-side revisions would cover both.
 
 ## Push reminders
 
-The event editor includes the shared reminder interval, an optional custom number
-of minutes, and the anchor time and time zone for all-day events. Its independent
+The event editor includes the shared reminder interval, a custom reminder date and
+time, and the anchor time and time zone for all-day events. A custom time must not
+be later than the event start (for all-day events, the end of the event day) and at
+most seven days earlier. It is stored as an offset from the open occurrence: minutes
+before the start for timed events, or whole days before the event day plus the
+chosen time of day for all-day events. Date and time are separate fields, so typing
+a date keeps the time. Opening the editor never saves: a custom value is saved only
+when the resulting reminder time changes. Its independent
 ordered save queue drains finite requests after the dialog closes. Viewers can
 inspect the shared setting but cannot change it. Recurring-event reminders apply
 to the series, rather than only to the occurrence open in the editor.
 
-Every participant enables or disables notifications for their current device from
-the same editor section. Permission requests run only after an explicit click.
+Choosing any reminder option requests notification permission for the current
+device in the same click, because browsers allow the request only during a user
+gesture. The device section appears only while the event has a reminder and this
+device is not subscribed: it explains unsupported, blocked, or unavailable push, or
+offers an enable button after a dismissed prompt (viewers enable their device there).
+Editors remove a reminder with a dedicated button. Disabling a subscribed device is
+not offered in the editor; browser site settings revoke it.
 `PushNotificationsService` uses `SwPush`, registers the subscription against the
 current authenticated session, and updates its language when the app is opened or
 the language changes. Device mutations are serialized so disabling a subscription

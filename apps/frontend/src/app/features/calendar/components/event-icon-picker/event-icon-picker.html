@@ -68,19 +68,21 @@
       }
     </div>
 
-    <p class="picker__caption">{{ 'event.icon.frequent' | transloco }}</p>
-    <div class="picker__quick">
-      @for (item of quickIcons(); track item.icon) {
-        <button
-          type="button"
-          class="picker__quick-icon"
-          [attr.aria-label]="item.label"
-          (click)="choose(item.icon)"
-        >
-          <app-event-icon [icon]="item.icon" />
-        </button>
-      }
-    </div>
+    @if (quickIcons().length) {
+      <p class="picker__caption">{{ 'event.icon.frequent' | transloco }}</p>
+      <div class="picker__quick">
+        @for (item of quickIcons(); track item.icon) {
+          <button
+            type="button"
+            class="picker__quick-icon"
+            [attr.aria-label]="item.label"
+            (click)="choose(item.icon)"
+          >
+            <app-event-icon [icon]="item.icon" />
+          </button>
+        }
+      </div>
+    }
 
     <div
       class="picker__sources"

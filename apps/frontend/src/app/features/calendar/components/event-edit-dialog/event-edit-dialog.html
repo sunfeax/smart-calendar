@@ -181,6 +181,7 @@
       </span>
       <app-event-reminder
         [eventId]="savedEventId()"
+        [startAt]="savedStartAt()"
         [allDay]="eventForm.allDay().value()"
         [editable]="data.editable"
         [recurring]="!!recurrenceRule()"
