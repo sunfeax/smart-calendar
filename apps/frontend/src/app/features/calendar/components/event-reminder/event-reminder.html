@@ -146,6 +146,8 @@
         <p class="reminder__hint" role="status">{{ 'reminder.loading' | transloco }}</p>
       } @else if (!push.available()) {
         <p class="reminder__hint">{{ 'reminder.unavailable' | transloco }}</p>
+      } @else if (!push.controlled()) {
+        <p class="reminder__hint">{{ 'reminder.reload' | transloco }}</p>
       } @else {
         <p class="reminder__hint">{{ 'reminder.deviceDisabled' | transloco }}</p>
         <button

@@ -396,6 +396,7 @@
     "series": "Se aplica a todas las futuras repeticiones de esta serie.",
     "saving": "Guardando…",
     "deviceDisabled": "Activa las notificaciones en este dispositivo para recibir recordatorios.",
+    "reload": "Recarga la página para activar las notificaciones en este dispositivo.",
     "enableDevice": "Activar notificaciones",
     "deviceError": "No se pudieron cambiar las notificaciones. Revisa los permisos del navegador e inténtalo de nuevo.",
     "installIos": "En iPhone y iPad, añade la aplicación a la pantalla de inicio y ábrela desde allí para activar las notificaciones.",

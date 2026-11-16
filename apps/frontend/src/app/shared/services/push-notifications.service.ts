@@ -6,11 +6,13 @@ import {
   toSignal,
 } from '@angular/core/rxjs-interop';
 import { SwPush } from '@angular/service-worker';
-import { combineLatest, firstValueFrom } from 'rxjs';
+import { combineLatest, EMPTY, firstValueFrom, from, fromEvent, timeout } from 'rxjs';
 import { PushSubscriptionDto } from '../../api/generated';
 import { AuthService } from '../../features/auth/service/auth.service';
 import { NotificationApiService } from '../../features/calendar/services/notification-api.service';
 import { LanguageService } from './language.service';
+
+const SUBSCRIBE_TIMEOUT_MS = 15_000;
 
 @Service()
 export class PushNotificationsService {
@@ -30,6 +32,8 @@ export class PushNotificationsService {
   private readonly permission = signal<NotificationPermission>(
     typeof Notification === 'undefined' ? 'denied' : Notification.permission,
   );
+  private readonly _controlled = signal(!!navigator.serviceWorker?.controller);
+  readonly controlled = this._controlled.asReadonly();
   private queue: Promise<void> = Promise.resolve();
   private manual = false;
   readonly supported =
@@ -61,10 +65,18 @@ export class PushNotificationsService {
 
   // LIFECYCLE
   constructor() {
+    this.trackController();
     this.syncDevice();
   }
 
   // EFFECTS
+  private trackController(): void {
+    const worker = navigator.serviceWorker;
+    (worker ? fromEvent(worker, 'controllerchange') : EMPTY)
+      .pipe(takeUntilDestroyed())
+      .subscribe(() => this._controlled.set(!!worker.controller));
+  }
+
   private syncDevice(): void {
     combineLatest([
       toObservable(this.auth.user),
@@ -87,16 +99,19 @@ export class PushNotificationsService {
   async enable(): Promise<void> {
     const publicKey = this.config.hasValue() ? this.config.value().publicKey : null;
     const user = this.auth.user();
-    if (!this.supported || !publicKey || !user || this.pending()) return;
+    if (!this.supported || !this.controlled() || !publicKey || !user || this.pending())
+      return;
     this.manual = true;
     this._pending.set(true);
     try {
       const permission = await Notification.requestPermission();
       this.permission.set(permission);
       if (permission !== 'granted') throw new Error('Notifications were not allowed');
-      const subscription = await this.swPush.requestSubscription({
-        serverPublicKey: publicKey,
-      });
+      const subscription = await firstValueFrom(
+        from(this.swPush.requestSubscription({ serverPublicKey: publicKey })).pipe(
+          timeout(SUBSCRIBE_TIMEOUT_MS),
+        ),
+      );
       await this.enqueue(async () => {
         if (this.auth.user() !== user) return;
         await firstValueFrom(

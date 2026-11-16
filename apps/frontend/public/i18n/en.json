@@ -396,6 +396,7 @@
     "series": "Applies to all future occurrences in this series.",
     "saving": "Saving…",
     "deviceDisabled": "Enable notifications on this device to receive reminders.",
+    "reload": "Reload the page to enable notifications on this device.",
     "enableDevice": "Enable notifications",
     "deviceError": "Could not change notifications. Check your browser permissions and try again.",
     "installIos": "On iPhone and iPad, add this app to your Home Screen and open it there to enable notifications.",

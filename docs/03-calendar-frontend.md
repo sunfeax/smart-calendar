@@ -230,7 +230,11 @@ Editors remove a reminder with a dedicated button. Disabling a subscribed device
 not offered in the editor; browser site settings revoke it.
 `PushNotificationsService` uses `SwPush`, registers the subscription against the
 current authenticated session, and updates its language when the app is opened or
-the language changes. Device mutations are serialized so disabling a subscription
+the language changes. `SwPush` waits indefinitely while the page is not controlled
+by the service worker (after a hard reload or before the first activation), so the
+service tracks `controllerchange`, skips the request on an uncontrolled page, and the
+editor asks to reload it instead; the subscription request also times out after 15
+seconds. Device mutations are serialized so disabling a subscription
 does not race an earlier registration request. Notification settings remain
 editable if delivery is not configured on the backend.
 
