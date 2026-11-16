@@ -37,6 +37,8 @@ frontend models are generated from it. Swagger is available only outside product
 - `GET /calendars/:id/events?from=&to=`: standalone events and expanded occurrences.
   Occurrences carry the series ID and `originalStart`; standalone events use null.
 - `POST /calendars/:id/events`: create an event or series.
+- `POST /events/:id/duplicate`: copy title, description, icon, and tags to new
+  dates as a standalone event. Recurrence and completion are not copied.
 - `PATCH /events/:id`, `DELETE /events/:id`: update or archive. For series,
   `scope=this|following|all` and `originalStart` select the affected occurrences.
   Without a scope, the operation addresses the stored record.

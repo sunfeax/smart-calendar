@@ -140,6 +140,33 @@ through `pointermove`. `eventDragStop` over the target uses the ordinary deletio
 path. A subsequent `eventDrop` onto the cell below it is reverted. The target sits
 above the bottom edge to avoid FullCalendar's automatic scroll zone.
 
+## Keyboard shortcuts
+
+Holding Alt (Option or Cmd on macOS) while dropping an event reverts the move and
+creates a standalone copy through `POST /events/:id/duplicate`. Copying an occurrence
+does not copy the series. A drop on the trash target still deletes.
+While the modifier is held during a drag (`pointermove`, `keydown`, `keyup`), the
+calendar gets `calendar--copying`: the original card stays visible, the drag mirror
+has a dashed outline, and the cursor shows `copy`. The original stays visible through
+`is-dragging` and `is-mirror`, which `eventClass` adds; it overrides FullCalendar's
+hidden state for the dragged original.
+
+Ctrl+Z (Cmd+Z) undoes the last calendar action for owners and editors. The page keeps
+up to 20 steps; each step is a closure over existing API requests:
+
+- creation and duplication: archive and permanently delete the new event;
+- drag or resize of a standalone event: restore the previous dates;
+- deletion: restore, sharing the step with the snackbar Undo action;
+- dialog edits of a standalone event: restore the fields and tags captured when the
+  dialog opened, one step per opening.
+
+The shortcut is ignored while a dialog is open or a text field has focus, so native
+text undo keeps working. It uses `KeyboardEvent.code`, so it works with any keyboard
+layout. Repeated presses wait for the running step. The stack lives in a
+`linkedSignal` reset when the calendar changes, and it is lost on reload. Series
+changes are not undoable, and undo overwrites later changes by other members without
+a conflict check; server-side revisions would cover both.
+
 ## Responsive behavior
 
 - Between 601px and 1024px, keep the year view with a two-row header, smaller

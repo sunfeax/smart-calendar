@@ -1,7 +1,6 @@
 import { EventApi } from '@fullcalendar/angular';
 import { addDays, format, parseISO, startOfDay } from 'date-fns';
 import { EventDto, TagDto } from '../../../api/generated';
-import { TAG_CARD_NAME_MAX } from '../constants/tag.constants';
 
 const TAG_CHAR_WIDTH = 7.5;
 const TAG_CHROME_WIDTH = 16;
@@ -74,8 +73,7 @@ function countTagLines(names: string[], width: number): number {
   let lines = 1;
   let used = 0;
   for (const name of names) {
-    const chip =
-      Math.min(name.length, TAG_CARD_NAME_MAX) * TAG_CHAR_WIDTH + TAG_CHROME_WIDTH;
+    const chip = Math.min(name.length * TAG_CHAR_WIDTH + TAG_CHROME_WIDTH, width);
     if (used > 0 && used + chip > width) {
       lines++;
       used = 0;

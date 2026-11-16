@@ -33,6 +33,10 @@ export class SnackbarService {
     return this.show(message, 'success', action);
   }
 
+  dismiss(): void {
+    this.snackBarService.dismiss();
+  }
+
   private show(message: string, type: SnackbarType, action?: string): Observable<void> {
     const panelClass = ['app-snack-bar', `app-snack-bar--${type}`];
     return this.snackBarService

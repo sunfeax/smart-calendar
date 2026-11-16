@@ -215,6 +215,22 @@ full-calendar.calendar--over-trash .app-drop-highlight {
   box-shadow: none;
 }
 
+full-calendar.calendar--copying {
+  &,
+  * {
+    cursor: copy;
+  }
+
+  .app-calendar-event.is-dragging:not(.is-mirror) {
+    visibility: visible;
+  }
+
+  .app-calendar-event.is-mirror {
+    outline: var(--border-width-md) dashed var(--color-primary);
+    outline-offset: calc(-1 * var(--border-width-md));
+  }
+}
+
 @media (min-width: 601px) and (max-width: 1024px) {
   full-calendar .app-year-view {
     --calendar-event-height: var(--space-6);

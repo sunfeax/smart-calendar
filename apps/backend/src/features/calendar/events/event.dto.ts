@@ -60,6 +60,17 @@ export class EventUpdateDto extends PartialType(EventCreateDto, {
   completed?: boolean;
 }
 
+export class EventDuplicateDto {
+  @IsISO8601({ strict: true })
+  startAt!: string;
+
+  @IsISO8601({ strict: true })
+  endAt!: string;
+
+  @IsBoolean()
+  allDay!: boolean;
+}
+
 export const EVENT_SCOPES = ['this', 'following', 'all'] as const;
 
 export type EventScope = (typeof EVENT_SCOPES)[number];

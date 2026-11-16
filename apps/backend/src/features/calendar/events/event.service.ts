@@ -33,6 +33,7 @@ import {
 import {
   EventCreateDto,
   EventDto,
+  EventDuplicateDto,
   EventScopeDto,
   EventsRangeDto,
   EventsSearchDto,
@@ -185,6 +186,37 @@ export class EventService {
         allDay,
         recurrenceRule,
         timeZone,
+      },
+      include: EVENT_INCLUDE,
+    });
+
+    return this.toEventDto(event);
+  }
+
+  async duplicate(userId: string, id: string, dto: EventDuplicateDto): Promise<EventDto> {
+    const source = await this.getAuthorizedEvent(userId, id, CalendarRole.EDITOR);
+
+    const startAt = new Date(dto.startAt);
+    const endAt = new Date(dto.endAt);
+    const { allDay } = dto;
+
+    assertEventDates(startAt, endAt, allDay);
+
+    const tags = await this.prisma.eventTag.findMany({
+      where: { eventId: id },
+      select: { tagId: true },
+    });
+
+    const event = await this.prisma.event.create({
+      data: {
+        calendarId: source.calendarId,
+        title: source.title,
+        description: source.description,
+        icon: source.icon,
+        startAt,
+        endAt,
+        allDay,
+        tags: { createMany: { data: tags } },
       },
       include: EVENT_INCLUDE,
     });

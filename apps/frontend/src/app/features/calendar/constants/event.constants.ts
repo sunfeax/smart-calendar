@@ -6,3 +6,4 @@ export const AUTOSAVE_DELAY_MS = 500;
 export const SEARCH_MIN_LENGTH = 2;
 export const SEARCH_MAX_LENGTH = 100;
 export const SEARCH_DEBOUNCE_MS = 300;
+export const UNDO_STEPS_MAX = 20;

@@ -92,6 +92,8 @@
     "updateSuccess": "Event updated",
     "updateError": "Failed to update event",
     "deleteError": "Failed to delete event",
+    "duplicateError": "Could not duplicate the event",
+    "undoError": "Could not undo the action",
     "createTitle": "New event",
     "editTitle": "Edit event",
     "viewTitle": "View event",
@@ -184,8 +186,7 @@
         "delete": "Delete"
       }
     },
-    "deleted": "Event deleted",
-    "restoreError": "Could not restore the event"
+    "deleted": "Event deleted"
   },
   "tags": {
     "addCategory": "Add category",

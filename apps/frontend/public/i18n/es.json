@@ -92,6 +92,8 @@
     "updateSuccess": "Evento actualizado",
     "updateError": "No se pudo actualizar el evento",
     "deleteError": "No se pudo eliminar el evento",
+    "duplicateError": "No se pudo duplicar el evento",
+    "undoError": "No se pudo deshacer la acción",
     "createTitle": "Nuevo evento",
     "editTitle": "Editar evento",
     "viewTitle": "Ver evento",
@@ -184,8 +186,7 @@
         "delete": "Eliminar"
       }
     },
-    "deleted": "Evento eliminado",
-    "restoreError": "No se pudo restaurar el evento"
+    "deleted": "Evento eliminado"
   },
   "tags": {
     "addCategory": "Añadir categoría",

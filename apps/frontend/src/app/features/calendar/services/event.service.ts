@@ -1,6 +1,11 @@
 import { HttpClient } from '@angular/common/http';
 import { inject, Service } from '@angular/core';
-import { EventCreateDto, EventDto, EventUpdateDto } from '../../../api/generated';
+import {
+  EventCreateDto,
+  EventDto,
+  EventDuplicateDto,
+  EventUpdateDto,
+} from '../../../api/generated';
 import { EventRange } from '../models/event-range';
 import { RecurrenceScope } from '../models/recurrence';
 
@@ -29,6 +34,10 @@ export class EventService {
     return this.http.patch<EventDto>(`/api/events/${eventId}`, body, {
       params: scope ? { ...scope } : {},
     });
+  }
+
+  duplicate(eventId: string, body: EventDuplicateDto) {
+    return this.http.post<EventDto>(`/api/events/${eventId}/duplicate`, body);
   }
 
   delete(eventId: string, scope?: EventScopeParams) {

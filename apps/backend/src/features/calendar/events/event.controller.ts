@@ -16,6 +16,7 @@ import { CurrentUser } from '../../auth/decorators/current-user.decorator.js';
 import {
   EventCreateDto,
   EventDto,
+  EventDuplicateDto,
   EventScopeDto,
   EventsRangeDto,
   EventsSearchDto,
@@ -80,6 +81,15 @@ export class EventController {
     @Query() target: EventScopeDto,
   ): Promise<EventDto> {
     return this.eventService.update(user.id, id, dto, target);
+  }
+
+  @Post('events/:id/duplicate')
+  duplicate(
+    @CurrentUser() user: User,
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() dto: EventDuplicateDto,
+  ): Promise<EventDto> {
+    return this.eventService.duplicate(user.id, id, dto);
   }
 
   @Delete('events/:id')

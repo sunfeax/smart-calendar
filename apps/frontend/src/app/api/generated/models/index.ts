@@ -13,6 +13,7 @@ export * from "./calendar-import-dto";
 export * from "./calendar-update-dto";
 export * from "./event-create-dto";
 export * from "./event-dto";
+export * from "./event-duplicate-dto";
 export * from "./event-update-dto";
 export * from "./google-login-dto";
 export * from "./import-broken-event-dto";

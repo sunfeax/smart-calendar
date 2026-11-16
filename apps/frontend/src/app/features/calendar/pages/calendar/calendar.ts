@@ -8,12 +8,13 @@ import {
   inject,
   Injector,
   input,
+  linkedSignal,
   signal,
   viewChild,
   viewChildren,
 } from '@angular/core';
 import { BreakpointObserver } from '@angular/cdk/layout';
-import { rxResource, toSignal } from '@angular/core/rxjs-interop';
+import { rxResource, takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
 import { MatButton, MatFabButton, MatIconButton } from '@angular/material/button';
 import { MatDialog } from '@angular/material/dialog';
 import { MatIcon } from '@angular/material/icon';
@@ -25,6 +26,7 @@ import {
   DatesSetInfo,
   EventApi,
   EventChangeInfo,
+  EventDragStartInfo,
   EventDragStopInfo,
   EventDropInfo,
   FullCalendarComponent,
@@ -40,8 +42,12 @@ import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import { addDays, addYears, format, isToday, setMonth } from 'date-fns';
 import {
   catchError,
+  concat,
   defaultIfEmpty,
   EMPTY,
+  exhaustMap,
+  filter,
+  fromEvent,
   map,
   Observable,
   of,
@@ -51,13 +57,13 @@ import {
 import {
   EventCreateDto,
   EventDto,
+  EventDuplicateDto,
   EventUpdateDto,
   TagDto,
   TagCreateDto,
 } from '../../../../api/generated';
 import { routePaths } from '../../../../core/constants/routePaths';
 import { UserMenu } from '../../../../shared/components/user-menu/user-menu';
-import { TruncatePipe } from '../../../../shared/pipes/truncate.pipe';
 import { LanguageService } from '../../../../shared/services/language.service';
 import {
   CalendarShareDialog,
@@ -76,10 +82,11 @@ import { EventSearchDialog } from '../../components/event-search-dialog/event-se
 import { RecurrenceScopeDialog } from '../../components/recurrence-scope-dialog/recurrence-scope-dialog';
 import { CalendarSwipe } from '../../directives/calendar-swipe';
 import { MOBILE_QUERY } from '../../../../core/constants/breakpoints';
-import { TAG_CARD_NAME_MAX } from '../../constants/tag.constants';
+import { UNDO_STEPS_MAX } from '../../constants/event.constants';
 import { EventDialogData } from '../../models/event-dialog';
 import { EventRange } from '../../models/event-range';
 import { OccurrenceTarget, RecurrenceScope } from '../../models/recurrence';
+import { UndoStep } from '../../models/undo-step';
 import { CalendarService } from '../../services/calendar.service';
 import { EventScopeParams, EventService } from '../../services/event.service';
 import { TagService } from '../../services/tag.service';
@@ -110,7 +117,6 @@ import { SnackbarService } from './../../../../shared/services/snackbar.service'
     CalendarSwipe,
     RouterLink,
     TranslocoPipe,
-    TruncatePipe,
     UserMenu,
   ],
   templateUrl: './calendar.html',
@@ -135,7 +141,6 @@ export class Calendar {
 
   // STATE
   readonly routePaths = routePaths;
-  readonly tagNameMax = TAG_CARD_NAME_MAX;
   private readonly viewDate = signal(new Date());
   readonly mobilePeriodMode = signal<'months' | 'years'>('months');
   readonly isDayView = signal(false);
@@ -149,6 +154,7 @@ export class Calendar {
   private readonly trash = viewChild<ElementRef<HTMLElement>>('trash');
   readonly dragging = signal(false);
   readonly overTrash = signal(false);
+  readonly copying = signal(false);
   private droppedOnTrash = false;
   private unpinToday = (): void => undefined;
   readonly isMobile = toSignal(
@@ -295,7 +301,13 @@ export class Calendar {
     dayCellTopInnerClass: 'app-day-number',
     eventInnerClass: 'app-event-content',
     eventClass: info =>
-      ['app-calendar-event', info.isStart && 'is-start', info.isEnd && 'is-end']
+      [
+        'app-calendar-event',
+        info.isStart && 'is-start',
+        info.isEnd && 'is-end',
+        info.isDragging && 'is-dragging',
+        info.isMirror && 'is-mirror',
+      ]
         .filter(Boolean)
         .join(' '),
     eventDisplay: 'block',
@@ -326,7 +338,7 @@ export class Calendar {
     events: this.calendarEvents(),
     eventsSet: events => this.syncRenderedEvents(events),
     editable: this.canEdit() && (!this.isMobile() || this.isDayView()),
-    eventDragStart: () => this.startDrag(),
+    eventDragStart: info => this.startDrag(info),
     eventDragStop: info => this.stopDrag(info),
     eventDrop: info => this.dropEvent(info),
     eventResize: info => this.saveEventDates(info),
@@ -380,6 +392,11 @@ export class Calendar {
 
   private readonly eventsByDay = computed(() => countEventsByDay(this.renderedEvents()));
 
+  private readonly undoSteps = linkedSignal<string, UndoStep[]>({
+    source: this.id,
+    computation: () => [],
+  });
+
   // LIFECYCLE
   constructor() {
     this.fitWeekRows();
@@ -387,6 +404,7 @@ export class Calendar {
     this.showEventsError();
     this.showTagsError();
     this.leaveOnCalendarError();
+    this.undoOnShortcut();
   }
 
   // EFFECTS
@@ -439,6 +457,17 @@ export class Calendar {
       this.snackbarService.error(this.transloco.translate('calendar.loadError'));
       void this.router.navigateByUrl(routePaths.calendars);
     });
+  }
+
+  private undoOnShortcut(): void {
+    fromEvent<KeyboardEvent>(document, 'keydown')
+      .pipe(
+        filter(event => this.isUndoShortcut(event)),
+        tap(event => event.preventDefault()),
+        exhaustMap(() => this.undoLast()),
+        takeUntilDestroyed(),
+      )
+      .subscribe();
   }
 
   // ACTIONS
@@ -723,17 +752,56 @@ export class Calendar {
   }
 
   private offerRestore(eventId: string, scope?: EventScopeParams): void {
+    const step: UndoStep = () =>
+      this.eventService
+        .restore(eventId, scope)
+        .pipe(tap(restored => this.applyRestored(restored)));
+    this.pushUndo(step);
     this.snackbarService
       .withAction(
         this.transloco.translate('event.deleted'),
         this.transloco.translate('common.undo'),
       )
-      .pipe(switchMap(() => this.eventService.restore(eventId, scope)))
-      .subscribe({
-        next: restored => this.applyRestored(restored),
-        error: () =>
-          this.snackbarService.error(this.transloco.translate('event.restoreError')),
-      });
+      .pipe(switchMap(() => this.runUndo(step)))
+      .subscribe();
+  }
+
+  private pushUndo(step: UndoStep): void {
+    this.undoSteps.update(steps => [...steps, step].slice(-UNDO_STEPS_MAX));
+  }
+
+  private undoLast(): Observable<unknown> {
+    const step = this.undoSteps().at(-1);
+    if (!step) return EMPTY;
+    this.snackbarService.dismiss();
+    return this.runUndo(step);
+  }
+
+  private runUndo(step: UndoStep): Observable<unknown> {
+    this.undoSteps.update(steps => steps.filter(item => item !== step));
+    return step().pipe(
+      catchError(() => {
+        this.snackbarService.error(this.transloco.translate('event.undoError'));
+        this.events.reload();
+        return EMPTY;
+      }),
+    );
+  }
+
+  private duplicateEvent(eventId: string, dates: EventDuplicateDto): void {
+    this.eventService
+      .duplicate(eventId, dates)
+      .pipe(
+        tap(created => {
+          this.events.update(list => list && [...list, created]);
+          this.pushUndo(this.undoCreate(created.id));
+        }),
+        catchError(() => {
+          this.snackbarService.error(this.transloco.translate('event.duplicateError'));
+          return EMPTY;
+        }),
+      )
+      .subscribe();
   }
 
   private applyRestored(restored: EventDto): void {
@@ -744,22 +812,31 @@ export class Calendar {
     this.events.update(list => (list ? [...list, restored] : [restored]));
   }
 
-  private openEventDialog(event: EventDto): void {
+  private openEventDialog(event: EventDto, undoable = true): void {
     const target: OccurrenceTarget = {
       id: event.id,
       originalStart: event.originalStart,
       scope: null,
+    };
+    let canUndoEdit =
+      undoable && event.originalStart === null && event.recurrenceRule === null;
+    const markEdited = (): void => {
+      if (!canUndoEdit) return;
+      canUndoEdit = false;
+      this.pushUndo(this.undoEdit(event));
     };
 
     this.dialog.open<EventEditDialog, EventDialogData>(EventEditDialog, {
       data: {
         event,
         editable: this.canEdit(),
-        update: (payload, rollback) => this.updateTarget(target, payload, rollback),
+        update: (payload, rollback) =>
+          this.updateTarget(target, payload, rollback).pipe(tap(markEdited)),
         remove: () => this.deleteTarget(target),
         categories: this.tagCategories,
         createTag: (categoryId, payload) => this.createTag(categoryId, payload),
-        setTag: (tagId, assigned) => this.setEventTag(target.id, tagId, assigned),
+        setTag: (tagId, assigned) =>
+          this.setEventTag(target.id, tagId, assigned).pipe(tap(markEdited)),
       },
       width: 'min(40rem, calc(100vw - var(--event-dialog-gutter)))',
       height:
@@ -829,17 +906,25 @@ export class Calendar {
   }
 
   // HANDLERS
-  private startDrag(): void {
+  private startDrag({ jsEvent }: EventDragStartInfo): void {
     this.droppedOnTrash = false;
     this.dragging.set(true);
+    this.trackCopy(jsEvent);
     document.addEventListener('pointermove', this.trackTrash);
+    document.addEventListener('pointermove', this.trackCopy);
+    document.addEventListener('keydown', this.trackCopy);
+    document.addEventListener('keyup', this.trackCopy);
   }
 
   private stopDrag({ event }: EventDragStopInfo): void {
     document.removeEventListener('pointermove', this.trackTrash);
+    document.removeEventListener('pointermove', this.trackCopy);
+    document.removeEventListener('keydown', this.trackCopy);
+    document.removeEventListener('keyup', this.trackCopy);
     this.droppedOnTrash = this.overTrash();
     this.dragging.set(false);
     this.overTrash.set(false);
+    this.copying.set(false);
     if (!this.droppedOnTrash) return;
 
     const target: OccurrenceTarget = {
@@ -855,8 +940,22 @@ export class Calendar {
       info.revert();
       return;
     }
+    if (info.jsEvent.altKey || info.jsEvent.metaKey) {
+      const dates = this.toDropDates(info.event);
+      info.revert();
+      if (dates)
+        this.duplicateEvent(info.event.extendedProps['eventId'] as string, dates);
+      return;
+    }
     this.saveEventDates(info);
   }
+
+  private readonly trackCopy = ({
+    altKey,
+    metaKey,
+  }: MouseEvent | KeyboardEvent): void => {
+    this.copying.set(altKey || metaKey);
+  };
 
   private readonly trackTrash = ({ clientX, clientY }: PointerEvent): void => {
     const rect = this.trash()?.nativeElement.getBoundingClientRect();
@@ -869,32 +968,34 @@ export class Calendar {
     );
   };
 
-  private saveEventDates({ event, revert }: EventChangeInfo): void {
-    const { allDay, start, end } = event;
-    if (!start) {
+  private saveEventDates({ event, oldEvent, revert }: EventChangeInfo): void {
+    const payload = this.toDropDates(event);
+    if (!payload) {
       revert();
       return;
     }
-    const payload = toEventApiDates({
-      allDay,
-      startAt: start,
-      endAt: end && allDay ? addDays(end, -1) : end,
-    });
+    const eventId = event.extendedProps['eventId'] as string;
+    const originalStart = event.extendedProps['originalStart'] as string | null;
+    const previous = this.toDropDates(oldEvent);
+
     this.updateTarget(
-      {
-        id: event.extendedProps['eventId'] as string,
-        originalStart: event.extendedProps['originalStart'] as string | null,
-        scope: null,
-      },
+      { id: eventId, originalStart, scope: null },
       payload,
       revert,
-    ).subscribe();
+    ).subscribe(() => {
+      if (originalStart === null && previous) {
+        this.pushUndo(this.undoDates(eventId, previous));
+      }
+    });
   }
 
   private createEvent(date: Date, allDay = true): void {
     if (!this.canEdit()) return;
     this.saveNewEvent(toEventApiDates({ allDay, startAt: date, endAt: null })).subscribe(
-      event => this.openEventDialog(event),
+      event => {
+        this.pushUndo(this.undoCreate(event.id));
+        this.openEventDialog(event, false);
+      },
     );
   }
 
@@ -949,5 +1050,78 @@ export class Calendar {
       return payload;
     }
     return { ...payload, timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone };
+  }
+
+  private toDropDates({ allDay, start, end }: EventApi): EventDuplicateDto | null {
+    if (!start) return null;
+    return toEventApiDates({
+      allDay,
+      startAt: start,
+      endAt: end && allDay ? addDays(end, -1) : end,
+    });
+  }
+
+  private isUndoShortcut(event: KeyboardEvent): boolean {
+    const target = event.target;
+    const editingText =
+      target instanceof HTMLElement &&
+      (target.isContentEditable || !!target.closest('input, textarea, select'));
+    return (
+      (event.ctrlKey || event.metaKey) &&
+      !event.shiftKey &&
+      !event.altKey &&
+      event.code === 'KeyZ' &&
+      !editingText &&
+      this.canEdit() &&
+      this.dialog.openDialogs.length === 0
+    );
+  }
+
+  private undoCreate(eventId: string): UndoStep {
+    return () =>
+      this.eventService.delete(eventId).pipe(
+        switchMap(() => this.eventService.deleteArchived(eventId)),
+        tap(() => this.events.update(list => list?.filter(item => item.id !== eventId))),
+      );
+  }
+
+  private undoDates(eventId: string, dates: EventDuplicateDto): UndoStep {
+    return () =>
+      this.eventService
+        .update(eventId, this.withTimeZone(dates, undefined))
+        .pipe(tap(updated => this.replaceEvent(updated)));
+  }
+
+  private undoEdit(snapshot: EventDto): UndoStep {
+    const { id, title, description, icon, allDay, startAt, endAt, completedAt, tagIds } =
+      snapshot;
+    const payload: EventUpdateDto = {
+      title,
+      description,
+      icon,
+      allDay,
+      startAt,
+      endAt,
+      completed: completedAt !== null,
+      recurrenceRule: null,
+    };
+
+    return () =>
+      this.eventService.update(id, this.withTimeZone(payload, undefined)).pipe(
+        switchMap(updated => {
+          const current = new Set(updated.tagIds);
+          const original = new Set(tagIds);
+          const requests = [
+            ...tagIds
+              .filter(tagId => !current.has(tagId))
+              .map(tagId => this.eventService.addTag(id, tagId)),
+            ...updated.tagIds
+              .filter(tagId => !original.has(tagId))
+              .map(tagId => this.eventService.removeTag(id, tagId)),
+          ];
+          return concat(...requests);
+        }),
+        tap({ complete: () => this.events.reload() }),
+      );
   }
 }
