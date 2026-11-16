@@ -117,46 +117,38 @@
             </button>
           </div>
         } @else {
-          <div class="edit__time-values">
-            <mat-form-field class="edit__field" subscriptSizing="dynamic">
-              <mat-label>{{ 'event.startTime' | transloco }}</mat-label>
-              <input
-                matInput
-                [matTimepicker]="startAtTime"
-                [formField]="eventForm.startAt"
-                (click)="startAtTime.open()"
-              />
-              <mat-timepicker-toggle matIconSuffix [for]="startAtTime" />
-              <mat-timepicker #startAtTime [interval]="timeStep" />
-            </mat-form-field>
+          <div class="edit__time-editor">
+            <div class="edit__time-values">
+              <mat-form-field class="edit__field" subscriptSizing="dynamic">
+                <mat-label>{{ 'event.startTime' | transloco }}</mat-label>
+                <input
+                  matInput
+                  [matTimepicker]="startAtTime"
+                  [formField]="eventForm.startAt"
+                  (click)="startAtTime.open()"
+                />
+                <mat-timepicker-toggle matIconSuffix [for]="startAtTime" />
+                <mat-timepicker #startAtTime [interval]="timeStep" />
+              </mat-form-field>
 
-            <mat-form-field class="edit__field" subscriptSizing="dynamic">
-              <mat-label>{{ 'event.endTime' | transloco }}</mat-label>
-              <input
-                matInput
-                [matTimepicker]="endAtTime"
-                [formField]="eventForm.endAt"
-                [matTimepickerMin]="endTimeMin()"
-                (click)="endAtTime.open()"
-              />
-              <mat-timepicker-toggle matIconSuffix [for]="endAtTime" />
-              <mat-timepicker #endAtTime [interval]="timeStep" />
-            </mat-form-field>
+              <mat-form-field class="edit__field" subscriptSizing="dynamic">
+                <mat-label>{{ 'event.endTime' | transloco }}</mat-label>
+                <input
+                  matInput
+                  [matTimepicker]="endAtTime"
+                  [formField]="eventForm.endAt"
+                  [matTimepickerMin]="endTimeMin()"
+                  (click)="endAtTime.open()"
+                />
+                <mat-timepicker-toggle matIconSuffix [for]="endAtTime" />
+                <mat-timepicker #endAtTime [interval]="timeStep" />
+              </mat-form-field>
+            </div>
 
             @if (data.editable) {
               <button
-                matIconButton
-                class="edit__remove-time edit__remove-time--icon"
-                type="button"
-                [attr.aria-label]="'event.removeTime' | transloco"
-                [matTooltip]="'event.removeTime' | transloco"
-                (click)="removeTime()"
-              >
-                <mat-icon>timer_off</mat-icon>
-              </button>
-              <button
                 matButton
-                class="edit__remove-time edit__remove-time--text"
+                class="edit__remove-time"
                 type="button"
                 (click)="removeTime()"
               >

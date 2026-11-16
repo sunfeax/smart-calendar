@@ -169,14 +169,21 @@
 
 .edit__time-values {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr)) auto;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   align-items: start;
   gap: var(--space-4);
   min-width: 0;
 }
 
-.edit__remove-time--text {
-  display: none;
+.edit__time-editor {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  min-width: 0;
+}
+
+.edit__remove-time {
+  color: var(--color-danger);
 }
 
 .edit__completed {
@@ -209,18 +216,6 @@
 
   .edit__time-values {
     grid-template-columns: minmax(0, 1fr);
-
-    button {
-      justify-self: end;
-    }
-
-    .edit__remove-time--icon {
-      display: none;
-    }
-
-    .edit__remove-time--text {
-      display: inline-flex;
-    }
   }
 
   .edit__property--dates,
