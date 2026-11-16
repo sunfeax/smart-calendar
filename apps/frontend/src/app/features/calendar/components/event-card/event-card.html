@@ -1,0 +1,27 @@
+<span class="event-card__main">
+  @if (!allDay()) {
+    <mat-icon
+      class="event-card__time-icon"
+      role="img"
+      [attr.aria-label]="timeText()"
+      [matTooltip]="timeText()"
+    >
+      schedule
+    </mat-icon>
+  }
+  @if (icon(); as icon) {
+    <app-event-icon class="event-card__icon" [icon]="icon" />
+  }
+  <span class="event-card__title" [class.event-card__title--empty]="!title()">
+    {{ title() || ('event.untitled' | transloco) }}
+  </span>
+</span>
+@if (tags().length) {
+  <span class="event-card__tags">
+    @for (tag of tags(); track tag.id) {
+      <span class="event-card__tag" [attr.data-tag-color]="tag.color">
+        <span>{{ tag.name }}</span>
+      </span>
+    }
+  </span>
+}

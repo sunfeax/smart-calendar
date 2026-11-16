@@ -262,38 +262,13 @@
   [class.calendar--copying]="copying() && !overTrash()"
 >
   <ng-template #eventContent let-arg>
-    <span class="calendar__event">
-      <span class="calendar__event-main">
-        @if (!arg.event.allDay) {
-          <mat-icon
-            class="calendar__time-icon"
-            role="img"
-            [attr.aria-label]="arg.timeText"
-            [matTooltip]="arg.timeText"
-          >
-            schedule
-          </mat-icon>
-        }
-        @if (arg.event.extendedProps.icon) {
-          <app-event-icon class="calendar__icon" [icon]="arg.event.extendedProps.icon" />
-        }
-        <span
-          class="calendar__event-title"
-          [class.calendar__event-title--empty]="!arg.event.title"
-        >
-          {{ arg.event.title || ('event.untitled' | transloco) }}
-        </span>
-      </span>
-      @if (arg.event.extendedProps.tags.length) {
-        <span class="calendar__event-tags">
-          @for (tag of arg.event.extendedProps.tags; track tag.id) {
-            <span class="calendar__tag" [attr.data-tag-color]="tag.color">
-              <span>{{ tag.name }}</span>
-            </span>
-          }
-        </span>
-      }
-    </span>
+    <app-event-card
+      [title]="arg.event.title"
+      [allDay]="arg.event.allDay"
+      [timeText]="arg.timeText"
+      [icon]="arg.event.extendedProps.icon"
+      [tags]="arg.event.extendedProps.tags"
+    />
   </ng-template>
 </full-calendar>
 

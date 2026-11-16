@@ -182,11 +182,11 @@ full-calendar .fc-event:hover {
   background: var(--color-event-hover);
 }
 
-full-calendar .is-completed .calendar__tag {
+full-calendar .is-completed .event-card__tag {
   opacity: 0.5;
 }
 
-full-calendar .is-completed .calendar__event-title {
+full-calendar .is-completed .event-card__title {
   color: inherit;
   opacity: 0.8;
   text-decoration: line-through;
@@ -240,23 +240,23 @@ full-calendar.calendar--copying {
     --calendar-event-gap: var(--space-1);
     --calendar-event-tags-height: calc(var(--space-6) + 2px);
 
-    .calendar__event {
+    app-event-card {
       padding-inline: var(--space-2);
     }
 
-    .calendar__event-title {
+    .event-card__title {
       font-size: var(--font-size-base);
     }
 
-    .calendar__icon {
+    .event-card__icon {
       font-size: var(--font-size-lg);
     }
 
-    .calendar__event-tags {
+    .event-card__tags {
       padding-bottom: var(--space-2);
     }
 
-    .calendar__tag {
+    .event-card__tag {
       height: calc(var(--calendar-event-tags-height) - var(--space-2));
       padding-inline: var(--space-1);
       font-size: var(--font-size-xs);

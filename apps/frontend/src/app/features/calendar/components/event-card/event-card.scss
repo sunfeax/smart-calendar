@@ -1,0 +1,117 @@
+:host {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  min-width: 0;
+  padding-inline: var(--space-3);
+}
+
+.event-card__main {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  min-width: 0;
+  height: var(--calendar-event-height);
+}
+
+.event-card__tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-1);
+  min-width: 0;
+  padding-bottom: var(--space-3);
+}
+
+.event-card__tag {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  max-width: 100%;
+  height: calc(var(--calendar-event-tags-height) - var(--space-3));
+  padding-top: var(--space-1);
+  padding-inline: var(--space-1-5);
+  border-radius: var(--radius-sm);
+  font-size: calc(var(--font-size-2xs) + 2px);
+  line-height: 1;
+  white-space: nowrap;
+
+  > span {
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+}
+
+.event-card__time-icon {
+  flex: none;
+  width: var(--font-size-sm);
+  height: var(--font-size-sm);
+  overflow: visible;
+  font-size: var(--font-size-sm);
+  line-height: 1;
+  translate: 0 0.12em;
+}
+
+.event-card__icon {
+  font-size: var(--font-size-2xl);
+}
+
+.event-card__title {
+  flex: 1;
+  min-width: 0;
+  color: inherit;
+  font-size: var(--font-size-lg);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.event-card__title--empty {
+  opacity: 0.7;
+}
+
+:host-context(.calendar--mobile-month) {
+  padding-inline: var(--space-1);
+
+  .event-card__main {
+    height: var(--space-4);
+  }
+
+  .event-card__title {
+    font-size: var(--font-size-2xs);
+  }
+
+  .event-card__icon {
+    font-size: var(--font-size-xs);
+  }
+
+  .event-card__tags,
+  .event-card__time-icon {
+    display: none;
+  }
+}
+
+:host-context(.calendar--mobile-day) {
+  overflow: hidden;
+
+  .event-card__main {
+    flex-shrink: 0;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-2);
+    height: auto;
+    min-height: var(--space-5);
+  }
+
+  .event-card__icon {
+    font-size: var(--font-size-3xl);
+  }
+
+  .event-card__title {
+    font-size: var(--font-size-lg);
+    line-height: var(--line-height-tight);
+  }
+
+  .event-card__time-icon {
+    display: none;
+  }
+}

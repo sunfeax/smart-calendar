@@ -77,7 +77,7 @@ import {
 } from '../../components/calendar-export-dialog/calendar-export-dialog';
 import { CalendarImportDialog } from '../../components/calendar-import-dialog/calendar-import-dialog';
 import { EventEditDialog } from '../../components/event-edit-dialog/event-edit-dialog';
-import { EventIcon } from '../../components/event-icon/event-icon';
+import { EventCard } from '../../components/event-card/event-card';
 import { EventSearchDialog } from '../../components/event-search-dialog/event-search-dialog';
 import { RecurrenceScopeDialog } from '../../components/recurrence-scope-dialog/recurrence-scope-dialog';
 import { CalendarSwipe } from '../../directives/calendar-swipe';
@@ -104,7 +104,7 @@ import { SnackbarService } from './../../../../shared/services/snackbar.service'
 @Component({
   selector: 'app-calendar',
   imports: [
-    EventIcon,
+    EventCard,
     FullCalendarModule,
     MatButton,
     MatFabButton,
