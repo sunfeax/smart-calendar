@@ -20,7 +20,7 @@ import { MatDialog } from '@angular/material/dialog';
 import { MatIcon } from '@angular/material/icon';
 import { MatMenu, MatMenuItem, MatMenuTrigger } from '@angular/material/menu';
 import { MatTooltip } from '@angular/material/tooltip';
-import { Router, RouterLink } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import {
   CalendarOptions,
   DatesSetInfo,
@@ -139,6 +139,7 @@ export class Calendar {
   private readonly transloco = inject(TranslocoService);
   private readonly languageService = inject(LanguageService);
   private readonly router = inject(Router);
+  private readonly route = inject(ActivatedRoute);
   private readonly host = inject<ElementRef<HTMLElement>>(ElementRef);
   private readonly breakpointObserver = inject(BreakpointObserver);
   private readonly injector = inject(Injector);
@@ -149,6 +150,17 @@ export class Calendar {
   // STATE
   readonly routePaths = routePaths;
   private readonly viewDate = signal(new Date());
+  private readonly notificationTarget = toSignal(
+    this.route.queryParamMap.pipe(
+      map(params => ({
+        eventId: params.get('event'),
+        originalStart: params.get('originalStart'),
+        date: params.get('date'),
+      })),
+    ),
+  );
+  private notificationDate: string | null = null;
+  private openedNotification: string | null = null;
   readonly mobilePeriodMode = signal<'months' | 'years'>('months');
   readonly isDayView = signal(false);
   private readonly fullCalendar = viewChild.required(FullCalendarComponent);
@@ -422,9 +434,53 @@ export class Calendar {
     this.showTagsError();
     this.leaveOnCalendarError();
     this.undoOnShortcut();
+    this.openNotification();
   }
 
   // EFFECTS
+  private openNotification(): void {
+    afterRenderEffect(() => {
+      const target = this.notificationTarget();
+      if (!target?.eventId || !target.date || !/^\d{4}-\d{2}-\d{2}$/.test(target.date))
+        return;
+      if (!this.calendar.hasValue()) return;
+      const key = `${this.id()}:${target.eventId}:${target.originalStart ?? ''}:${target.date}`;
+      if (this.openedNotification === key) return;
+      const date = new Date(`${target.date}T12:00:00`);
+      if (Number.isNaN(+date)) return;
+      const range = this.range();
+      const loading = this.events.isLoading();
+      const events = this.events.hasValue() ? this.events.value() : undefined;
+      if (this.notificationDate !== key) {
+        this.notificationDate = key;
+        this.fullCalendar().getApi().gotoDate(date);
+        if (!range || date < new Date(range.from) || date >= new Date(range.to)) return;
+      }
+      if (
+        !range ||
+        date < new Date(range.from) ||
+        date >= new Date(range.to) ||
+        loading ||
+        !events
+      )
+        return;
+      this.openedNotification = key;
+      const event = events.find(
+        item =>
+          item.id === target.eventId &&
+          (!item.originalStart || item.originalStart === target.originalStart),
+      );
+      if (event) this.openEventDialog(event);
+      else this.snackbarService.info(this.transloco.translate('reminder.notFound'));
+      void this.router.navigate([], {
+        relativeTo: this.route,
+        queryParams: { event: null, originalStart: null, date: null },
+        queryParamsHandling: 'merge',
+        replaceUrl: true,
+      });
+    });
+  }
+
   private fitWeekRows(): void {
     afterRenderEffect(onCleanup => {
       if (this.isMobile()) return;

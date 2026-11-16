@@ -175,3 +175,34 @@ uses `POST /events/:id/restore`; for one cancelled occurrence it includes
 Owners and editors can list, restore, and permanently delete archived records.
 Permanent deletion requires confirmation and only accepts archived records.
 Archives have no automatic expiry. Deleting a calendar cascades to its related data.
+
+## Event reminders and push devices
+
+`EventReminder` is an optional shared setting for an event. Owners and editors can
+choose a lead time from zero to seven days. For all-day events, the setting also
+stores an anchor time and IANA time zone; the lead time is subtracted from that
+local time. A recurring event shares one reminder setting across its future
+occurrences. Copies and following-series splits copy this setting.
+
+`PushSubscription` stores a browser endpoint and encryption keys, bound to the
+current database session. Signing out deletes its subscriptions through the
+session relation. Delivery checks the session expiry and current calendar
+membership, including immediately before sending. Subscription keys and endpoints
+must never appear in API responses or logs. A device's saved language determines
+the notification language.
+
+`ReminderDelivery` identifies one reminder, browser subscription, and original
+occurrence start. A unique constraint and a short database lease prevent parallel
+workers from sending the same pending delivery concurrently. Successful delivery
+records survive restarts; failed requests retry up to five times. Expired push
+endpoints are removed after HTTP 404 or 410 responses. Browser notification tags
+also identify the occurrence, replacing an existing notification after an
+ambiguous network retry.
+
+The backend checks reminders every 15 seconds and catches up at most ten minutes
+after their scheduled time. It does not send older reminders after a long outage.
+Archived, completed, cancelled, and rescheduled occurrences are checked against
+the latest event state. Recurrence expansion reuses the calendar's wall-clock
+rules, including moved exceptions and daylight-saving changes. Delivery records
+are retained for 30 days. Push delivery is best effort and depends on connectivity
+and operating-system notification settings.

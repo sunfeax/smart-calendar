@@ -21,6 +21,8 @@ import { loadingInterceptor } from './core/interceptors/loading-interceptor';
 import { AuthService } from './features/auth/service/auth.service';
 import { AppUpdateService } from './shared/services/app-update.service';
 import { ThemeService } from './shared/services/theme.service';
+import { PushNotificationsService } from './shared/services/push-notifications.service';
+import { ReminderAlertService } from './shared/services/reminder-alert.service';
 
 export const appConfig: ApplicationConfig = {
   providers: [
@@ -52,5 +54,7 @@ export const appConfig: ApplicationConfig = {
       registrationStrategy: 'registerWhenStable:30000',
     }),
     provideAppInitializer(() => void inject(AppUpdateService)),
+    provideAppInitializer(() => void inject(PushNotificationsService)),
+    provideAppInitializer(() => void inject(ReminderAlertService)),
   ],
 };

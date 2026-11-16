@@ -206,6 +206,9 @@ export class EventService {
       where: { eventId: id },
       select: { tagId: true },
     });
+    const reminder = await this.prisma.eventReminder.findUnique({
+      where: { eventId: id },
+    });
 
     const event = await this.prisma.event.create({
       data: {
@@ -217,6 +220,15 @@ export class EventService {
         endAt,
         allDay,
         tags: { createMany: { data: tags } },
+        reminder: reminder
+          ? {
+              create: {
+                minutesBefore: reminder.minutesBefore,
+                allDayTime: reminder.allDayTime,
+                timeZone: reminder.timeZone,
+              },
+            }
+          : undefined,
       },
       include: EVENT_INCLUDE,
     });
@@ -643,6 +655,9 @@ export class EventService {
       where: { eventId: event.id },
       select: { tagId: true },
     });
+    const reminder = await this.prisma.eventReminder.findUnique({
+      where: { eventId: event.id },
+    });
 
     const created = await this.prisma.$transaction(async tx => {
       await this.updateUnchanged(tx, event, {
@@ -666,6 +681,15 @@ export class EventService {
           recurrenceRule,
           timeZone,
           tags: { createMany: { data: tags } },
+          reminder: reminder
+            ? {
+                create: {
+                  minutesBefore: reminder.minutesBefore,
+                  allDayTime: reminder.allDayTime,
+                  timeZone: reminder.timeZone,
+                },
+              }
+            : undefined,
           exceptions: {
             createMany: {
               data: cancelledStarts.map(originalStart => ({

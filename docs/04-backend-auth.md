@@ -132,3 +132,24 @@ origin used by the browser; local development uses `http://localhost` and
   Personal event data and authentication tokens must not be logged.
 - Schema changes use migrations. See [deployment](05-deploy.md) for proxy,
   rate-limit, backup, and production configuration details.
+
+## Notifications API
+
+- `GET /api/notifications/config` returns the public VAPID key, or `null` when
+  delivery is not configured. The private key stays on the backend.
+- `PUT /api/notifications/subscription` validates a browser subscription and binds
+  it to the authenticated session. The server accepts HTTPS push endpoints from
+  Google, Mozilla, Apple, and Windows push services, without arbitrary outbound
+  URLs. A user can register at most 20 active device subscriptions.
+- `DELETE /api/notifications/subscription` removes the endpoint only from the
+  current session.
+- `GET /api/events/:eventId/reminder` requires calendar membership.
+- `PUT /api/events/:eventId/reminder` requires editor or owner access and validates
+  the lead time, local anchor time, and IANA time zone.
+
+The notification module starts its bounded polling worker only when VAPID is
+configured. PostgreSQL stores settings and delivery leases; no browser timers,
+Redis instance, or separate scheduler service are required. Temporary network,
+HTTP 429, and server failures retry within the ten-minute catch-up window. Other
+permanent push failures stop retrying. Logs contain only generic delivery status,
+without endpoints, encryption material, or event text.

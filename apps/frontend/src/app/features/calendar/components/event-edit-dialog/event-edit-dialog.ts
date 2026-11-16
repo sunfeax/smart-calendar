@@ -69,6 +69,7 @@ import { TagCreateRequest } from '../../models/tag-create-request';
 import { toEventApiDates, toEventFormDates } from '../../utils/event.mapper';
 import { EventIconPicker } from '../event-icon-picker/event-icon-picker';
 import { EventRecurrence } from '../event-recurrence/event-recurrence';
+import { EventReminder } from '../event-reminder/event-reminder';
 import { EventTags } from '../event-tags/event-tags';
 
 interface EventFormValidity {
@@ -91,6 +92,7 @@ interface EventFormModel {
   imports: [
     EventIconPicker,
     EventRecurrence,
+    EventReminder,
     EventTags,
     FormField,
     MatButton,
@@ -161,6 +163,7 @@ export class EventEditDialog {
   readonly recurrenceRule = computed(() => this.saved().recurrenceRule);
 
   readonly savedStartAt = computed(() => this.saved().startAt);
+  readonly savedEventId = computed(() => this.saved().id);
 
   readonly endTimeMin = computed(() => {
     const { startAt, endAt } = this.model();

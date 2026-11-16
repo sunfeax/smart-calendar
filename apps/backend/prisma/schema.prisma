@@ -98,6 +98,7 @@ model Event {
   calendar       Calendar         @relation(fields: [calendarId], references: [id], onDelete: Cascade)
   tags           EventTag[]
   exceptions     EventException[]
+  reminder       EventReminder?
 
   @@unique([calendarId, externalId])
   @@index([calendarId, startAt])
@@ -113,6 +114,53 @@ model EventException {
   event         Event    @relation(fields: [eventId], references: [id], onDelete: Cascade)
 
   @@unique([eventId, originalStart])
+}
+
+model EventReminder {
+  id            String             @id @default(uuid())
+  eventId       String             @unique
+  minutesBefore Int                @default(15)
+  allDayTime    String             @default("09:00")
+  timeZone      String
+  createdAt     DateTime           @default(now()) @db.Timestamptz(3)
+  updatedAt     DateTime           @updatedAt @db.Timestamptz(3)
+  event         Event              @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  deliveries    ReminderDelivery[]
+}
+
+model PushSubscription {
+  id           String             @id @default(uuid())
+  sessionId    String
+  endpointHash String             @unique
+  endpoint     String
+  p256dh       String
+  auth         String
+  language     String             @default("en")
+  createdAt    DateTime           @default(now()) @db.Timestamptz(3)
+  updatedAt    DateTime           @updatedAt @db.Timestamptz(3)
+  session      Session            @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  deliveries   ReminderDelivery[]
+
+  @@index([sessionId])
+}
+
+model ReminderDelivery {
+  id             String           @id @default(uuid())
+  reminderId     String
+  subscriptionId String
+  originalStart  DateTime         @db.Timestamptz(3)
+  remindAt       DateTime         @db.Timestamptz(3)
+  attempts       Int              @default(0)
+  nextAttemptAt  DateTime         @default(now()) @db.Timestamptz(3)
+  lockedUntil    DateTime?        @db.Timestamptz(3)
+  sentAt         DateTime?        @db.Timestamptz(3)
+  createdAt      DateTime         @default(now()) @db.Timestamptz(3)
+  reminder       EventReminder    @relation(fields: [reminderId], references: [id], onDelete: Cascade)
+  subscription   PushSubscription @relation(fields: [subscriptionId], references: [id], onDelete: Cascade)
+
+  @@unique([reminderId, subscriptionId, originalStart])
+  @@index([createdAt])
+  @@index([subscriptionId])
 }
 
 model TagCategory {
@@ -163,6 +211,8 @@ model Session {
   expiresAt  DateTime @db.Timestamptz(3)
   createdAt  DateTime @default(now()) @db.Timestamptz(3)
   user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  pushSubscriptions PushSubscription[]
 
   @@index([userId])
   @@index([expiresAt])

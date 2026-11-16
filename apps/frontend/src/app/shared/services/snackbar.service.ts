@@ -33,23 +33,27 @@ export class SnackbarService {
     return this.show(message, 'success', action);
   }
 
+  persistent(message: string, action: string): Observable<void> {
+    return this.show(message, 'info', action, 0);
+  }
+
   dismiss(): void {
     this.snackBarService.dismiss();
   }
 
-  private show(message: string, type: SnackbarType, action?: string): Observable<void> {
+  private show(
+    message: string,
+    type: SnackbarType,
+    action?: string,
+    duration = action ? SNACKBAR_ACTION_DURATION : undefined,
+  ): Observable<void> {
     const panelClass = ['app-snack-bar', `app-snack-bar--${type}`];
     return this.snackBarService
       .openFromComponent<Snackbar, SnackbarData>(Snackbar, {
         ...SNACKBAR_CONFIG,
-        ...(action && { duration: SNACKBAR_ACTION_DURATION }),
+        ...(duration !== undefined && { duration }),
         panelClass,
-        data: {
-          message,
-          type,
-          action,
-          countdown: action ? SNACKBAR_ACTION_DURATION : undefined,
-        },
+        data: { message, type, action, countdown: duration || undefined },
       })
       .onAction();
   }

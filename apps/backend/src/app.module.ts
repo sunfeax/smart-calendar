@@ -14,6 +14,7 @@ import { TagModule } from './features/calendar/tags/tag.module.js';
 import { SessionModule } from './features/session/session.module.js';
 import { UserModule } from './features/users/user.module.js';
 import { PrismaModule } from './prisma/prisma.module.js';
+import { NotificationModule } from './features/notifications/notification.module.js';
 
 @Module({
   imports: [
@@ -30,6 +31,7 @@ import { PrismaModule } from './prisma/prisma.module.js';
     TagModule,
     MemberModule,
     InviteModule,
+    NotificationModule,
   ],
   providers: [{ provide: APP_GUARD, useClass: ThrottlerGuard }],
 })

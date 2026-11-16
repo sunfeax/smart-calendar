@@ -206,3 +206,34 @@ a conflict check; server-side revisions would cover both.
 - Dragging is disabled on phones; dates and times are edited in the fullscreen dialog
   (`app-event-dialog`). Switching to a wider screen restores the year view;
   returning to a phone layout restores month view.
+
+## Push reminders
+
+The event editor includes the shared reminder interval, an optional custom number
+of minutes, and the anchor time and time zone for all-day events. Its independent
+ordered save queue drains finite requests after the dialog closes. Viewers can
+inspect the shared setting but cannot change it. Recurring-event reminders apply
+to the series, rather than only to the occurrence open in the editor.
+
+Every participant enables or disables notifications for their current device from
+the same editor section. Permission requests run only after an explicit click.
+`PushNotificationsService` uses `SwPush`, registers the subscription against the
+current authenticated session, and updates its language when the app is opened or
+the language changes. Device mutations are serialized so disabling a subscription
+does not race an earlier registration request. Notification settings remain
+editable if delivery is not configured on the backend.
+
+Angular's production service worker displays the push payload and uses
+`navigateLastFocusedOrOpen` to navigate to a calendar URL containing the event,
+original occurrence start, and date. The page waits for the calendar and matching
+event range, opens the event dialog, and removes those query parameters. Missing
+events show an unavailable message. On iPhone and iPad, notification support
+requires adding the PWA to the Home Screen and opening it there.
+
+On computers with a mouse (`(hover: hover) and (pointer: fine)`), `ReminderAlertService`
+also reacts to reminders delivered to open tabs through `SwPush.messages`: it plays a
+short Web Audio chime and shows an info snackbar without a timer. The snackbar stays
+until it is closed or replaced by another snackbar; its Open action navigates to the
+reminder URL, which opens the event as above. A Web Lock per notification tag plays
+the sound in only one tab. Browsers may keep the audio context suspended until the
+page has had a user interaction.

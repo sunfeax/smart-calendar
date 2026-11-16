@@ -1,0 +1,12 @@
+export const NOTIFICATION_LANGUAGES = ['ru', 'en', 'es'] as const;
+export type NotificationLanguage = (typeof NOTIFICATION_LANGUAGES)[number];
+export const MAX_PUSH_SUBSCRIPTIONS = 20;
+export const REMINDER_MAX_MINUTES = 10080;
+export const REMINDER_INTERVAL_MS = 15000;
+export const REMINDER_GRACE_MS = 10 * 60 * 1000;
+export const REMINDER_BATCH_SIZE = 100;
+export const REMINDER_CONCURRENCY = 5;
+export const REMINDER_MAX_ATTEMPTS = 5;
+export const REMINDER_LEASE_MS = 60000;
+export const PUSH_TIMEOUT_MS = 5000;
+export const DELIVERY_RETENTION_MS = 30 * 24 * 60 * 60 * 1000;

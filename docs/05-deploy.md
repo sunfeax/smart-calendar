@@ -122,3 +122,36 @@ Drop `restore_check` after inspecting it.
 
 The external proxy, certificates, public ingress rules, backup scheduling, and monitoring
 are deployment responsibilities outside the bundled application containers.
+
+## Enabling push reminders
+
+Apply the `20261116170000_event_reminders` migration before deploying the new API.
+The migration adds reminder, push-subscription, and delivery tables without
+changing existing event data. The regular production migration service applies it
+during deployment.
+
+Generate one VAPID key pair locally with the installed backend dependency:
+
+```bash
+npm --prefix apps/backend exec -- web-push generate-vapid-keys --json
+```
+
+Copy the values into the root environment configuration using the variable names
+from `.env.example`:
+
+- `VAPID_SUBJECT`: a contact URL, such as `mailto:admin@example.com`.
+- `VAPID_PUBLIC_KEY`: the generated public key.
+- `VAPID_PRIVATE_KEY`: the generated private key, kept only on the backend.
+
+Do not commit or share the generated private key. Keep the key pair stable across
+deployments; rotating it requires browsers to disable and re-enable notifications.
+The production Compose file forwards these values to the API. If they are empty,
+the app still runs and saves reminder settings, but push delivery stays disabled.
+No frontend key or rebuild-time secret is required.
+
+Use the public HTTPS origin to enable notifications on each device. For iPhone or
+iPad, add the app to the Home Screen first and open it from that icon. Check a
+short reminder with the app closed, then check a recurring and all-day event.
+Push delivery requires outbound HTTPS access to the supported browser push
+services. The worker polls every 15 seconds; network and operating-system behavior
+can add further delay, so reminders are not exact alarms.

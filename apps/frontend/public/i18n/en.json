@@ -379,5 +379,43 @@
       "full": "The calendar already has the maximum number of members.",
       "generic": "Something went wrong. Try again later."
     }
+  },
+  "reminder": {
+    "open": "Open",
+    "title": "Reminder",
+    "loading": "Loading…",
+    "loadError": "Could not load the reminder.",
+    "saveError": "Could not save the reminder. Try again.",
+    "retry": "Try again",
+    "off": "No reminder",
+    "custom": "Custom interval",
+    "minutesBefore": "Minutes before",
+    "allDayTime": "Time on the event day",
+    "timeZone": "Time zone: {{zone}}",
+    "useLocalTimeZone": "Use my time zone",
+    "shared": "Reminds all calendar members who have notifications enabled.",
+    "series": "Applies to all future occurrences in this series.",
+    "saving": "Saving…",
+    "deviceEnabled": "Notifications are enabled on this device.",
+    "deviceDisabled": "Enable notifications on this device to receive reminders.",
+    "enableDevice": "Enable notifications",
+    "disableDevice": "Disable on this device",
+    "deviceError": "Could not change notifications. Check your browser permissions and try again.",
+    "installIos": "On iPhone and iPad, add this app to your Home Screen and open it there to enable notifications.",
+    "unsupported": "Notifications are unavailable in this browser. Try a supported browser or the installed app.",
+    "blocked": "Notifications are blocked. Allow them in your browser or device settings, then reopen the app.",
+    "unavailable": "Notifications are not available yet. Reminder settings will be saved.",
+    "invalidMinutes": "Enter a whole number from 0 to 10080.",
+    "invalidTime": "Enter a valid time.",
+    "notFound": "This event is no longer available.",
+    "offsets": {
+      "0": "At the start",
+      "5": "5 minutes before",
+      "15": "15 minutes before",
+      "30": "30 minutes before",
+      "60": "1 hour before",
+      "1440": "1 day before",
+      "10080": "1 week before"
+    }
   }
 }

@@ -1,0 +1,116 @@
+<div class="reminder">
+  @if (reminder.isLoading()) {
+    <p class="reminder__hint" role="status">{{ 'reminder.loading' | transloco }}</p>
+  } @else if (reminder.error()) {
+    <p class="reminder__hint reminder__hint--error" role="alert">
+      {{ 'reminder.loadError' | transloco }}
+    </p>
+  } @else if (reminder.hasValue()) {
+    <mat-form-field class="reminder__field" subscriptSizing="dynamic">
+      <mat-select
+        [value]="selected()"
+        [disabled]="!editable() || saving()"
+        [attr.aria-label]="'reminder.title' | transloco"
+        (selectionChange)="select($event.value)"
+      >
+        <mat-option [value]="-1">{{ 'reminder.off' | transloco }}</mat-option>
+        @for (minutes of options; track minutes) {
+          <mat-option [value]="minutes">
+            {{ 'reminder.offsets.' + minutes | transloco }}
+          </mat-option>
+        }
+        <mat-option [value]="-2">{{ 'reminder.custom' | transloco }}</mat-option>
+      </mat-select>
+    </mat-form-field>
+    @if (model().enabled) {
+      @if (custom()) {
+        <mat-form-field class="reminder__field" subscriptSizing="dynamic">
+          <mat-label>{{ 'reminder.minutesBefore' | transloco }}</mat-label>
+          <input
+            matInput
+            #minutes
+            type="number"
+            min="0"
+            max="10080"
+            step="1"
+            [value]="model().minutesBefore"
+            [attr.aria-invalid]="minutesInvalid()"
+            [disabled]="!editable() || saving()"
+            (change)="setMinutes(minutes.value)"
+          />
+        </mat-form-field>
+        @if (minutesInvalid()) {
+          <p class="reminder__hint reminder__hint--error" role="alert">
+            {{ 'reminder.invalidMinutes' | transloco }}
+          </p>
+        }
+      }
+      @if (allDay()) {
+        <mat-form-field class="reminder__field" subscriptSizing="dynamic">
+          <mat-label>{{ 'reminder.allDayTime' | transloco }}</mat-label>
+          <input
+            matInput
+            #time
+            type="time"
+            [value]="model().allDayTime"
+            [attr.aria-invalid]="timeInvalid()"
+            [disabled]="!editable() || saving()"
+            (change)="setTime(time.value)"
+          />
+        </mat-form-field>
+        @if (timeInvalid()) {
+          <p class="reminder__hint reminder__hint--error" role="alert">
+            {{ 'reminder.invalidTime' | transloco }}
+          </p>
+        }
+        <p class="reminder__hint">
+          {{ 'reminder.timeZone' | transloco: { zone: model().timeZone } }}
+        </p>
+        @if (editable() && model().timeZone !== localTimeZone) {
+          <button
+            matButton
+            type="button"
+            [disabled]="saving()"
+            (click)="useLocalTimeZone()"
+          >
+            {{ 'reminder.useLocalTimeZone' | transloco }}
+          </button>
+        }
+      }
+      <p class="reminder__hint">{{ 'reminder.shared' | transloco }}</p>
+      @if (recurring()) {
+        <p class="reminder__hint">{{ 'reminder.series' | transloco }}</p>
+      }
+    }
+    @if (saving()) {
+      <p class="reminder__hint" role="status">{{ 'reminder.saving' | transloco }}</p>
+    } @else if (saveError()) {
+      <button matButton type="button" (click)="retry()">
+        {{ 'reminder.retry' | transloco }}
+      </button>
+    }
+  }
+  @if (!push.supported) {
+    <p class="reminder__hint">
+      {{ (push.isIos ? 'reminder.installIos' : 'reminder.unsupported') | transloco }}
+    </p>
+  } @else if (push.blocked()) {
+    <p class="reminder__hint">{{ 'reminder.blocked' | transloco }}</p>
+  } @else if (push.config.isLoading()) {
+    <p class="reminder__hint" role="status">{{ 'reminder.loading' | transloco }}</p>
+  } @else if (!push.available()) {
+    <p class="reminder__hint">{{ 'reminder.unavailable' | transloco }}</p>
+  } @else {
+    <p class="reminder__hint">
+      {{
+        (push.enabled() ? 'reminder.deviceEnabled' : 'reminder.deviceDisabled')
+          | transloco
+      }}
+    </p>
+    <button matButton type="button" [disabled]="push.pending()" (click)="togglePush()">
+      {{
+        (push.enabled() ? 'reminder.disableDevice' : 'reminder.enableDevice') | transloco
+      }}
+    </button>
+  }
+</div>
