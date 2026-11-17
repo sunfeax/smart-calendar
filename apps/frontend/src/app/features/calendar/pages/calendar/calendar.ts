@@ -371,7 +371,14 @@ export class Calendar {
       }
     },
     eventClick: info => {
-      if (!this.calendarSwipe().ignoreTap()) this.openEvent(info.event.id);
+      if (this.calendarSwipe().ignoreTap()) return;
+      if (info.jsEvent.altKey || info.jsEvent.metaKey) {
+        const dates = this.toDropDates(info.event);
+        if (dates && this.canEdit())
+          this.duplicateEvent(info.event.extendedProps['eventId'] as string, dates);
+        return;
+      }
+      this.openEvent(info.event.id);
     },
     datesSet: info => this.changeDates(info),
     viewDidMount: ({ el, view }) => {
